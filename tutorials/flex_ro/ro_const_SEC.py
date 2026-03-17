@@ -12,7 +12,7 @@ from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "sbce_pricesignal_short.csv")
+    price_data = pd.read_csv(script_dir / "sbce_pricesignal.csv")
     # price_data["Energy Rate"] = (
     #     price_data["electric_energy_on_peak"]
     #     + price_data["electric_energy_mid_peak"]
@@ -50,14 +50,14 @@ if __name__ == "__main__":
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
     m.params.intake.nominal_flowrate = 1063.5  # m3/hr
-    m.params.wrd_uf.update(
-        {
-            "surrogate_type": "constant_energy_intensity",
-            "surrogate_a": 1.0,
-            "surrogate_b": 0.0,
-            "nominal_recovery": 1,
-        }
-    )
+    # m.params.wrd_uf.update(
+    #     {
+    #         "surrogate_type": "constant_energy_intensity",
+    #         "surrogate_a": 1.0,
+    #         "surrogate_b": 0.0,
+    #         "nominal_recovery": 1,
+    #     }
+    # )
     m.params.wrd_ro.update(
         {
             "startup_delay": 8,  # hours
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     m.fix_operation_var("intake.feed_flowrate", m.params.intake.nominal_flowrate)
 
     # Pretreatment is either active (1) or inactive (0) for the entire run
-    # m.fix_operation_var("pretreatment.op_mode", 1)
+    m.fix_operation_var("pretreatment.op_mode", 1)
 
     fs.constrain_water_production(m)
 
@@ -137,14 +137,19 @@ if __name__ == "__main__":
 
     # Can't use gurobi because it requires a liciense for integer variables
     # So going to use ipopt, but may need to look into this further
-    dt = DiagnosticsToolbox(m)
-    solver = get_solver()
-    results = solver.solve(m)
+    # dt = DiagnosticsToolbox(m)
+    # solver = get_solver()
+    # results = solver.solve(m)
+
+    mip_gap = 0.02
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap
+    results = solver.solve(m, tee=True)
 
     pyo.assert_optimal_termination(results)
 
     # Write optimal values of all operational variables to a csv file
-    m.get_operation_var_values().to_csv("dummy_wrd_result.csv")
+    m.get_operation_var_values().to_csv("wrd_dummy_result.csv")
 
     # Plot operational variables
     fig, axs = m.plot_operation_profile(
@@ -155,7 +160,7 @@ if __name__ == "__main__":
             "num_skids_online",
         ],
     )
-    fig.savefig("operation_profile.png")
+    fig.savefig("wrd_operation_profile.png")
     # Return the values of all variables and expressions that do not vary with time
     print(m.get_design_var_values())
 

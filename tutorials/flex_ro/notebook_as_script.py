@@ -11,7 +11,7 @@ from watertap.core.solvers import get_solver
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "sbce_pricesignal_short.csv")
+    price_data = pd.read_csv(script_dir / "sbce_pricesignal.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
         + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
