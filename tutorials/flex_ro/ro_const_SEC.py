@@ -44,8 +44,8 @@ if __name__ == "__main__":
     # Instantiate an object containing the model parameters
     m.params = FlexDesalParams(
         start_date="2022-07-05 00:00:00",
-        end_date="2022-07-05 02:15:00",
-        annual_production_AF=1000,
+        end_date="2022-07-14 23:45:00",
+        annual_production_AF=3125,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
