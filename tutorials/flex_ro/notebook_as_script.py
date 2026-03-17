@@ -121,7 +121,7 @@ if __name__ == "__main__":
         sense=pyo.minimize,
     )
 
-    mip_gap = 0.02
+    mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
