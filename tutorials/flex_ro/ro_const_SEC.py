@@ -45,13 +45,13 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date="2022-07-05 00:00:00",
         end_date="2022-07-14 23:45:00",
-        annual_production_AF=2250,
+        annual_production_AF=3125,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
     # Add a check that the dates match the price data
 
-    m.params.intake.nominal_flowrate = 1063.5  # m3/hr
+    m.params.intake.nominal_flowrate = 2000  # m3/hr
     # m.params.wrd_uf.update(
     #     {
     #         "surrogate_type": "constant_energy_intensity",
