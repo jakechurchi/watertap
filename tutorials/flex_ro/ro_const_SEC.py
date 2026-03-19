@@ -398,7 +398,7 @@ if __name__ == "__main__":
         utils.wrd_fix_recovery(m, recovery=m.params.wrd_ro.nominal_recovery)
 
     m.num_shutdowns = pyo.Expression(
-        expr=10
+        expr=100
         * sum(
             sum(m.period[:, :].reverse_osmosis.ro_skid[i].shutdown)
             for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
