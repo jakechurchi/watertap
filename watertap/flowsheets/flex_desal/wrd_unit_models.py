@@ -27,8 +27,13 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
     _add_required_variables(blk)
     blk.coeffs = Param(["a", "b"], initialize=params.surrogate_coeffs)
 
-    blk.operational_limits = Constraint(
-        expr=blk.feed_flowrate == blk.op_mode * params.nominal_flowrate
+    blk.operational_limits_lower = Constraint(
+        expr=blk.feed_flowrate >= blk.op_mode * params.minimum_flowrate,
+        doc="Enforce minimum flowrate when operating",
+    )
+    blk.operational_limits_upper = Constraint(
+        expr=blk.feed_flowrate <= blk.op_mode * params.maximum_flowrate,
+        doc="Enforce maximum flowrate when operating",
     )
 
     if params.surrogate_type == "constant_energy_intensity":
@@ -128,7 +133,8 @@ def wrd_reverse_osmosis_operation_model(blk, params: um_params.WRD_ROParams):
     # Update bounds on recovery and energy intensity for all skids
     ei_lb, ei_ub = params.get_energy_intensity_bounds()
     for skid in blk.set_ro_skids:
-        blk.ro_skid[skid].feed_flowrate.setlb(params.minimum_flowrate)
+        # Note: feed_flowrate lower bound is 0 to allow shutdown
+        # Minimum flowrate when operating is enforced by operational_limits_lower constraint
         blk.ro_skid[skid].feed_flowrate.setub(params.maximum_flowrate)
         blk.ro_skid[skid].energy_intensity.setlb(ei_lb)
         blk.ro_skid[skid].energy_intensity.setub(ei_ub)
@@ -153,8 +159,13 @@ def uf_pump_operation_model(blk, params: um_params.WRD_UFParams):
     _add_required_variables(blk)
     blk.coeffs = Param(["a", "b"], initialize=params.surrogate_coeffs)
 
-    blk.operational_limits = Constraint(
-        expr=blk.feed_flowrate == blk.op_mode * params.nominal_flowrate
+    blk.operational_limits_lower = Constraint(
+        expr=blk.feed_flowrate >= blk.op_mode * params.minimum_flowrate,
+        doc="Enforce minimum flowrate when operating",
+    )
+    blk.operational_limits_upper = Constraint(
+        expr=blk.feed_flowrate <= blk.op_mode * params.maximum_flowrate,
+        doc="Enforce maximum flowrate when operating",
     )
 
     if params.surrogate_type == "constant_energy_intensity":
@@ -255,7 +266,8 @@ def wrd_uf_operation_model(blk, params: um_params.WRD_UFParams):
     # Update bounds on recovery and energy intensity for all skids
     ei_lb, ei_ub = params.get_energy_intensity_bounds()
     for pump in blk.set_uf_pumps:
-        blk.uf_pumps[pump].feed_flowrate.setlb(params.minimum_flowrate)
+        # Note: feed_flowrate lower bound is 0 to allow shutdown
+        # Minimum flowrate when operating is enforced by operational_limits_lower constraint
         blk.uf_pumps[pump].feed_flowrate.setub(params.maximum_flowrate)
         blk.uf_pumps[pump].energy_intensity.setlb(ei_lb)
         blk.uf_pumps[pump].energy_intensity.setub(ei_ub)

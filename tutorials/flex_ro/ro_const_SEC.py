@@ -304,7 +304,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date="2021-08-19 00:00:00",
         end_date="2021-08-25 23:00:00",
-        annual_production_AF=3125,
+        annual_production_AF=2500,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
@@ -323,7 +323,7 @@ if __name__ == "__main__":
         {
             "startup_delay": 3,  # hours
             "minimum_downtime": 3,  # hours
-            # "minimum_flowrate": 480,
+            "minimum_flowrate": 480,
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
             "surrogate_type": "constant_energy_intensity",
@@ -401,15 +401,17 @@ if __name__ == "__main__":
     # Can't use gurobi because it requires a liciense for integer variables
     # So going to use ipopt, but may need to look into this further
     # dt = DiagnosticsToolbox(m)
-    # solver = get_solver()
-    # results = solver.solve(m)
+    solver = get_solver()
+    results = solver.solve(m)
 
-    mip_gap = 0.03
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap
-    results = solver.solve(m, tee=True)
+    # mip_gap = 0.03
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap
+    # results = solver.solve(m, tee=True)
 
     pyo.assert_optimal_termination(results)
+
+    print(m.get_design_var_values())
 
     plot_function(m, n_time_points=len(price_data))
 
@@ -427,6 +429,5 @@ if __name__ == "__main__":
     )
     fig.savefig("wrd_operation_profile.png")
     # Return the values of all variables and expressions that do not vary with time
-    print(m.get_design_var_values())
 
     # OK this runs and solves at least
