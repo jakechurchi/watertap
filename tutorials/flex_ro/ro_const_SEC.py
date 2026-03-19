@@ -326,9 +326,9 @@ if __name__ == "__main__":
             "minimum_flowrate": 480,
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
-            "surrogate_type": "constant_energy_intensity",
-            "surrogate_a": 0.48,
-            "surrogate_b": 0.0,
+            "surrogate_type": "linear_energy_intensity",
+            "surrogate_a": 0.27995,
+            "surrogate_b": 0.00037,
             "nominal_recovery": 0.92,
             "num_ro_skids": 4,
         }
@@ -392,6 +392,10 @@ if __name__ == "__main__":
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
         utils.wrd_fix_recovery(m, recovery=m.params.wrd_ro.nominal_recovery)
+
+    # m.num_shutdowns = pyo.Expression(
+    #     expr=sum(m.period[:, :].reverse_osmosis.num_skids_off)
+    # )
 
     m.obj = pyo.Objective(
         expr=m.total_energy_cost + m.total_demand_cost,

@@ -330,7 +330,7 @@ class WRD_ROParams(UnitParams):
         """Returns the energy intensity for a given flowrate"""
         # Placeholder implementation
         coeffs = self.surrogate_coeffs
-        if self.surrogate_type == "constant_energy_intensity":
+        if self.surrogate_type == "linear_energy_intensity":
             return coeffs["a"] + coeffs["b"] * flowrate
 
         return None
@@ -340,7 +340,7 @@ class WRD_ROParams(UnitParams):
         Returns the optimum energy intensity if it exists inside the
         interval. Returns None is the optimum is at the bounds.
         """
-        # No optimum exists inside the interval, because energy is constant.
+        # No optimum exists inside the interval, because energy is linear.
         return None
 
     def get_energy_intensity_bounds(self, flowrate_lb=None, flowrate_ub=None):

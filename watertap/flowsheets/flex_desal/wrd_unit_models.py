@@ -36,7 +36,7 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
         doc="Enforce maximum flowrate when operating",
     )
 
-    if params.surrogate_type == "constant_energy_intensity":
+    if params.surrogate_type == "linear_energy_intensity":
         blk.calculate_energy_intensity = Constraint(
             expr=blk.energy_intensity
             == (blk.coeffs["a"] + blk.coeffs["b"] * blk.feed_flowrate),
@@ -136,7 +136,7 @@ def wrd_reverse_osmosis_operation_model(blk, params: um_params.WRD_ROParams):
         # Note: feed_flowrate lower bound is 0 to allow shutdown
         # Minimum flowrate when operating is enforced by operational_limits_lower constraint
         blk.ro_skid[skid].feed_flowrate.setub(params.maximum_flowrate)
-        blk.ro_skid[skid].energy_intensity.setlb(ei_lb)
+        # blk.ro_skid[skid].energy_intensity.setlb(ei_lb)
         blk.ro_skid[skid].energy_intensity.setub(ei_ub)
 
 
