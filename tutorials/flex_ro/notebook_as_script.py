@@ -95,6 +95,7 @@ if __name__ == "__main__":
         * sum(m.period[:, :].posttreatment.product_flowrate)
     )
     m.total_energy_cost = pyo.Expression(expr=sum(m.period[:, :].energy_cost))
+    # Demand costs are automatically normalized by number of months. So for a sample week, it multiplies by 7/31.
     m.total_demand_cost = pyo.Expression(
         expr=m.fixed_demand_cost + m.variable_demand_cost
     )

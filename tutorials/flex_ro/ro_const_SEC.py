@@ -374,6 +374,7 @@ if __name__ == "__main__":
         * sum(m.period[:, :].posttreatment.product_flowrate)
     )
     m.total_energy_cost = pyo.Expression(expr=sum(m.period[:, :].energy_cost))
+    # Demand costs are automatically normalized by number of months. So for a sample week, it multiplies by 7/31.
     m.total_demand_cost = pyo.Expression(
         expr=m.fixed_demand_cost + m.variable_demand_cost
     )
@@ -396,18 +397,22 @@ if __name__ == "__main__":
     if not m.params.wrd_ro.allow_variable_recovery:
         utils.wrd_fix_recovery(m, recovery=m.params.wrd_ro.nominal_recovery)
 
-    # m.num_shutdowns = pyo.Expression(
-    #     expr=sum(m.period[:, :].reverse_osmosis.num_skids_off)
-    # )
+    m.num_shutdowns = pyo.Expression(
+        expr=10
+        * sum(
+            sum(m.period[:, :].reverse_osmosis.ro_skid[i].shutdown)
+            for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
+        )
+    )  # 10 is an abitrary scaling factor
 
     m.obj = pyo.Objective(
-        expr=m.total_energy_cost + m.total_demand_cost,
+        expr=m.total_energy_cost + m.total_demand_cost + m.num_shutdowns,
         sense=pyo.minimize,
     )
 
     # Can't use gurobi because it requires a liciense for integer variables
     # So going to use ipopt, but may need to look into this further
-    # dt = DiagnosticsToolbox(m)
+    # # dt = DiagnosticsToolbox(m)
     # solver = get_solver()
     # results = solver.solve(m)
 
