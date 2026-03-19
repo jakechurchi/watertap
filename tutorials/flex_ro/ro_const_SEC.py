@@ -310,7 +310,8 @@ if __name__ == "__main__":
     )
     # Add a check that the dates match the price data
 
-    m.params.intake.nominal_flowrate = 2000  # m3/hr
+    m.params.intake.update({"energy_intensity": 0, "nominal_flowrate": 2000})  # m3/hr
+    m.params.pretreatment.update({"energy_intensity": 0})
     # m.params.wrd_uf.update(
     #     {
     #         "surrogate_type": "constant_energy_intensity",
@@ -333,6 +334,8 @@ if __name__ == "__main__":
             "num_ro_skids": 4,
         }
     )
+
+    m.params.posttreatment.update({"energy_intensity": 0})
 
     # Append LMP data to the model
     m.append_lmp_data(lmp_data=price_data["Energy Rate"])
