@@ -305,7 +305,7 @@ if __name__ == "__main__":
     # Instantiate an object containing the model parameters
     m.params = FlexDesalParams(
         start_date="2021-08-19 00:00:00",
-        end_date="2021-08-24 23:00:00",
+        end_date="2021-08-25 23:00:00",
         annual_production_AF=3125,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
@@ -325,9 +325,9 @@ if __name__ == "__main__":
         {
             "startup_delay": 3,  # hours
             "minimum_downtime": 3,  # hours
-            "minimum_flowrate": 550,
-            "nominal_flowrate": 600,
-            "maximum_flowrate": 645,
+            # "minimum_flowrate": 480,
+            "nominal_flowrate": 602,
+            "maximum_flowrate": 635,
             "surrogate_type": "constant_energy_intensity",
             "surrogate_a": 0.48,
             "surrogate_b": 0.0,
@@ -348,8 +348,8 @@ if __name__ == "__main__":
     # demand costs and emissions intensity. LMP value is updated by default
 
     # First, discover what blocks exist in the model
-
     print("Discovering blocks in period[1,1]:")
+
     for component in m.period[1, 1].component_objects(pyo.Block, descend_into=False):
         print(f"  - {component.name}")
 
@@ -403,15 +403,15 @@ if __name__ == "__main__":
     # Can't use gurobi because it requires a liciense for integer variables
     # So going to use ipopt, but may need to look into this further
     # dt = DiagnosticsToolbox(m)
-    solver = get_solver()
-    results = solver.solve(m)
+    # solver = get_solver()
+    # results = solver.solve(m)
 
-    # mip_gap = 0.03
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap
-    # results = solver.solve(m, tee=True)
+    mip_gap = 0.03
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap
+    results = solver.solve(m, tee=True)
 
-    # pyo.assert_optimal_termination(results)
+    pyo.assert_optimal_termination(results)
 
     plot_function(m, n_time_points=len(price_data))
 
