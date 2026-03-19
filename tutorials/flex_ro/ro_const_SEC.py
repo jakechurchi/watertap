@@ -324,7 +324,7 @@ if __name__ == "__main__":
         {
             "startup_delay": 3,  # hours
             "minimum_downtime": 3,  # hours
-            "minimum_flowrate": 480,
+            "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
             "surrogate_type": "linear_energy_intensity",
