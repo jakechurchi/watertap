@@ -398,15 +398,92 @@ if __name__ == "__main__":
         utils.wrd_fix_recovery(m, recovery=m.params.wrd_ro.nominal_recovery)
 
     m.num_shutdowns = pyo.Expression(
-        expr=60
+        expr=5
         * sum(
             sum(m.period[:, :].reverse_osmosis.ro_skid[i].shutdown)
             for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
         )
-    )  # 40 is an abitrary scaling factor
+    )  # 5 is an abitrary scaling factor
+
+    # Add binary variables to track flowrate changes between consecutive periods
+    m.flow_changed = pyo.Var(
+        m.set_days,
+        m.set_time,
+        range(1, m.params.wrd_ro.num_ro_skids + 1),
+        within=pyo.Binary,
+        doc="Binary variable: 1 if flowrate changes from previous period, 0 otherwise",
+    )
+
+    # Add constraints to detect flowrate changes
+    # We need a big-M value for the constraint (use maximum flowrate as big-M)
+    big_M = m.params.wrd_ro.maximum_flowrate * 2
+
+    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    def track_flow_changes(m_blk, d, t, i):
+        # Skip first time period of first day (no previous period to compare)
+        if d == 1 and t == 1:
+            return pyo.Constraint.Skip
+
+        # Get current and previous period flowrates
+        current_flow = m_blk.period[d, t].reverse_osmosis.ro_skid[i].feed_flowrate
+
+        if t == 1:
+            # First hour of a day (not first day), compare to last hour of previous day
+            prev_flow = (
+                m_blk.period[d - 1, m_blk.set_time.last()]
+                .reverse_osmosis.ro_skid[i]
+                .feed_flowrate
+            )
+        else:
+            # Compare to previous hour in same day
+            prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
+
+        # If flows are different, flow_changed must be 1
+        # This constraint allows flow_changed to be 1 when |current - prev| > 0
+        # Using a tolerance-based approach: if difference > small threshold, binary = 1
+        flow_diff = current_flow - prev_flow
+
+        # Note: This is a simplified constraint that encourages flow_changed = 1 when flow differs
+        # but doesn't strictly enforce it. For strict enforcement, you'd need indicator constraints
+        # or absolute value formulation which is more complex.
+        # Since we're minimizing, the solver will naturally set flow_changed = 0 when possible
+        return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
+
+    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    def track_flow_changes_neg(m_blk, d, t, i):
+        # Skip first time period of first day
+        if d == 1 and t == 1:
+            return pyo.Constraint.Skip
+
+        current_flow = m_blk.period[d, t].reverse_osmosis.ro_skid[i].feed_flowrate
+
+        if t == 1:
+            prev_flow = (
+                m_blk.period[d - 1, m_blk.set_time.last()]
+                .reverse_osmosis.ro_skid[i]
+                .feed_flowrate
+            )
+        else:
+            prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
+
+        flow_diff = prev_flow - current_flow
+
+        # Capture negative direction of flow change
+        return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
+
+    m.num_flow_changes = pyo.Expression(
+        expr=5  # Scaling factor (adjust as needed)
+        * sum(
+            sum(sum(m.flow_changed[d, t, i] for t in m.set_time) for d in m.set_days)
+            for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
+        )
+    )
 
     m.obj = pyo.Objective(
-        expr=m.total_energy_cost + m.total_demand_cost + m.num_shutdowns,
+        expr=m.total_energy_cost
+        + m.total_demand_cost
+        + m.num_shutdowns
+        + m.num_flow_changes,
         sense=pyo.minimize,
     )
 
