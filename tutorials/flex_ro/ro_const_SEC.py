@@ -398,7 +398,7 @@ if __name__ == "__main__":
         utils.wrd_fix_recovery(m, recovery=m.params.wrd_ro.nominal_recovery)
 
     m.num_shutdowns = pyo.Expression(
-        expr=5
+        expr=1
         * sum(
             sum(m.period[:, :].reverse_osmosis.ro_skid[i].shutdown)
             for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
@@ -472,7 +472,7 @@ if __name__ == "__main__":
         return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
 
     m.num_flow_changes = pyo.Expression(
-        expr=5  # Scaling factor (adjust as needed)
+        expr=1  # Scaling factor (adjust as needed)
         * sum(
             sum(sum(m.flow_changed[d, t, i] for t in m.set_time) for d in m.set_days)
             for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
