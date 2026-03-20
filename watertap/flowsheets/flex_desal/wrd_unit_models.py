@@ -136,7 +136,7 @@ def wrd_reverse_osmosis_operation_model(blk, params: um_params.WRD_ROParams):
         # Note: feed_flowrate lower bound is 0 to allow shutdown
         # Minimum flowrate when operating is enforced by operational_limits_lower constraint
         blk.ro_skid[skid].feed_flowrate.setub(params.maximum_flowrate)
-        blk.ro_skid[skid].energy_intensity.setlb(ei_lb)
+        # blk.ro_skid[skid].energy_intensity.setlb(ei_lb)
         blk.ro_skid[skid].energy_intensity.setub(ei_ub)
 
 
@@ -269,5 +269,5 @@ def wrd_uf_operation_model(blk, params: um_params.WRD_UFParams):
         # Note: feed_flowrate lower bound is 0 to allow shutdown
         # Minimum flowrate when operating is enforced by operational_limits_lower constraint
         blk.uf_pumps[pump].feed_flowrate.setub(params.maximum_flowrate)
-        blk.uf_pumps[pump].energy_intensity.setlb(ei_lb)
+        # blk.uf_pumps[pump].energy_intensity.setlb(ei_lb)
         blk.uf_pumps[pump].energy_intensity.setub(ei_ub)
