@@ -309,13 +309,14 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date="2021-08-19 00:00:00",
         end_date="2021-08-25 23:00:00",
-        annual_production_AF=3125,
+        annual_production_AF=11800,
+        timestep_hours=1,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
     # Add a check that the dates match the price data
 
-    m.params.intake.update({"energy_intensity": 0, "nominal_flowrate": 2000})  # m3/hr
+    m.params.intake.update({"energy_intensity": 0, "nominal_flowrate": 2500})  # m3/hr
     m.params.pretreatment.update({"energy_intensity": 0})
     # m.params.wrd_uf.update(
     #     {
@@ -495,13 +496,13 @@ if __name__ == "__main__":
     # Can't use gurobi because it requires a liciense for integer variables
     # So going to use ipopt, but may need to look into this further
     # # dt = DiagnosticsToolbox(m)
-    # solver = get_solver()
-    # results = solver.solve(m)
+    solver = get_solver()
+    results = solver.solve(m)
 
-    mip_gap = 0.03
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap
-    results = solver.solve(m, tee=True)
+    # mip_gap = 0.03
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap
+    # results = solver.solve(m, tee=True)
 
     pyo.assert_optimal_termination(results)
 
