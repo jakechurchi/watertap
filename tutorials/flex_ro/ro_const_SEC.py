@@ -496,13 +496,13 @@ if __name__ == "__main__":
     # Can't use gurobi because it requires a liciense for integer variables
     # So going to use ipopt, but may need to look into this further
     # # dt = DiagnosticsToolbox(m)
-    solver = get_solver()
-    results = solver.solve(m)
+    # solver = get_solver()
+    # results = solver.solve(m)
 
-    # mip_gap = 0.03
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap
-    # results = solver.solve(m, tee=True)
+    mip_gap = 0.03
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap
+    results = solver.solve(m, tee=True)
 
     pyo.assert_optimal_termination(results)
 
