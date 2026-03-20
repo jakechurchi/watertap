@@ -1,3 +1,8 @@
+import warnings
+import logging
+
+warnings.filterwarnings("ignore", message=".*implicit domain of 'Any'.*")
+logging.getLogger("pyomo").setLevel(logging.ERROR)
 from idaes.apps.grid_integration import PriceTakerModel
 import numpy as np
 import matplotlib.pyplot as plt
