@@ -334,8 +334,8 @@ if __name__ == "__main__":
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
             "surrogate_type": "linear_energy_intensity",
-            "surrogate_a": 0.27995,
-            "surrogate_b": 0.00037,
+            "surrogate_a": 0.213771,
+            "surrogate_b": 0.000369,
             "nominal_recovery": 0.92,
             "num_ro_skids": 4,
         }
