@@ -270,14 +270,14 @@ def plot_function(m, n_time_points):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig("wrd_pricetaker_summer_week.png", dpi=600)
+    fig.savefig("wrd_pricetaker_summer_month.png", dpi=600)
     plt.show()
 
 
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -307,8 +307,8 @@ if __name__ == "__main__":
 
     # Instantiate an object containing the model parameters
     m.params = FlexDesalParams(
-        start_date="2021-08-19 00:00:00",
-        end_date="2021-08-25 23:00:00",
+        start_date="2021-08-01 00:00:00",
+        end_date="2021-08-30 23:00:00",
         annual_production_AF=11800,
         timestep_hours=1,
         # fixed_monthly_cost = 10000,
