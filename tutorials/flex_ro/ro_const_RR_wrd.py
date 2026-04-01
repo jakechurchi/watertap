@@ -309,7 +309,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date="2022-07-05 00:00:00",
         end_date="2022-07-05 02:15:00",
-        annual_production_AF=1800,
+        annual_production_AF=11800,
         timestep_hours=0.25,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
@@ -317,19 +317,19 @@ if __name__ == "__main__":
     # Add a check that the dates match the price data
 
     m.params.intake.update({"energy_intensity": 0, "nominal_flowrate": 2500})  # m3/hr
-    m.params.pretreatment.update({"energy_intensity": 0})
-    # m.params.wrd_uf.update(
-    #     {
-    #         "minimum_flowrate": 344,  # m3/hr
-    #         "nominal_flowrate": 900,
-    #         "maximum_flowrate": 989,
-    #         "surrogate_type": "quadratic_energy_intensity",
-    #         "surrogate_a": 2.83e-1,
-    #         "surrogate_b": -3.44e-4,
-    #         "surrogate_c": 2.46e-7,
-    #         "nominal_recovery": .96,
-    #     }
-    # )
+    # m.params.pretreatment.update({"energy_intensity": 0})
+    m.params.wrd_uf.update(
+        {
+            "minimum_flowrate": 344,  # m3/hr
+            "nominal_flowrate": 900,
+            "maximum_flowrate": 989,
+            "surrogate_type": "quadratic_energy_intensity",
+            "surrogate_a": 2.83e-1,
+            "surrogate_b": -3.44e-4,
+            "surrogate_c": 2.46e-7,
+            "nominal_recovery": 0.96,
+        }
+    )
 
     m.params.wrd_ro.update(
         {
@@ -523,7 +523,9 @@ if __name__ == "__main__":
     plot_function(m, n_time_points=len(price_data))
 
     # Write optimal values of all operational variables to a csv file
-    m.get_operation_var_values().to_csv("wrd_dummy_result.csv")
+    output_csv = script_dir / "wrd_dummy_result.csv"
+    m.get_operation_var_values().to_csv(output_csv)
+    print(f"Saved operation variable results to: {output_csv}")
 
     # Plot operational variables
     fig, axs = m.plot_operation_profile(

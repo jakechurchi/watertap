@@ -161,7 +161,7 @@ def uf_pump_operation_model(blk, params: um_params.WRD_UFParams):
         Input parameters needed for the model
     """
     _add_required_variables(blk)
-    blk.coeffs = Param(["a", "b"], initialize=params.surrogate_coeffs)
+    blk.coeffs = Param(["a", "b", "c"], initialize=params.surrogate_coeffs)
 
     blk.operational_limits_lower = Constraint(
         expr=blk.feed_flowrate >= blk.op_mode * params.minimum_flowrate,

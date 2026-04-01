@@ -393,9 +393,9 @@ class WRD_UFParams(UnitParams):
     num_uf_pumps: int = 4
     minimum_operating_pumps: int = 1
     allow_shutdown: bool = True
-    minimum_flowrate: float = 0
-    nominal_flowrate: float = 337.670
-    maximum_flowrate: float = 1000
+    minimum_flowrate: float = 344
+    nominal_flowrate: float = 900
+    maximum_flowrate: float = 989
     nominal_recovery: float = 1
     minimum_uptime: int = 1
     minimum_downtime: int = 4
@@ -430,10 +430,33 @@ class WRD_UFParams(UnitParams):
     def get_optimum_energy_intensity(self, flowrate_lb, flowrate_ub):
         """
         Returns the optimum energy intensity if it exists inside the
-        interval. Returns None is the optimum is at the bounds.
+        interval. Returns None if the optimum is at the bounds.
         """
-        # No optimum exists inside the interval, because energy is quadratic.
-        return None
+        # Optimum exists inside the interval, and it is unique.
+        coeffs = self.surrogate_coeffs
+        if self.surrogate_type == "exponenetial_quadratic":
+
+            def _first_der(rec):
+                return (
+                    -coeffs["a"] * coeffs["b"] * exp(-coeffs["b"] * rec)
+                    + 2 * coeffs["c"] * rec
+                )
+
+            # First derivative is a monotonically increasing function.
+            # Therefore, if the first derivative has the same sign at both
+            # ends of the interval, then there is no point in the interval
+            # at which the derivative vanishes. So, the optimum is at its bounds
+            if _first_der(flowrate_lb) * _first_der(flowrate_ub) > 0:
+                # Optimum does not exist, so return
+                return None
+
+            root = optimize.bisect(_first_der, flowrate_lb, flowrate_ub, maxiter=1000)
+
+        else:
+            # This is "quadratic_surrogate":
+            root = -coeffs["b"] / (2 * coeffs["a"])
+
+        return self.get_energy_intensity(root)
 
     def get_energy_intensity_bounds(self, flowrate_lb=None, flowrate_ub=None):
         """

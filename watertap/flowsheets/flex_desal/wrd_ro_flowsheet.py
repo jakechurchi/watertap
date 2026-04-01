@@ -129,10 +129,8 @@ def build_desal_flowsheet(blk, params: um_params.FlexDesalParams):
     )
     # UF has not been added yet
     blk.pretreatment = OperationModel(
-        model_func=um.pretreatment_operation_model,
-        model_args={
-            "params": params.pretreatment
-        },  # WILL CHANGE TO params.wrd_uf once that functionality is added.
+        model_func=wrd_uf_operation_model,
+        model_args={"params": params.wrd_uf},
     )
     blk.reverse_osmosis = OperationModel(
         model_func=wrd_reverse_osmosis_operation_model,
