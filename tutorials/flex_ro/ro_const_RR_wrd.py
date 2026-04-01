@@ -330,7 +330,6 @@ if __name__ == "__main__":
             "nominal_recovery": 0.96,
         }
     )
-
     m.params.wrd_ro.update(
         {
             "startup_delay": 3,  # hours
@@ -407,7 +406,11 @@ if __name__ == "__main__":
 
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
-        utils.wrd_fix_recovery(m, recovery=m.params.wrd_ro.nominal_recovery)
+        utils.wrd_fix_recovery(
+            m,
+            ro_recovery=m.params.wrd_ro.nominal_recovery,
+            uf_recovery=m.params.wrd_uf.nominal_recovery,
+        )
 
     m.num_shutdowns = pyo.Expression(
         expr=1
