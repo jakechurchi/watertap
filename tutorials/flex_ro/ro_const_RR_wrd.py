@@ -328,6 +328,7 @@ if __name__ == "__main__":
             "surrogate_b": -3.44e-4,
             "surrogate_c": 2.46e-7,
             "nominal_recovery": 0.96,
+            "num_uf_pumps": 3,
         }
     )
     m.params.wrd_ro.update(
@@ -428,7 +429,16 @@ if __name__ == "__main__":
         m.set_time,
         range(1, m.params.wrd_ro.num_ro_skids + 1),
         within=pyo.Binary,
-        doc="Binary variable: 1 if flowrate changes from previous period, 0 otherwise",
+        doc="Binary variable: 1 if RO skid flowrate changes from previous period, 0 otherwise",
+    )
+
+    # Add binary variables to track UF pump flowrate changes between consecutive periods
+    m.uf_flow_changed = pyo.Var(
+        m.set_days,
+        m.set_time,
+        range(1, m.params.wrd_uf.num_uf_pumps + 1),
+        within=pyo.Binary,
+        doc="Binary variable: 1 if UF pump flowrate changes from previous period, 0 otherwise",
     )
 
     # Add constraints to detect flowrate changes
@@ -488,11 +498,72 @@ if __name__ == "__main__":
         # Capture negative direction of flow change
         return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
 
+    # Track UF pump flowrate changes
+    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
+    def track_uf_flow_changes(m_blk, d, t, i):
+        # Skip first time period of first day (no previous period to compare)
+        if d == 1 and t == 1:
+            return pyo.Constraint.Skip
+
+        # Get current and previous period flowrates
+        current_flow = m_blk.period[d, t].pretreatment.uf_pumps[i].feed_flowrate
+
+        if t == 1:
+            # First hour of a day (not first day), compare to last hour of previous day
+            prev_flow = (
+                m_blk.period[d - 1, m_blk.set_time.last()]
+                .pretreatment.uf_pumps[i]
+                .feed_flowrate
+            )
+        else:
+            # Compare to previous hour in same day
+            prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
+
+        # If flows are different, uf_flow_changed must be 1
+        flow_diff = current_flow - prev_flow
+        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
+
+        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
+
+    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
+    def track_uf_flow_changes_neg(m_blk, d, t, i):
+        # Skip first time period of first day
+        if d == 1 and t == 1:
+            return pyo.Constraint.Skip
+
+        current_flow = m_blk.period[d, t].pretreatment.uf_pumps[i].feed_flowrate
+
+        if t == 1:
+            prev_flow = (
+                m_blk.period[d - 1, m_blk.set_time.last()]
+                .pretreatment.uf_pumps[i]
+                .feed_flowrate
+            )
+        else:
+            prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
+
+        flow_diff = prev_flow - current_flow
+        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
+
+        # Capture negative direction of flow change
+        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
+
     m.num_flow_changes = pyo.Expression(
         expr=1  # Scaling factor (adjust as needed)
-        * sum(
-            sum(sum(m.flow_changed[d, t, i] for t in m.set_time) for d in m.set_days)
-            for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
+        * (
+            sum(
+                sum(
+                    sum(m.flow_changed[d, t, i] for t in m.set_time) for d in m.set_days
+                )
+                for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
+            )
+            + sum(
+                sum(
+                    sum(m.uf_flow_changed[d, t, i] for t in m.set_time)
+                    for d in m.set_days
+                )
+                for i in range(1, m.params.wrd_uf.num_uf_pumps + 1)
+            )
         )
     )
 
