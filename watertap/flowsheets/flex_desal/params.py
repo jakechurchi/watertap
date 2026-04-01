@@ -313,10 +313,9 @@ class WRD_ROParams(UnitParams):
     def __post_init__(self):
         # self._surrogate = # load the surrogate model here.
         self.surrogate_type: str = "constant_energy_intensity"
-        self.surrogate_a = (
-            1  # Not sure this input is being passed from the main script...
-        )
+        self.surrogate_a = 1
         self.surrogate_b = 1
+        self.surrogate_c = 1
 
     @property
     def surrogate_coeffs(self):
@@ -324,24 +323,48 @@ class WRD_ROParams(UnitParams):
         return {
             "a": self.surrogate_a,
             "b": self.surrogate_b,
+            "c": self.surrogate_c,
         }
 
     def get_energy_intensity(self, flowrate):
         """Returns the energy intensity for a given flowrate"""
         # Placeholder implementation
         coeffs = self.surrogate_coeffs
-        if self.surrogate_type == "linear_energy_intensity":
-            return coeffs["a"] + coeffs["b"] * flowrate
+        if self.surrogate_type == "quadratic_energy_intensity":
+            return coeffs["a"] + coeffs["b"] * flowrate + coeffs["c"] * flowrate**2
 
         return None
 
     def get_optimum_energy_intensity(self, flowrate_lb, flowrate_ub):
         """
         Returns the optimum energy intensity if it exists inside the
-        interval. Returns None is the optimum is at the bounds.
+        interval. Returns None if the optimum is at the bounds.
         """
-        # No optimum exists inside the interval, because energy is linear.
-        return None
+        # Optimum exists inside the interval, and it is unique.
+        coeffs = self.surrogate_coeffs
+        if self.surrogate_type == "exponenetial_quadratic":
+
+            def _first_der(rec):
+                return (
+                    -coeffs["a"] * coeffs["b"] * exp(-coeffs["b"] * rec)
+                    + 2 * coeffs["c"] * rec
+                )
+
+            # First derivative is a monotonically increasing function.
+            # Therefore, if the first derivative has the same sign at both
+            # ends of the interval, then there is no point in the interval
+            # at which the derivative vanishes. So, the optimum is at its bounds
+            if _first_der(flowrate_lb) * _first_der(flowrate_ub) > 0:
+                # Optimum does not exist, so return
+                return None
+
+            root = optimize.bisect(_first_der, flowrate_lb, flowrate_ub, maxiter=1000)
+
+        else:
+            # This is "quadratic_surrogate":
+            root = -coeffs["b"] / (2 * coeffs["a"])
+
+        return self.get_energy_intensity(root)
 
     def get_energy_intensity_bounds(self, flowrate_lb=None, flowrate_ub=None):
         """
@@ -381,11 +404,10 @@ class WRD_UFParams(UnitParams):
 
     def __post_init__(self):
         # self._surrogate = # load the surrogate model here.
-        self.surrogate_type: str = "constant_energy_intensity"
-        self.surrogate_a = (
-            1  # Not sure this input is being passed from the main script...
-        )
+        self.surrogate_type: str = "quadratic_energy_intensity"
+        self.surrogate_a = 1
         self.surrogate_b = 1
+        self.surrogate_c = 1
 
     @property
     def surrogate_coeffs(self):
@@ -393,14 +415,15 @@ class WRD_UFParams(UnitParams):
         return {
             "a": self.surrogate_a,
             "b": self.surrogate_b,
+            "c": self.surrogate_c,
         }
 
     def get_energy_intensity(self, flowrate):
         """Returns the energy intensity for a given flowrate"""
         # Placeholder implementation
         coeffs = self.surrogate_coeffs
-        if self.surrogate_type == "constant_energy_intensity":
-            return coeffs["a"] + coeffs["b"] * flowrate
+        if self.surrogate_type == "quadratic_energy_intensity":
+            return coeffs["a"] + coeffs["b"] * flowrate + coeffs["c"] * flowrate**2
 
         return None
 
@@ -409,7 +432,7 @@ class WRD_UFParams(UnitParams):
         Returns the optimum energy intensity if it exists inside the
         interval. Returns None is the optimum is at the bounds.
         """
-        # No optimum exists inside the interval, because energy is constant.
+        # No optimum exists inside the interval, because energy is quadratic.
         return None
 
     def get_energy_intensity_bounds(self, flowrate_lb=None, flowrate_ub=None):

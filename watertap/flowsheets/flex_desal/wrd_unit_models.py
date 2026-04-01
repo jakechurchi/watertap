@@ -25,7 +25,7 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
         Input parameters needed for the model
     """
     _add_required_variables(blk)
-    blk.coeffs = Param(["a", "b"], initialize=params.surrogate_coeffs)
+    blk.coeffs = Param(["a", "b", "c"], initialize=params.surrogate_coeffs)
 
     blk.operational_limits_lower = Constraint(
         expr=blk.feed_flowrate >= blk.op_mode * params.minimum_flowrate,
@@ -36,10 +36,14 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
         doc="Enforce maximum flowrate when operating",
     )
 
-    if params.surrogate_type == "linear_energy_intensity":
+    if params.surrogate_type == "quadratic_energy_intensity":
         blk.calculate_energy_intensity = Constraint(
             expr=blk.energy_intensity
-            == (blk.coeffs["a"] + blk.coeffs["b"] * blk.feed_flowrate),
+            == (
+                blk.coeffs["a"]
+                + blk.coeffs["b"] * blk.feed_flowrate
+                + blk.coeffs["c"] * blk.feed_flowrate**2
+            ),
             doc="Calculates the specific energy requirement",
         )
     else:
@@ -141,7 +145,7 @@ def wrd_reverse_osmosis_operation_model(blk, params: um_params.WRD_ROParams):
 
 
 # Currently implementing UF same way as RO.
-# However, this will increase the decision variables significantly, increasing solve time.
+# However, this will increase the decision variables significantly, and increase solve time.
 
 
 def uf_pump_operation_model(blk, params: um_params.WRD_UFParams):
@@ -168,10 +172,20 @@ def uf_pump_operation_model(blk, params: um_params.WRD_UFParams):
         doc="Enforce maximum flowrate when operating",
     )
 
-    if params.surrogate_type == "constant_energy_intensity":
+    if params.surrogate_type == "linear_energy_intensity":
         blk.calculate_energy_intensity = Constraint(
             expr=blk.energy_intensity
             == (blk.coeffs["a"] + blk.coeffs["b"] * blk.feed_flowrate),
+            doc="Calculates the specific energy requirement",
+        )  # This shouldn't be needed tbh. Linear is quadratic with c=0
+    elif params.surrogate_type == "quadratic_energy_intensity":
+        blk.calculate_energy_intensity = Constraint(
+            expr=blk.energy_intensity
+            == (
+                blk.coeffs["a"]
+                + blk.coeffs["b"] * blk.feed_flowrate
+                + blk.coeffs["c"] * blk.feed_flowrate**2
+            ),
             doc="Calculates the specific energy requirement",
         )
     else:
