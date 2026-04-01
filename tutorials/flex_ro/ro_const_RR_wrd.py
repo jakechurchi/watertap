@@ -346,7 +346,9 @@ if __name__ == "__main__":
         }
     )
 
-    m.params.posttreatment.update({"energy_intensity": 0})
+    m.params.posttreatment.update(
+        {"energy_intensity": 0.10}
+    )  # kWh/m3 - Should double check later!
 
     # Append LMP data to the model
     m.append_lmp_data(lmp_data=price_data["Energy Rate"])
