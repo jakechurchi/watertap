@@ -306,15 +306,20 @@ if __name__ == "__main__":
     m = PriceTakerModel()
 
     # Instantiate an object containing the model parameters
+    price_datetimes = pd.to_datetime(price_data["DateTime"]).dt.strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    data_start = price_datetimes.iloc[0]
+    data_end = price_datetimes.iloc[-1]
+
     m.params = FlexDesalParams(
-        start_date="2021-08-19 00:00:00",
-        end_date="2021-08-25 23:00:00",
+        start_date=data_start,
+        end_date=data_end,
         annual_production_AF=1000,
         timestep_hours=0.25,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
-    # Add a check that the dates match the price data
 
     m.params.intake.update({"energy_intensity": 0, "nominal_flowrate": 2500})  # m3/hr
     # m.params.pretreatment.update({"energy_intensity": 0})
@@ -331,6 +336,7 @@ if __name__ == "__main__":
             "num_uf_pumps": 3,
         }
     )
+
     m.params.wrd_ro.update(
         {
             "startup_delay": 3,  # hours
@@ -401,9 +407,6 @@ if __name__ == "__main__":
 
     # Feed flow to the intake does not vary with time
     m.fix_operation_var("intake.feed_flowrate", m.params.intake.nominal_flowrate)
-
-    # Pretreatment is either active (1) or inactive (0) for the entire run
-    m.fix_operation_var("pretreatment.op_mode", 1)
 
     fs.constrain_water_production(m)
 
