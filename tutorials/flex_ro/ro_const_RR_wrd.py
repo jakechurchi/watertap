@@ -305,18 +305,20 @@ if __name__ == "__main__":
     # ]
     m = PriceTakerModel()
 
-    # Instantiate an object containing the model parameters
-    price_datetimes = pd.to_datetime(price_data["DateTime"]).dt.strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
+    # Find start and end datetimes and time step  from the price data
+    price_datetimes = pd.to_datetime(price_data["DateTime"])
     data_start = price_datetimes.iloc[0]
-    data_end = price_datetimes.iloc[-1]
+    data_next_time = price_datetimes.iloc[1]
+    timestep_hours = (data_next_time - data_start).total_seconds() / 3600
+    start_date = data_start.strftime("%Y-%m-%d %H:%M:%S")
+    end_date = price_datetimes.iloc[-1].strftime("%Y-%m-%d %H:%M:%S")
 
+    # Instantiate an object containing the model parameters
     m.params = FlexDesalParams(
-        start_date=data_start,
-        end_date=data_end,
-        annual_production_AF=1000,
-        timestep_hours=0.25,
+        start_date=start_date,
+        end_date=end_date,
+        annual_production_AF=10000,
+        timestep_hours=timestep_hours,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
