@@ -327,6 +327,8 @@ if __name__ == "__main__":
     # m.params.pretreatment.update({"energy_intensity": 0})
     m.params.wrd_uf.update(
         {
+            "minimum_downtime": 2,
+            "startup_delay": 2,
             "minimum_flowrate": 344,  # m3/hr
             "nominal_flowrate": 900,
             "maximum_flowrate": 989,
@@ -341,8 +343,8 @@ if __name__ == "__main__":
 
     m.params.wrd_ro.update(
         {
-            "startup_delay": 3,  # hours
-            "minimum_downtime": 3,  # hours
+            "startup_delay": 2,  # hours
+            "minimum_downtime": 2,  # hours
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
@@ -554,7 +556,7 @@ if __name__ == "__main__":
         return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
 
     m.num_flow_changes = pyo.Expression(
-        expr=1  # Scaling factor (adjust as needed)
+        expr=5  # Scaling factor (adjust as needed)
         * (
             sum(
                 sum(
@@ -573,9 +575,8 @@ if __name__ == "__main__":
     )
 
     m.obj = pyo.Objective(
-        expr=m.total_energy_cost
-        + m.total_demand_cost
-        + m.num_shutdowns
+        expr=m.total_energy_cost + m.total_demand_cost
+        # + m.num_shutdowns
         + m.num_flow_changes,
         sense=pyo.minimize,
     )
