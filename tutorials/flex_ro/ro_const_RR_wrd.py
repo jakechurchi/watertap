@@ -309,7 +309,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date="2021-08-19 00:00:00",
         end_date="2021-08-25 23:00:00",
-        annual_production_AF=10000,
+        annual_production_AF=1000,
         timestep_hours=0.25,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
