@@ -277,39 +277,39 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "sbce_pricesignal_short.csv")
-    # price_data["Energy Rate"] = (
-    #     price_data["electric_energy_on_peak"]
-    #     + price_data["electric_energy_mid_peak"]
-    #     + price_data["electric_energy_off_peak"]
-    #     + price_data["electric_energy_super_off_peak"]
-    # )
-    # price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
-    # price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
     price_data["Energy Rate"] = (
-        price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
-        + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
-        + price_data["electric_energy_2_2022-07-05_2022-07-14_0"]
-        + price_data["electric_energy_3_2022-07-05_2022-07-14_0"]
+        price_data["electric_energy_on_peak"]
+        + price_data["electric_energy_mid_peak"]
+        + price_data["electric_energy_off_peak"]
+        + price_data["electric_energy_super_off_peak"]
     )
-    price_data["Fixed Demand Rate"] = price_data[
-        "electric_demand_maximum_2022-07-05_2022-07-14_0"
-    ]
-    price_data["Var Demand Rate"] = price_data[
-        "electric_demand_peak-summer_2022-07-05_2022-07-14_0"
-    ]
+    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
+    price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
+    # price_data["Energy Rate"] = (
+    #     price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
+    #     + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
+    #     + price_data["electric_energy_2_2022-07-05_2022-07-14_0"]
+    #     + price_data["electric_energy_3_2022-07-05_2022-07-14_0"]
+    # )
+    # price_data["Fixed Demand Rate"] = price_data[
+    #     "electric_demand_maximum_2022-07-05_2022-07-14_0"
+    # ]
+    # price_data["Var Demand Rate"] = price_data[
+    #     "electric_demand_peak-summer_2022-07-05_2022-07-14_0"
+    # ]
     price_data["Emissions Intensity"] = 0
-    # price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
-    price_data["Customer Cost"] = price_data[
-        "electric_customer_0_2022-07-05_2022-07-14_0"
-    ]
+    price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
+    # price_data["Customer Cost"] = price_data[
+    #     "electric_customer_0_2022-07-05_2022-07-14_0"
+    # ]
     m = PriceTakerModel()
 
     # Instantiate an object containing the model parameters
     m.params = FlexDesalParams(
-        start_date="2022-07-05 00:00:00",
-        end_date="2022-07-05 02:15:00",
-        annual_production_AF=11800,
+        start_date="2021-08-19 00:00:00",
+        end_date="2021-08-25 23:00:00",
+        annual_production_AF=10000,
         timestep_hours=0.25,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
