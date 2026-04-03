@@ -14,6 +14,8 @@ from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
 from watertap.core.solvers import get_solver
 
+# from idaes.core.util.model_diagnostics import DiagnosticsToolbox
+
 
 def plot_function(m, n_time_points):
     time = np.linspace(0, n_time_points - 1, n_time_points)
@@ -277,7 +279,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -581,9 +583,11 @@ if __name__ == "__main__":
         sense=pyo.minimize,
     )
 
-    # Can't use gurobi because it requires a liciense for integer variables
-    # So going to use ipopt, but may need to look into this further
-    # # dt = DiagnosticsToolbox(m)
+    # add a constraint that if the opmode of train 1 is off,
+    # then all uf pumps must also be off,
+    # then try to use the toolbox to find the structural issues
+
+    # dt = DiagnosticsToolbox(m)
     # solver = get_solver()
     # results = solver.solve(m)
 
