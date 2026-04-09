@@ -15,7 +15,7 @@ This module contains the default values of all the required
 parameters.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -309,6 +309,9 @@ class WRD_ROParams(UnitParams):
     minimum_downtime: int = 4
     startup_delay: int = 8
     allow_variable_recovery: bool = False
+    replacement_types: list[str] = field(default_factory=list)
+    replacement_costs: list[float] = field(default_factory=list)
+    replacement_lifetimes: list[float] = field(default_factory=list)
 
     def __post_init__(self):
         # self._surrogate = # load the surrogate model here.

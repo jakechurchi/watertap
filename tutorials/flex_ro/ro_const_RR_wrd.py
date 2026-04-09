@@ -279,34 +279,35 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
-    price_data["Energy Rate"] = (
-        price_data["electric_energy_on_peak"]
-        + price_data["electric_energy_mid_peak"]
-        + price_data["electric_energy_off_peak"]
-        + price_data["electric_energy_super_off_peak"]
-    )
-    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
-    price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
+    price_data = pd.read_csv(script_dir / "sbce_pricesignal_short.csv")
     # price_data["Energy Rate"] = (
-    #     price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_2_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_3_2022-07-05_2022-07-14_0"]
+    #     price_data["electric_energy_on_peak"]
+    #     + price_data["electric_energy_mid_peak"]
+    #     + price_data["electric_energy_off_peak"]
+    #     + price_data["electric_energy_super_off_peak"]
     # )
-    # price_data["Fixed Demand Rate"] = price_data[
-    #     "electric_demand_maximum_2022-07-05_2022-07-14_0"
-    # ]
-    # price_data["Var Demand Rate"] = price_data[
-    #     "electric_demand_peak-summer_2022-07-05_2022-07-14_0"
-    # ]
-    price_data["Emissions Intensity"] = 0
-    price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
-    # price_data["Customer Cost"] = price_data[
-    #     "electric_customer_0_2022-07-05_2022-07-14_0"
-    # ]
-    m = PriceTakerModel()
+    # price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
+    # price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
+    # price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
 
+    price_data["Energy Rate"] = (
+        price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
+        + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
+        + price_data["electric_energy_2_2022-07-05_2022-07-14_0"]
+        + price_data["electric_energy_3_2022-07-05_2022-07-14_0"]
+    )
+    price_data["Fixed Demand Rate"] = price_data[
+        "electric_demand_maximum_2022-07-05_2022-07-14_0"
+    ]
+    price_data["Var Demand Rate"] = price_data[
+        "electric_demand_peak-summer_2022-07-05_2022-07-14_0"
+    ]
+    price_data["Customer Cost"] = price_data[
+        "electric_customer_0_2022-07-05_2022-07-14_0"
+    ]
+    price_data["Emissions Intensity"] = 0
+
+    m = PriceTakerModel()
     # Find start and end datetimes and time step  from the price data
     price_datetimes = pd.to_datetime(price_data["DateTime"])
     data_start = price_datetimes.iloc[0]
@@ -356,6 +357,9 @@ if __name__ == "__main__":
             "surrogate_c": 1.673e-6,
             "nominal_recovery": 0.92,
             "num_ro_skids": 4,
+            "replacement_types": ["membrane_replacement"],
+            "replacement_costs": [50000],  # $ per replacement
+            "replacement_lifetimes": [5],  # years
         }
     )
 
@@ -407,8 +411,14 @@ if __name__ == "__main__":
     m.total_customer_cost = pyo.Expression(
         expr=sum(m.period[:, :].customer_cost) * m.params.num_months
     )
-    m.total_electricity_cost = pyo.Expression(
-        expr=m.total_energy_cost + m.total_demand_cost + m.total_customer_cost
+
+    fs.add_replacement_costs(m)
+
+    m.total_cost = pyo.Expression(
+        expr=m.total_energy_cost
+        + m.total_demand_cost
+        + m.total_customer_cost
+        + m.total_replacement_cost
     )
 
     # Feed flow to the intake does not vary with time
@@ -577,7 +587,7 @@ if __name__ == "__main__":
     )
 
     m.obj = pyo.Objective(
-        expr=m.total_energy_cost + m.total_demand_cost
+        expr=m.total_cost
         # + m.num_shutdowns
         + m.num_flow_changes,
         sense=pyo.minimize,
@@ -588,13 +598,13 @@ if __name__ == "__main__":
     # then try to use the toolbox to find the structural issues
 
     # dt = DiagnosticsToolbox(m)
-    # solver = get_solver()
-    # results = solver.solve(m)
+    solver = get_solver()
+    results = solver.solve(m)
 
-    mip_gap = 0.03
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap
-    results = solver.solve(m, tee=True)
+    # mip_gap = 0.03
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap
+    # results = solver.solve(m, tee=True)
 
     pyo.assert_optimal_termination(results)
 

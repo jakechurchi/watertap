@@ -276,6 +276,40 @@ def add_demand_and_fixed_costs(m):
     )
 
 
+def add_replacement_costs(m):
+    """Adds expressions for replacement costs"""
+
+    params: um_params.WRD_ROParams = m.params.wrd_ro
+    if params.replacement_types:
+        for i, replacement_type in enumerate(params.replacement_types):
+            # Create a variable for that replacement type
+            setattr(
+                m,
+                f"replacement_cost_{replacement_type}",
+                Param(
+                    within=NonNegativeReals,
+                    initialize=params.replacement_costs[i],
+                    doc=f"Replacement cost for {replacement_type}",
+                ),
+            )
+        # This is a super simple approach of just dividing the total cost and applying it to this time period
+        time_adjustment_factors = [
+            m.params.num_months / 12 / lifetime
+            for lifetime in params.replacement_lifetimes
+        ]
+
+        m.total_replacement_cost = Expression(
+            expr=(
+                sum(
+                    getattr(m, f"replacement_cost_{replacement_type}")
+                    * time_adjustment_factors[i]
+                    for i, replacement_type in enumerate(params.replacement_types)
+                )
+            ),
+            doc="Total replacement costs annualized over the time horizon",
+        )
+
+
 def add_useful_expressions(m):
     """Defines useful expressions for custom objective functions"""
 
