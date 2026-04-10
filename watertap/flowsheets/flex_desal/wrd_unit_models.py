@@ -269,6 +269,13 @@ def wrd_uf_operation_model(blk, params: um_params.WRD_UFParams):
             return Constraint.Skip
         return b.uf_pumps[index].op_mode <= b.uf_pumps[index - 1].op_mode
 
+    # Also add one for the flowrate itself
+    @blk.Constraint(blk.set_uf_pumps)
+    def symmetry_breaking_cuts(b, index):
+        if index == 1:
+            return Constraint.Skip
+        return b.uf_pumps[index].feed_flowrate <= b.uf_pumps[index - 1].feed_flowrate
+
     # Ensure that the operation of minimum number of skids is identical
     blk.set_min_operating_pumps = RangeSet(2, params.minimum_operating_pumps)
 

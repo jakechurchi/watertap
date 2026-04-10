@@ -280,7 +280,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -366,9 +366,7 @@ if __name__ == "__main__":
         }
     )
 
-    m.params.posttreatment.update(
-        {"energy_intensity": 0.10}
-    )  # kWh/m3 - Should double check later!
+    m.params.posttreatment.update({"energy_intensity": 0.101})  # kWh/m3
 
     # Append LMP data to the model
     m.append_lmp_data(lmp_data=price_data["Energy Rate"])
