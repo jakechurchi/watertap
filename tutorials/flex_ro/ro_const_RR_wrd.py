@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import pyomo.environ as pyo
+from pyomo.util.infeasible import log_infeasible_constraints
 from pathlib import Path
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
@@ -279,7 +280,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -306,7 +307,6 @@ if __name__ == "__main__":
     #     "electric_customer_0_2022-07-05_2022-07-14_0"
     # ]
     price_data["Emissions Intensity"] = 0
-
     m = PriceTakerModel()
     # Find start and end datetimes and time step  from the price data
     price_datetimes = pd.to_datetime(price_data["DateTime"])
@@ -600,19 +600,36 @@ if __name__ == "__main__":
     # then all uf pumps must also be off,
     # then try to use the toolbox to find the structural issues
 
-    @m.Constraint(range(1, m.params.wrd_uf.num_uf_pumps + 1))
-    def uf_off_first_hour_coupling(m_blk, i):
-        return m_blk.period[1, 1].pretreatment.uf_pumps[i].op_mode <= 0
+    # @m.Constraint(range(1, m.params.wrd_uf.num_uf_pumps + 1))
+    # def uf_off_first_hour_coupling(m_blk, i):
+    #     return m_blk.period[1, 1].pretreatment.uf_pumps[i].op_mode == 0
 
-    dt = DiagnosticsToolbox(m)
+    # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
     # solver = get_solver()
-    # results = solver.solve(m)
+    # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
 
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
+
+    # termination_condition = results.solver.termination_condition
+    # print(f"Solver termination condition: {termination_condition}")
+
+    # if termination_condition in (
+    #     pyo.TerminationCondition.infeasible,
+    #     pyo.TerminationCondition.infeasibleOrUnbounded,
+    # ):
+    #     print("\nModel is infeasible. Logging infeasible constraints...")
+    #     logging.getLogger("pyomo.util.infeasible").setLevel(logging.INFO)
+    #     log_infeasible_constraints(
+    #         m,
+    #         tol=1e-7,
+    #         log_expression=True,
+    #         log_variables=True,
+    #     )
+    #     raise RuntimeError("Model infeasible. See logs above for violated constraints.")
 
     pyo.assert_optimal_termination(results)
 

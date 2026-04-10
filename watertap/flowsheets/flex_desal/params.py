@@ -465,6 +465,8 @@ class WRD_UFParams(UnitParams):
         """
         Returns the bounds on energy intensity based on the bounds of
         flowrate
+        # NOT CLEAR TO ME WHY THIS ENERGY INTENSITY BOUND THING IS NEEDED.
+        # Also this logic doesn't work if energy intensity at the max flowrate is lower than what the surrogate gives for 0 flow
         """
         if flowrate_lb is None:
             flowrate_lb = self.minimum_flowrate
@@ -478,4 +480,5 @@ class WRD_UFParams(UnitParams):
         ]
 
         ei_values = list(filter(None, ei_values))  # remove None, if it exists
-        return min(ei_values), max(ei_values)
+        # Overwriting the bounds really quick here.
+        return 0, 1
