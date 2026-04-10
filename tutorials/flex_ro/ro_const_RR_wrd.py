@@ -14,7 +14,7 @@ from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
 from watertap.core.solvers import get_solver
 
-# from idaes.core.util.model_diagnostics import DiagnosticsToolbox
+from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 
 
 def plot_function(m, n_time_points):
@@ -590,9 +590,9 @@ if __name__ == "__main__":
     )
 
     m.obj = pyo.Objective(
-        expr=m.total_cost,
+        expr=m.total_cost
         # + m.num_shutdowns
-        # + m.num_flow_changes
+        + m.num_flow_changes,  # This wasn't the issue
         sense=pyo.minimize,
     )
 
@@ -600,7 +600,12 @@ if __name__ == "__main__":
     # then all uf pumps must also be off,
     # then try to use the toolbox to find the structural issues
 
-    # dt = DiagnosticsToolbox(m)
+    @m.Constraint(range(1, m.params.wrd_uf.num_uf_pumps + 1))
+    def uf_off_first_hour_coupling(m_blk, i):
+        return m_blk.period[1, 1].pretreatment.uf_pumps[i].op_mode <= 0
+
+    dt = DiagnosticsToolbox(m)
+    # dt.report_structural_issues()
     # solver = get_solver()
     # results = solver.solve(m)
 
