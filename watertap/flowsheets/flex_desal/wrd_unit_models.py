@@ -119,6 +119,13 @@ def wrd_reverse_osmosis_operation_model(blk, params: um_params.WRD_ROParams):
             return Constraint.Skip
         return b.ro_skid[index].op_mode <= b.ro_skid[index - 1].op_mode
 
+    # Also add one for the flowrate itself
+    @blk.Constraint(blk.set_ro_skids)
+    def symmetry_breaking_cuts(b, index):
+        if index == 1:
+            return Constraint.Skip
+        return b.ro_skid[index].feed_flowrate <= b.ro_skid[index - 1].feed_flowrate
+
     # Ensure that the operation of minimum number of skids is identical
     blk.set_min_operating_skids = RangeSet(2, params.minimum_operating_skids)
 

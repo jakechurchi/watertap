@@ -320,7 +320,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=10000,
+        annual_production_AF=11000,
         timestep_hours=timestep_hours,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
@@ -352,9 +352,9 @@ if __name__ == "__main__":
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
             "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 7.83e-1,
-            "surrogate_b": 1.588e-3,
-            "surrogate_c": 1.673e-6,
+            "surrogate_a": 5.411e-1,
+            "surrogate_b": -9.826e-4,
+            "surrogate_c": 1.100e-6,
             "nominal_recovery": 0.92,
             "num_ro_skids": 4,
             "replacement_types": ["membranes", "motors"],
@@ -609,7 +609,7 @@ if __name__ == "__main__":
     # solver = get_solver()
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
 
-    mip_gap = 0.03
+    mip_gap = 0.025
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
