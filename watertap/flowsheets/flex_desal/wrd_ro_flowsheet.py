@@ -310,6 +310,10 @@ def add_replacement_costs(m):
         )
 
 
+def add_flow_change_penalties(m):
+    pass
+
+
 def add_useful_expressions(m):
     """Defines useful expressions for custom objective functions"""
 
