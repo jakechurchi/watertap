@@ -427,15 +427,15 @@ if __name__ == "__main__":
     m.fix_operation_var("intake.feed_flowrate", m.params.intake.nominal_flowrate)
 
     # JUST FOR TESTING SOLVE TIME WITH UF CONSTRAINED!
-    m.fix_operation_var(
-        "pretreatment.uf_pumps[1].feed_flowrate", m.params.wrd_uf.nominal_flowrate
-    )
-    m.fix_operation_var(
-        "pretreatment.uf_pumps[2].feed_flowrate", m.params.wrd_uf.nominal_flowrate
-    )
-    m.fix_operation_var(
-        "pretreatment.uf_pumps[3].feed_flowrate", m.params.wrd_uf.nominal_flowrate
-    )
+    # m.fix_operation_var(
+    #     "pretreatment.uf_pumps[1].feed_flowrate", m.params.wrd_uf.nominal_flowrate
+    # )
+    # m.fix_operation_var(
+    #     "pretreatment.uf_pumps[2].feed_flowrate", m.params.wrd_uf.nominal_flowrate
+    # )
+    # m.fix_operation_var(
+    #     "pretreatment.uf_pumps[3].feed_flowrate", m.params.wrd_uf.nominal_flowrate
+    # )
 
     fs.constrain_water_production(m)
 
