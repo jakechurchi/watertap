@@ -452,7 +452,7 @@ if __name__ == "__main__":
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
     # print(m.flow_changes_penalty())
 
-    mip_gap = 0.005
+    mip_gap = 0.0137
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
