@@ -281,7 +281,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -448,6 +448,7 @@ if __name__ == "__main__":
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
     # solver = get_solver()
+    # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
     # print(m.flow_changes_penalty())
 
@@ -479,7 +480,7 @@ if __name__ == "__main__":
     filtered_design_var_values = {
         k: v
         for k, v in design_var_values.items()
-        if "num_flow_changes" not in k and "flow_changed" not in k
+        if "flow_change" not in k and "flow_changed" not in k
     }
     print(filtered_design_var_values)
 
