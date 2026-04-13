@@ -437,7 +437,7 @@ if __name__ == "__main__":
         )
 
     # FLowrates not fixed, but shouldn't randomly fluxuate either.
-    fs.add_flow_changes_penalty_continuous(m)
+    # fs.add_flow_changes_penalty_continuous(m)
 
     m.obj = pyo.Objective(
         expr=m.total_cost + m.flow_changes_penalty,
@@ -452,7 +452,7 @@ if __name__ == "__main__":
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
     # print(m.flow_changes_penalty())
 
-    mip_gap = 0.03
+    mip_gap = 0.005
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
