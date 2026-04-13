@@ -281,7 +281,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -426,17 +426,6 @@ if __name__ == "__main__":
     # Feed flow to the intake does not vary with time
     m.fix_operation_var("intake.feed_flowrate", m.params.intake.nominal_flowrate)
 
-    # JUST FOR TESTING SOLVE TIME WITH UF CONSTRAINED!
-    # m.fix_operation_var(
-    #     "pretreatment.uf_pumps[1].feed_flowrate", m.params.wrd_uf.nominal_flowrate
-    # )
-    # m.fix_operation_var(
-    #     "pretreatment.uf_pumps[2].feed_flowrate", m.params.wrd_uf.nominal_flowrate
-    # )
-    # m.fix_operation_var(
-    #     "pretreatment.uf_pumps[3].feed_flowrate", m.params.wrd_uf.nominal_flowrate
-    # )
-
     fs.constrain_water_production(m)
 
     # If water recovery is static, it must be fixed
@@ -446,162 +435,12 @@ if __name__ == "__main__":
             ro_recovery=m.params.wrd_ro.nominal_recovery,
             uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
-    # All of this should be moved to a different function!
-    # This might not be needed because there is already a cost penalty- when starting up, no product water produced for first two hours.
-    # m.num_shutdowns = pyo.Expression(
-    #     expr=1
-    #     * sum(
-    #         sum(m.period[:, :].reverse_osmosis.ro_skid[i].shutdown)
-    #         for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
-    #     )
-    # )  # 5 is an abitrary scaling factor
 
-    # Add binary variables to track flowrate changes between consecutive periods
-    m.flow_changed = pyo.Var(
-        m.set_days,
-        m.set_time,
-        range(1, m.params.wrd_ro.num_ro_skids + 1),
-        within=pyo.Binary,
-        doc="Binary variable: 1 if RO skid flowrate changes from previous period, 0 otherwise",
-    )
-
-    # Add binary variables to track UF pump flowrate changes between consecutive periods
-    m.uf_flow_changed = pyo.Var(
-        m.set_days,
-        m.set_time,
-        range(1, m.params.wrd_uf.num_uf_pumps + 1),
-        within=pyo.Binary,
-        doc="Binary variable: 1 if UF pump flowrate changes from previous period, 0 otherwise",
-    )
-
-    # Add constraints to detect flowrate changes
-    # We need a big-M value for the constraint (use maximum flowrate as big-M)
-    big_M = m.params.wrd_ro.maximum_flowrate * 2
-
-    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
-    def track_flow_changes(m_blk, d, t, i):
-        # Skip first time period of first day (no previous period to compare)
-        if d == 1 and t == 1:
-            return pyo.Constraint.Skip
-
-        # Get current and previous period flowrates
-        current_flow = m_blk.period[d, t].reverse_osmosis.ro_skid[i].feed_flowrate
-
-        if t == 1:
-            # First hour of a day (not first day), compare to last hour of previous day
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .reverse_osmosis.ro_skid[i]
-                .feed_flowrate
-            )
-        else:
-            # Compare to previous hour in same day
-            prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
-
-        # If flows are different, flow_changed must be 1
-        # This constraint allows flow_changed to be 1 when |current - prev| > 0
-        # Using a tolerance-based approach: if difference > small threshold, binary = 1
-        flow_diff = current_flow - prev_flow
-
-        # Note: This is a simplified constraint that encourages flow_changed = 1 when flow differs
-        # but doesn't strictly enforce it. For strict enforcement, you'd need indicator constraints
-        # or absolute value formulation which is more complex.
-        # Since we're minimizing, the solver will naturally set flow_changed = 0 when possible
-        return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
-
-    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
-    def track_flow_changes_neg(m_blk, d, t, i):
-        # Skip first time period of first day
-        if d == 1 and t == 1:
-            return pyo.Constraint.Skip
-
-        current_flow = m_blk.period[d, t].reverse_osmosis.ro_skid[i].feed_flowrate
-
-        if t == 1:
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .reverse_osmosis.ro_skid[i]
-                .feed_flowrate
-            )
-        else:
-            prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
-
-        flow_diff = prev_flow - current_flow
-
-        # Capture negative direction of flow change
-        return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
-
-    # Track UF pump flowrate changes
-    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
-    def track_uf_flow_changes(m_blk, d, t, i):
-        # Skip first time period of first day (no previous period to compare)
-        if d == 1 and t == 1:
-            return pyo.Constraint.Skip
-
-        # Get current and previous period flowrates
-        current_flow = m_blk.period[d, t].pretreatment.uf_pumps[i].feed_flowrate
-
-        if t == 1:
-            # First hour of a day (not first day), compare to last hour of previous day
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .pretreatment.uf_pumps[i]
-                .feed_flowrate
-            )
-        else:
-            # Compare to previous hour in same day
-            prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
-
-        # If flows are different, uf_flow_changed must be 1
-        flow_diff = current_flow - prev_flow
-        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
-
-        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
-
-    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
-    def track_uf_flow_changes_neg(m_blk, d, t, i):
-        # Skip first time period of first day
-        if d == 1 and t == 1:
-            return pyo.Constraint.Skip
-
-        current_flow = m_blk.period[d, t].pretreatment.uf_pumps[i].feed_flowrate
-
-        if t == 1:
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .pretreatment.uf_pumps[i]
-                .feed_flowrate
-            )
-        else:
-            prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
-
-        flow_diff = prev_flow - current_flow
-        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
-
-        # Capture negative direction of flow change
-        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
-
-    m.num_flow_changes = pyo.Expression(
-        expr=5  # Scaling factor (adjust as needed)
-        * (
-            sum(
-                sum(
-                    sum(m.flow_changed[d, t, i] for t in m.set_time) for d in m.set_days
-                )
-                for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
-            )
-            + sum(
-                sum(
-                    sum(m.uf_flow_changed[d, t, i] for t in m.set_time)
-                    for d in m.set_days
-                )
-                for i in range(1, m.params.wrd_uf.num_uf_pumps + 1)
-            )
-        )
-    )
+    # FLowrates not fixed, but shouldn't randomly fluxuate either.
+    fs.add_flow_changes_penalty_continuous(m)
 
     m.obj = pyo.Objective(
-        expr=m.total_cost + m.num_flow_changes,
+        expr=m.total_cost + m.flow_changes_penalty,
         sense=pyo.minimize,
     )
     print(degrees_of_freedom(m))
@@ -610,6 +449,7 @@ if __name__ == "__main__":
     # dt.report_structural_issues()
     # solver = get_solver()
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
+    # print(m.flow_changes_penalty())
 
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
