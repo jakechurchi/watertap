@@ -500,20 +500,10 @@ def add_flow_changes_penalty_continuous(m):
         * (
             sum(
                 m.flow_change[d, t, i]
-                for d in m.set_days
-                for t in m.set_time
-                for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
-            )
-            - sum(
-                m.flow_change[d, t, i]
-                * m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
-                for d in m.set_days
-                for t in m.set_time
-                for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
-            )
-            - sum(
-                m.flow_change[d, t, i]
-                * m.period[d, t].reverse_osmosis.ro_skid[i].startup
+                * (1 - m.period[d, t].reverse_osmosis.ro_skid[i].shutdown)
+                * (
+                    1 - m.period[d, t].reverse_osmosis.ro_skid[i].startup
+                )  # Only 1 when both are 0
                 for d in m.set_days
                 for t in m.set_time
                 for i in range(1, m.params.wrd_ro.num_ro_skids + 1)
