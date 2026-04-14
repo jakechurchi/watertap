@@ -474,6 +474,9 @@ if __name__ == "__main__":
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     solver.options["MIPFocus"] = 1  # Focus on finding good feasible solutions
+    solver.options["ImproveStartTime"] = (
+        20  # Spend up to 60 seconds improving the initial solution
+    )
     solver.options["StartNodeLimit"] = (
         50000  # I think this will allow it to complete the partial solution I'm initializing above.
     )
