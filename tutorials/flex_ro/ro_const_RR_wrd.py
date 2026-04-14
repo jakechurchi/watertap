@@ -380,12 +380,6 @@ if __name__ == "__main__":
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
 
-    # First, discover what blocks exist in the model
-    print("Discovering blocks in period[1,1]:")
-
-    for component in m.period[1, 1].component_objects(pyo.Block, descend_into=False):
-        print(f"  - {component.name}")
-
     m.update_operation_params(
         {
             "fixed_demand_rate": price_data["Fixed Demand Rate"],
@@ -471,8 +465,10 @@ if __name__ == "__main__":
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
+    solver.options["StartNodeLimit"] = (
+        50000  # I think this will allow it to complete the partial solution I'm initializing above.
+    )
     results = solver.solve(m, tee=True, symbolic_solver_labels=True)
-    m.write("model.sol")
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total cost: {m.total_cost():.2f}")
