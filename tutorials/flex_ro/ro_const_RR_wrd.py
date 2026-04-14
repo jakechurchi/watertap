@@ -440,7 +440,7 @@ if __name__ == "__main__":
     fs.add_flow_changes_penalty_continuous(m)
 
     m.obj = pyo.Objective(
-        expr=1e-4 * m.total_cost + 1e-3 * m.flow_changes_penalty,
+        expr=m.total_cost + m.flow_changes_penalty,
         sense=pyo.minimize,
     )
     print(degrees_of_freedom(m))
@@ -450,6 +450,19 @@ if __name__ == "__main__":
     # solver = get_solver()
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
+
+    # Add a guess value MIP start
+    for d, t in m.period:
+        for skid in m.period[d, t].reverse_osmosis.ro_skid:
+            m.period[d, t].reverse_osmosis.ro_skid[skid].feed_flowrate.set_value(
+                m.params.wrd_ro.nominal_flowrate
+            )
+            m.period[d, t].reverse_osmosis.ro_skid[skid].op_mode.set_value(1)
+        for pump in m.period[d, t].wrd_uf.uf_pumps:
+            m.period[d, t].wrd_uf.uf_pumps[pump].feed_flowrate.set_value(
+                m.params.wrd_uf.nominal_flowrate
+            )
+            m.period[d, t].wrd_uf.uf_pumps[pump].op_mode.set_value(1)
 
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
