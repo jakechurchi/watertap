@@ -281,7 +281,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_week.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_two_weeks.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -462,10 +462,6 @@ if __name__ == "__main__":
 
         m.period[d, t].posttreatment.op_mode.set_value(1)
 
-    for v in m.component_data_objects(pyo.Var, active=True):
-        if v.value is not None:
-            print(f"{v.name}: {v.value}")
-
     # for c in m.component_data_objects(pyo.Constraint, active=True):
     # # If this is > 0 (or a small tolerance), Gurobi will likely reject the start
     #     print(f"Constraint {c.name} violation: {c.lb - pyo.value(c.body) if c.has_lb else 0}")
@@ -473,10 +469,7 @@ if __name__ == "__main__":
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
-    solver.options["MIPFocus"] = 1  # Focus on finding good feasible solutions
-    solver.options["ImproveStartTime"] = (
-        20  # Spend up to 60 seconds improving the initial solution
-    )
+    solver.options["MIPFocus"] = 1
     solver.options["StartNodeLimit"] = (
         50000  # I think this will allow it to complete the partial solution I'm initializing above.
     )
