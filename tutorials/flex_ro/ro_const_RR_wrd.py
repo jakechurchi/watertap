@@ -454,7 +454,8 @@ if __name__ == "__main__":
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
-    results = solver.solve(m, tee=True, threads=1)
+    solver.options["Threads"] = 1
+    results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total cost: {m.total_cost():.2f}")
