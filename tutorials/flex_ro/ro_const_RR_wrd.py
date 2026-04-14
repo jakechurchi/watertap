@@ -466,7 +466,7 @@ if __name__ == "__main__":
             )
             m.period[d, t].pretreatment.uf_pumps[pump].op_mode.set_value(1)
 
-        m.period[d, t].posttreatment.product_flowrate.op_mode.set_value(1)
+        m.period[d, t].posttreatment.op_mode.set_value(1)
 
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
