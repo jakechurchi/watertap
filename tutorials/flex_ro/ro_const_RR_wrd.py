@@ -449,15 +449,15 @@ if __name__ == "__main__":
     for d, t in m.period:
         for skid in m.period[d, t].reverse_osmosis.ro_skid:
             # There were some warning against starting with guess values for continuous vars!
-            # m.period[d, t].reverse_osmosis.ro_skid[skid].feed_flowrate.set_value(
-            #     m.params.wrd_ro.nominal_flowrate
-            # )
+            m.period[d, t].reverse_osmosis.ro_skid[skid].feed_flowrate.set_value(
+                m.params.wrd_ro.nominal_flowrate
+            )
             m.period[d, t].reverse_osmosis.ro_skid[skid].op_mode.set_value(1)
 
         for pump in m.period[d, t].pretreatment.uf_pumps:
-            # m.period[d, t].pretreatment.uf_pumps[pump].feed_flowrate.set_value(
-            #     m.params.wrd_uf.nominal_flowrate
-            # )
+            m.period[d, t].pretreatment.uf_pumps[pump].feed_flowrate.set_value(
+                m.params.wrd_uf.nominal_flowrate
+            )
             m.period[d, t].pretreatment.uf_pumps[pump].op_mode.set_value(1)
 
         m.period[d, t].posttreatment.op_mode.set_value(1)
@@ -465,9 +465,9 @@ if __name__ == "__main__":
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
-    # solver.options["StartNodeLimit"] = (
-    #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
-    # )
+    solver.options["StartNodeLimit"] = (
+        50000  # I think this will allow it to complete the partial solution I'm initializing above.
+    )
     results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
