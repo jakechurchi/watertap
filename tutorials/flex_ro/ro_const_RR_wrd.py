@@ -281,7 +281,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -437,10 +437,10 @@ if __name__ == "__main__":
         )
 
     # FLowrates not fixed, but shouldn't randomly fluxuate either.
-    # fs.add_flow_changes_penalty_continuous(m)
+    fs.add_flow_changes_penalty_continuous(m)
 
     m.obj = pyo.Objective(
-        expr=m.total_cost,  # + m.flow_changes_penalty,
+        expr=1e-5 * m.total_cost + m.flow_changes_penalty,
         sense=pyo.minimize,
     )
     print(degrees_of_freedom(m))
@@ -450,12 +450,14 @@ if __name__ == "__main__":
     # solver = get_solver()
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
-    # print(m.flow_changes_penalty())
 
     mip_gap = 0.0137
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
+
+    print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
+    print(f"Total cost: {m.total_cost():.2f}")
 
     # termination_condition = results.solver.termination_condition
     # print(f"Solver termination condition: {termination_condition}")
