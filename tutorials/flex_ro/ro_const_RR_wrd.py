@@ -451,7 +451,7 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
 
-    mip_gap = 0.03
+    mip_gap = 0.15
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
