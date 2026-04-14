@@ -281,7 +281,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -451,7 +451,7 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
 
-    mip_gap = 0.0137
+    mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
