@@ -440,7 +440,7 @@ if __name__ == "__main__":
     fs.add_flow_changes_penalty_continuous(m)
 
     m.obj = pyo.Objective(
-        expr=m.total_cost + m.flow_changes_penalty,
+        expr=1e-4 * m.total_cost + 1e-3 * m.flow_changes_penalty,
         sense=pyo.minimize,
     )
     print(degrees_of_freedom(m))
@@ -454,7 +454,6 @@ if __name__ == "__main__":
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
-    solver.options["Threads"] = 1
     results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
