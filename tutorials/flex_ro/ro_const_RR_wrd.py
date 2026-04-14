@@ -463,12 +463,13 @@ if __name__ == "__main__":
         m.period[d, t].posttreatment.op_mode.set_value(1)
 
     mip_gap = 0.03
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver = pyo.SolverFactory("gurobi_persistent")
+    solver.set_instance(m, symbolic_solver_labels=True)
     solver.options["MIPGap"] = mip_gap
-    solver.options["StartNodeLimit"] = (
-        50000  # I think this will allow it to complete the partial solution I'm initializing above.
-    )
-    results = solver.solve(m, tee=True, symbolic_solver_labels=True)
+    # solver.options["StartNodeLimit"] = (
+    #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
+    # )
+    results = solver.solve(m, tee=True, warmstart=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total cost: {m.total_cost():.2f}")
