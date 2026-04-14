@@ -454,20 +454,25 @@ if __name__ == "__main__":
     # Add a guess value MIP start
     for d, t in m.period:
         for skid in m.period[d, t].reverse_osmosis.ro_skid:
+            # There were some warning against starting with guess values for continuous vars!
             m.period[d, t].reverse_osmosis.ro_skid[skid].feed_flowrate.set_value(
                 m.params.wrd_ro.nominal_flowrate
             )
             m.period[d, t].reverse_osmosis.ro_skid[skid].op_mode.set_value(1)
+
         for pump in m.period[d, t].pretreatment.uf_pumps:
             m.period[d, t].pretreatment.uf_pumps[pump].feed_flowrate.set_value(
                 m.params.wrd_uf.nominal_flowrate
             )
             m.period[d, t].pretreatment.uf_pumps[pump].op_mode.set_value(1)
 
+        m.period[d, t].posttreatment.product_flowrate.op_mode.set_value(1)
+
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
-    results = solver.solve(m, tee=True)
+    results = solver.solve(m, tee=True, warmstart=True, symbolic_solver_labels=True)
+    m.write("model.sol")
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total cost: {m.total_cost():.2f}")
