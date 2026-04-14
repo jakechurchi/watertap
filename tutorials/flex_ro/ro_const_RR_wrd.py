@@ -462,9 +462,18 @@ if __name__ == "__main__":
 
         m.period[d, t].posttreatment.op_mode.set_value(1)
 
+    for v in m.component_data_objects(pyo.Var, active=True):
+        if v.value is not None:
+            print(f"{v.name}: {v.value}")
+
+    # for c in m.component_data_objects(pyo.Constraint, active=True):
+    # # If this is > 0 (or a small tolerance), Gurobi will likely reject the start
+    #     print(f"Constraint {c.name} violation: {c.lb - pyo.value(c.body) if c.has_lb else 0}")
+
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
+    solver.options["MIPFocus"] = 1  # Focus on finding good feasible solutions
     solver.options["StartNodeLimit"] = (
         50000  # I think this will allow it to complete the partial solution I'm initializing above.
     )
