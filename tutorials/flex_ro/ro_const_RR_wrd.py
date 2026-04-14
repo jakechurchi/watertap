@@ -281,7 +281,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_two_weeks.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -440,7 +440,7 @@ if __name__ == "__main__":
     fs.add_flow_changes_penalty_continuous(m)
 
     m.obj = pyo.Objective(
-        expr=1e-5 * m.total_cost + m.flow_changes_penalty,
+        expr= m.total_cost + m.flow_changes_penalty,
         sense=pyo.minimize,
     )
     print(degrees_of_freedom(m))
