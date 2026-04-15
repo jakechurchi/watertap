@@ -333,7 +333,6 @@ def add_flow_changes_penalty_binary(m):
     # Add constraints to detect flowrate changes
     # We need a big-M value for the constraint (use maximum flowrate as big-M)
     big_M = m.params.wrd_ro.maximum_flowrate * 2
-    flow_change_threshold = 5  # m3/hr - only penalize changes larger than this
 
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
     def track_flow_changes(m_blk, d, t, i):
@@ -341,6 +340,7 @@ def add_flow_changes_penalty_binary(m):
         if d == 1 and t == 1:
             return Constraint.Skip
 
+        # Get current and previous period flowrates
         current_flow = m_blk.period[d, t].reverse_osmosis.ro_skid[i].feed_flowrate
 
         if t == 1:
@@ -351,12 +351,19 @@ def add_flow_changes_penalty_binary(m):
                 .feed_flowrate
             )
         else:
+            # Compare to previous hour in same day
             prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
 
-        # flow_changed = 1 only if flow increases by more than threshold
-        return m_blk.flow_changed[d, t, i] * big_M >= (
-            current_flow - prev_flow - flow_change_threshold
-        )
+        # If flows are different, flow_changed must be 1
+        # This constraint allows flow_changed to be 1 when |current - prev| > 0
+        # Using a tolerance-based approach: if difference > small threshold, binary = 1
+        flow_diff = current_flow - prev_flow
+
+        # Note: This is a simplified constraint that encourages flow_changed = 1 when flow differs
+        # but doesn't strictly enforce it. For strict enforcement, you'd need indicator constraints
+        # or absolute value formulation which is more complex.
+        # Since we're minimizing, the solver will naturally set flow_changed = 0 when possible
+        return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
 
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
     def track_flow_changes_neg(m_blk, d, t, i):
@@ -375,35 +382,37 @@ def add_flow_changes_penalty_binary(m):
         else:
             prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
 
-        # flow_changed = 1 only if flow decreases by more than threshold
-        return m_blk.flow_changed[d, t, i] * big_M >= (
-            prev_flow - current_flow - flow_change_threshold
-        )
+        flow_diff = prev_flow - current_flow
+
+        # Capture negative direction of flow change
+        return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
 
     # Track UF pump flowrate changes
-    big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
-    uf_flow_change_threshold = 5  # m3/hr
-
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
     def track_uf_flow_changes(m_blk, d, t, i):
         # Skip first time period of first day (no previous period to compare)
         if d == 1 and t == 1:
             return Constraint.Skip
 
+        # Get current and previous period flowrates
         current_flow = m_blk.period[d, t].pretreatment.uf_pumps[i].feed_flowrate
 
         if t == 1:
+            # First hour of a day (not first day), compare to last hour of previous day
             prev_flow = (
                 m_blk.period[d - 1, m_blk.set_time.last()]
                 .pretreatment.uf_pumps[i]
                 .feed_flowrate
             )
         else:
+            # Compare to previous hour in same day
             prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
 
-        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= (
-            current_flow - prev_flow - uf_flow_change_threshold
-        )
+        # If flows are different, uf_flow_changed must be 1
+        flow_diff = current_flow - prev_flow
+        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
+
+        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
 
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
     def track_uf_flow_changes_neg(m_blk, d, t, i):
@@ -422,9 +431,11 @@ def add_flow_changes_penalty_binary(m):
         else:
             prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
 
-        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= (
-            prev_flow - current_flow - uf_flow_change_threshold
-        )
+        flow_diff = prev_flow - current_flow
+        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
+
+        # Capture negative direction of flow change
+        return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
 
     # The penalty is simply the number of flow changes multiplied by a scaling factor
     m.flow_changes_penalty = Expression(
