@@ -431,13 +431,16 @@ def one_week(annual_production_AF=13000):
     fs.add_replacement_costs(m)
 
     m.total_cost = pyo.Expression(
-        expr=m.total_energy_cost
-        + m.total_demand_cost
-        + m.total_customer_cost
-        + m.total_feed_cost
-        + m.total_brine_cost
-        + m.total_chemical_cost
-        + m.total_replacement_cost  # function of degree of flexibility
+        expr=1e-4
+        * (
+            m.total_energy_cost
+            + m.total_demand_cost
+            + m.total_customer_cost
+            + m.total_feed_cost
+            + m.total_brine_cost
+            + m.total_chemical_cost
+            + m.total_replacement_cost
+        )  # function of degree of flexibility
     )
 
     fs.constrain_water_production(m)
