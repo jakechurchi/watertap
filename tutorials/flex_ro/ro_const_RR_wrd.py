@@ -457,7 +457,7 @@ if __name__ == "__main__":
     fs.add_flow_changes_penalty_binary(m)
 
     m.obj = pyo.Objective(
-        expr=m.total_cost + m.flow_changes_penalty,
+        expr=1e-4 * (m.total_cost + m.flow_changes_penalty),
         sense=pyo.minimize,
     )
     print(degrees_of_freedom(m))

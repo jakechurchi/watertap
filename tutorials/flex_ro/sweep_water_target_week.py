@@ -431,17 +431,14 @@ def one_week(annual_production_AF=13000):
     fs.add_replacement_costs(m)
 
     m.total_cost = pyo.Expression(
-        expr=1e-4
-        * (
-            m.total_energy_cost
-            + m.total_demand_cost
-            + m.total_customer_cost
-            + m.total_feed_cost
-            + m.total_brine_cost
-            + m.total_chemical_cost
-            + m.total_replacement_cost
-        )  # function of degree of flexibility
-    )
+        expr=m.total_energy_cost
+        + m.total_demand_cost
+        + m.total_customer_cost
+        + m.total_feed_cost
+        + m.total_brine_cost
+        + m.total_chemical_cost
+        + m.total_replacement_cost
+    )  # function of degree of flexibility
 
     fs.constrain_water_production(m)
 
@@ -460,7 +457,7 @@ def one_week(annual_production_AF=13000):
     fs.add_flow_changes_penalty_binary(m)
 
     m.obj = pyo.Objective(
-        expr=m.total_cost + m.flow_changes_penalty,
+        expr=1e-4 * (m.total_cost + m.flow_changes_penalty),
         sense=pyo.minimize,
     )
     print(degrees_of_freedom(m))
@@ -535,7 +532,7 @@ if __name__ == "__main__":
     water = []
     cost = []
     energy_cost = []
-    for annual_production in [10000, 11500, 13000]:
+    for annual_production in [8000, 9000, 10000, 11000, 12000, 13000]:
         print(
             f"\n\nRunning optimization for annual production of {annual_production} AF..."
         )
@@ -546,7 +543,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(
         {
-            "Annual Production (AF)": [10000, 11500, 13000],
+            "Annual Production (AF)": [8000, 9000, 10000, 11000, 12000, 13000],
             "Total Water Production (m3)": water,
             "Total Cost ($)": cost,
             "Total Energy Cost ($)": energy_cost,
