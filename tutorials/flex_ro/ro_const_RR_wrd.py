@@ -448,7 +448,7 @@ if __name__ == "__main__":
         )
 
     # Could cause feasibility issues b/c this is a slakc varable essentially.
-    m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
+    # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
 
     # Flowrates not fixed, but shouldn't randomly fluxuate either.
     fs.add_flow_changes_penalty_binary(m)
@@ -465,7 +465,7 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.02
+    mip_gap = 0.015
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     solver.options["MIPFocus"] = 2
