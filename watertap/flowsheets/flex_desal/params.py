@@ -90,6 +90,8 @@ class IntakeParams(UnitParams):
     minimum_flowrate: float = 1063.5
     nominal_flowrate: float = 1063.5
     maximum_flowrate: float = 1063.5
+    feed_cost: float = 0  # in $/m3
+    chemical_cost: float = 0  # in $/m3
 
 
 @dataclass
@@ -221,6 +223,7 @@ class PosttreatmentParams(UnitParams):
 
     energy_intensity: float = 0.41
     leakage_fraction: float = 0
+    chemical_cost: float = 0  # in $/m3
 
 
 @dataclass
@@ -229,6 +232,7 @@ class BrineDischargeParams(UnitParams):
 
     energy_intensity: float = 0.1
     leakage_fraction: float = 0
+    brine_cost: float = 0  # in $/m3
 
 
 @dataclass
@@ -312,6 +316,7 @@ class WRD_ROParams(UnitParams):
     replacement_types: list[str] = field(default_factory=list)
     replacement_costs: list[float] = field(default_factory=list)
     replacement_lifetimes: list[float] = field(default_factory=list)
+    replacement_max_flex_penalty: list[float] = field(default_factory=list)
 
     def __post_init__(self):
         # self._surrogate = # load the surrogate model here.

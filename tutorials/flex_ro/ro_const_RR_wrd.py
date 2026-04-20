@@ -281,7 +281,7 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_month.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_week.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -307,6 +307,7 @@ if __name__ == "__main__":
     # price_data["Customer Cost"] = price_data[
     #     "electric_customer_0_2022-07-05_2022-07-14_0"
     # ]
+
     price_data["Emissions Intensity"] = 0
     m = PriceTakerModel()
     # Find start and end datetimes and time step  from the price data
@@ -327,8 +328,15 @@ if __name__ == "__main__":
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
 
-    m.params.intake.update({"energy_intensity": 0, "nominal_flowrate": 2500})  # m3/hr
-    # m.params.pretreatment.update({"energy_intensity": 0})
+    m.params.intake.update(
+        {
+            "energy_intensity": 0,
+            "nominal_flowrate": 2500,
+            "feed_cost": 1,
+            "chemical_cost": 1,
+        }
+    )  # m3/hr
+
     m.params.wrd_uf.update(
         {
             "minimum_downtime": 2,
@@ -364,10 +372,18 @@ if __name__ == "__main__":
                 125000,
             ],  # $ per replacement
             "replacement_lifetimes": [5, 20],  # years
+            "replacement_max_flex_penalty": [
+                0.5,
+                0.5,
+            ],  # Reduction in lifetime if shutdowns occur every day (?)
         }
     )
 
-    m.params.posttreatment.update({"energy_intensity": 0.101})  # kWh/m3
+    m.params.posttreatment.update(
+        {"energy_intensity": 0.101, "chemical_cost": 1}
+    )  # kWh/m3 #$/m3
+
+    m.params.brinedischarge.update({"brine_cost": 1, "energy_intensity": 0})
 
     # Append LMP data to the model
     m.append_lmp_data(lmp_data=price_data["Energy Rate"])
@@ -379,7 +395,6 @@ if __name__ == "__main__":
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
-
     m.update_operation_params(
         {
             "fixed_demand_rate": price_data["Fixed Demand Rate"],
@@ -408,17 +423,18 @@ if __name__ == "__main__":
         expr=sum(m.period[:, :].customer_cost) * m.params.num_months
     )
 
+    fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
     fs.add_replacement_costs(m)
 
     m.total_cost = pyo.Expression(
         expr=m.total_energy_cost
         + m.total_demand_cost
         + m.total_customer_cost
-        + m.total_replacement_cost  # This could be modified by a function of degree of flexibility. Or just off/on based on user designation of "flexible"
+        + m.total_feed_cost
+        + m.total_brine_cost
+        + m.total_chemical_cost
+        + m.total_replacement_cost  # function of degree of flexibility
     )
-
-    # Feed flow to the intake does not vary with time
-    m.fix_operation_var("intake.feed_flowrate", m.params.intake.nominal_flowrate)
 
     fs.constrain_water_production(m)
 
@@ -430,7 +446,7 @@ if __name__ == "__main__":
             uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
 
-    # FLowrates not fixed, but shouldn't randomly fluxuate either.
+    # Flowrates not fixed, but shouldn't randomly fluxuate either.
     fs.add_flow_changes_penalty_binary(m)
 
     m.obj = pyo.Objective(
@@ -443,36 +459,15 @@ if __name__ == "__main__":
     # dt.report_structural_issues()
     # solver = get_solver()
     # solver.options["max_iter"] = 500
-    # results = solver.solve(m, tee=True, symbolic_solver_labels=True)
-
-    # Add a guess value MIP start
-    for d, t in m.period:
-        for skid in m.period[d, t].reverse_osmosis.ro_skid:
-            # There were some warning against starting with guess values for continuous vars!
-            m.period[d, t].reverse_osmosis.ro_skid[skid].feed_flowrate.set_value(
-                m.params.wrd_ro.nominal_flowrate
-            )
-            m.period[d, t].reverse_osmosis.ro_skid[skid].op_mode.set_value(1)
-
-        for pump in m.period[d, t].pretreatment.uf_pumps:
-            m.period[d, t].pretreatment.uf_pumps[pump].feed_flowrate.set_value(
-                m.params.wrd_uf.nominal_flowrate
-            )
-            m.period[d, t].pretreatment.uf_pumps[pump].op_mode.set_value(1)
-
-        m.period[d, t].posttreatment.op_mode.set_value(1)
-
-    # for c in m.component_data_objects(pyo.Constraint, active=True):
-    # # If this is > 0 (or a small tolerance), Gurobi will likely reject the start
-    #     print(f"Constraint {c.name} violation: {c.lb - pyo.value(c.body) if c.has_lb else 0}")
+    # results = solver.solve(m, tee=True)
 
     mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     solver.options["MIPFocus"] = 2
-    solver.options["StartNodeLimit"] = (
-        50000  # I think this will allow it to complete the partial solution I'm initializing above.
-    )
+    # solver.options["StartNodeLimit"] = (
+    #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
+    # )
     results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")

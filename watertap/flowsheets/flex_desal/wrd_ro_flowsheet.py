@@ -18,6 +18,7 @@ from idaes.apps.grid_integration import OperationModel
 from pyomo.environ import (
     Constraint,
     Expression,
+    Expr_if,
     NonNegativeReals,
     Param,
     Var,
@@ -279,8 +280,28 @@ def add_demand_and_fixed_costs(m):
 
 def add_replacement_costs(m):
     """Adds expressions for replacement costs"""
-
     params: um_params.WRD_ROParams = m.params.wrd_ro
+    # This should be moved elsewhere as "degree of flex doesn't have to be tied just to replacement costs"
+    m.raw_degree_of_flex = Expression(
+        expr=sum(
+            m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+            for d in m.set_days
+            for t in m.set_time
+            for i in range(1, params.num_ro_skids + 1)
+        )
+        / (2 * m.params.num_days * params.num_ro_skids),
+        doc="Uncapped flexibility metric based on shutdown count",
+    )
+
+    m.degree_of_flex = Expression(
+        expr=Expr_if(  # Never encountered this function. I believe it breaks LP formulation, but this is already NLP
+            IF_=(m.raw_degree_of_flex <= 1),
+            THEN_=m.raw_degree_of_flex,
+            ELSE_=1,
+        ),
+        doc="Degree of flexibility capped to [0, 1]",
+    )
+
     if params.replacement_types:
         for i, replacement_type in enumerate(params.replacement_types):
             # Create a variable for that replacement type
@@ -293,22 +314,48 @@ def add_replacement_costs(m):
                     doc=f"Replacement cost for {replacement_type}",
                 ),
             )
-        # This is a super simple approach of just dividing the total cost and applying it to this time period
-        time_adjustment_factors = [
-            m.params.num_months / 12 / lifetime
-            for lifetime in params.replacement_lifetimes
-        ]
-
+        # I think adding the degree of flexiblity increases solve time significantly, based on ipopt.
         m.total_replacement_cost = Expression(
             expr=(
                 sum(
                     getattr(m, f"replacement_cost_{replacement_type}")
-                    * time_adjustment_factors[i]
+                    / (
+                        params.replacement_lifetimes[i]
+                        * (
+                            1
+                            - params.replacement_max_flex_penalty[i] * m.degree_of_flex
+                        )
+                    )
+                    * m.params.num_months
+                    / 12
                     for i, replacement_type in enumerate(params.replacement_types)
                 )
             ),
             doc="Total replacement costs annualized over the time horizon",
         )
+
+
+def add_flow_costs(m):
+    """Adds expressions for feed and brine costs"""
+
+    m.total_feed_cost = Expression(
+        expr=sum(m.period[:, :].intake.feed_cost) * m.params.timestep_hours,
+        doc="Total cost of feed water over the time horizon ($)",
+    )
+
+    m.total_brine_cost = Expression(
+        expr=sum(m.period[:, :].brine_discharge.brine_cost) * m.params.timestep_hours,
+        doc="Total cost of brine discharge over the time horizon ($)",
+    )
+
+    m.total_chemical_cost = Expression(
+        expr=m.params.timestep_hours
+        * (
+            sum(m.period[:, :].intake.chemical_cost)
+            + sum(m.period[:, :].posttreatment.chemical_cost)
+        ),
+        doc="Total cost of chemicals over the time horizon ($)",
+    )
 
 
 def add_flow_changes_penalty_binary(m):
