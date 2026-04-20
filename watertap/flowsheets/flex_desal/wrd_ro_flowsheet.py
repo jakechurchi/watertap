@@ -293,12 +293,17 @@ def add_replacement_costs(m):
         doc="Uncapped flexibility metric based on shutdown count",
     )
 
-    m.degree_of_flex = Expression(
-        expr=Expr_if(  # Never encountered this function. I believe it breaks LP formulation, but this is already NLP
-            IF_=(m.raw_degree_of_flex <= 1),
-            THEN_=m.raw_degree_of_flex,
-            ELSE_=1,
-        ),
+    # m.degree_of_flex = Expression(
+    #     expr=Expr_if(  # Never encountered this function. It might break things
+    #         IF_=(m.raw_degree_of_flex <= 1),
+    #         THEN_=m.raw_degree_of_flex,
+    #         ELSE_=1,
+    #     ),
+    #     doc="Degree of flexibility capped to [0, 1]",
+    # )
+
+    m.degree_of_flex = Param(
+        initialize=1,
         doc="Degree of flexibility capped to [0, 1]",
     )
 
