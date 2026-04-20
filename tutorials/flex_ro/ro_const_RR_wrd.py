@@ -415,6 +415,7 @@ if __name__ == "__main__":
         * sum(m.period[:, :].posttreatment.product_flowrate)
     )
     m.total_energy_cost = pyo.Expression(expr=sum(m.period[:, :].energy_cost))
+
     # Demand costs are automatically normalized by number of months. So for a sample week, it multiplies by 7/31.
     m.total_demand_cost = pyo.Expression(
         expr=m.fixed_demand_cost + m.variable_demand_cost
@@ -445,6 +446,9 @@ if __name__ == "__main__":
             ro_recovery=m.params.wrd_ro.nominal_recovery,
             uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
+
+    # Could cause feasibility issues b/c this is a slakc varable essentially.
+    m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
 
     # Flowrates not fixed, but shouldn't randomly fluxuate either.
     fs.add_flow_changes_penalty_binary(m)
