@@ -332,8 +332,8 @@ if __name__ == "__main__":
         {
             "energy_intensity": 0,
             "nominal_flowrate": 2500,
-            "feed_cost": 1,
-            "chemical_cost": 1,
+            "feed_cost": 0.1,
+            "chemical_cost": 0.01,
         }
     )  # m3/hr
 
@@ -380,10 +380,10 @@ if __name__ == "__main__":
     )
 
     m.params.posttreatment.update(
-        {"energy_intensity": 0.101, "chemical_cost": 1}
+        {"energy_intensity": 0.101, "chemical_cost": 0.01}
     )  # kWh/m3 #$/m3
 
-    m.params.brinedischarge.update({"brine_cost": 1, "energy_intensity": 0})
+    m.params.brinedischarge.update({"brine_cost": 0.1, "energy_intensity": 0})
 
     # Append LMP data to the model
     m.append_lmp_data(lmp_data=price_data["Energy Rate"])
@@ -461,7 +461,7 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.03
+    mip_gap = 0.02
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     solver.options["MIPFocus"] = 2
