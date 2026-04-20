@@ -275,7 +275,12 @@ def posttreatment_operation_model(blk, params: um_params.FlexDesalParams):
     blk.calculate_power_consumption.set_value(
         blk.power_consumption == blk.energy_intensity * blk.feed_flowrate,
     )
-    blk.chemical_cost = Var(within=NonNegativeReals, doc="Cost of chemicals per m^3")
+    blk.chemical_cost = Var(within=NonNegativeReals, doc="Cost of chemicals")
+    blk.calculate_chemical_cost = Constraint(
+        expr=blk.chemical_cost
+        == params.posttreatment.chemical_cost * blk.feed_flowrate,
+        doc="Calculates the chemical cost based on flowrate and unit cost ($/hr)",
+    )
 
 
 def brine_discharge_operation_model(blk, params: um_params.FlexDesalParams):

@@ -18,7 +18,6 @@ from idaes.apps.grid_integration import OperationModel
 from pyomo.environ import (
     Constraint,
     Expression,
-    Expr_if,
     NonNegativeReals,
     Param,
     Var,
@@ -282,29 +281,69 @@ def add_replacement_costs(m):
     """Adds expressions for replacement costs"""
     params: um_params.WRD_ROParams = m.params.wrd_ro
     # This should be moved elsewhere as "degree of flex doesn't have to be tied just to replacement costs"
-    m.raw_degree_of_flex = Expression(
-        expr=sum(
+    # Compute raw (uncapped) flexibility metric
+    m.raw_degree_of_flex = Var(
+        within=NonNegativeReals,
+        doc="Uncapped flexibility metric based on shutdown count",
+    )
+
+    m.calculate_raw_degree_of_flex = Constraint(
+        expr=m.raw_degree_of_flex
+        == sum(
             m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
             for d in m.set_days
             for t in m.set_time
             for i in range(1, params.num_ro_skids + 1)
         )
-        / (2 * m.params.num_days * params.num_ro_skids),
-        doc="Uncapped flexibility metric based on shutdown count",
+        / (
+            2 * m.params.num_days * params.num_ro_skids
+        ),  # 2 is arbitrary. Means that 2 shutdowns per day per skid would yield a raw_degree_of_flex of 1
+        doc="Constraint to compute raw flexibility metric",
     )
 
-    # m.degree_of_flex = Expression(
-    #     expr=Expr_if(  # Never encountered this function. It might break things
-    #         IF_=(m.raw_degree_of_flex <= 1),
-    #         THEN_=m.raw_degree_of_flex,
-    #         ELSE_=1,
-    #     ),
-    #     doc="Degree of flexibility capped to [0, 1]",
-    # )
+    # Capped flexibility metric: degree_of_flex = min(1, raw_degree_of_flex)
+    # Using auxiliary variable and linear constraints for Gurobi compatibility
+    m.degree_of_flex_over_cap = Var(
+        within=Binary,
+        doc="Binary indicator: 1 if raw_degree_of_flex > 1, 0 otherwise",
+    )
 
-    m.degree_of_flex = Param(
-        initialize=1,
+    m.degree_of_flex = Var(
+        within=NonNegativeReals,
+        bounds=(0, 1),
         doc="Degree of flexibility capped to [0, 1]",
+    )
+
+    # Big-M value for linearization
+    big_M = 2.0
+
+    # Linearized min constraints:
+    # If raw <= 1: degree_of_flex = raw, indicator = 0
+    # If raw > 1:  degree_of_flex = 1, indicator = 1
+    m.degree_of_flex_switch_lower = Constraint(
+        expr=m.raw_degree_of_flex <= 1 + big_M * m.degree_of_flex_over_cap,
+        doc="Switch constraint: raw <= 1 + M*indicator",
+    )
+    m.degree_of_flex_switch_upper = Constraint(
+        expr=m.raw_degree_of_flex >= 1 - big_M * (1 - m.degree_of_flex_over_cap),
+        doc="Switch constraint: raw >= 1 - M*(1-indicator)",
+    )
+    m.degree_of_flex_le_raw = Constraint(
+        expr=m.degree_of_flex <= m.raw_degree_of_flex,
+        doc="degree_of_flex <= raw",
+    )
+    m.degree_of_flex_le_one = Constraint(
+        expr=m.degree_of_flex <= 1,
+        doc="degree_of_flex <= 1",
+    )
+    m.degree_of_flex_ge_raw_if_below = Constraint(
+        expr=m.degree_of_flex
+        >= m.raw_degree_of_flex - big_M * m.degree_of_flex_over_cap,
+        doc="degree_of_flex >= raw - M*indicator (forces equality when indicator=0)",
+    )
+    m.degree_of_flex_ge_one_if_above = Constraint(
+        expr=m.degree_of_flex >= 1 - big_M * (1 - m.degree_of_flex_over_cap),
+        doc="degree_of_flex >= 1 - M*(1-indicator) (forces equality when indicator=1)",
     )
 
     if params.replacement_types:
