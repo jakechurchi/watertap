@@ -529,10 +529,17 @@ def one_week(annual_production_AF=13000):
 
 
 if __name__ == "__main__":
+    water_prod_targs = [8000, 9000, 9500, 10000, 10500, 11000, 12000, 12500, 13000]
     water = []
     cost = []
     energy_cost = []
-    for annual_production in [8000, 9000, 9500, 10000, 10500, 11000, 12000, 12500, 13000]:
+    demand_cost = []
+    feed_cost = []
+    brine_cost = []
+    chemical_cost = []
+    replacement_cost = []
+
+    for annual_production in water_prod_targs:
         print(
             f"\n\nRunning optimization for annual production of {annual_production} AF..."
         )
@@ -540,13 +547,23 @@ if __name__ == "__main__":
         water.append(design_vars["total_water_production"])
         cost.append(design_vars["total_cost"])
         energy_cost.append(design_vars["total_energy_cost"])
+        demand_cost.append(design_vars["total_demand_cost"])
+        feed_cost.append(design_vars["total_feed_cost"])
+        brine_cost.append(design_vars["total_brine_cost"])
+        chemical_cost.append(design_vars["total_chemical_cost"])
+        replacement_cost.append(design_vars["total_replacement_cost"])
 
     df = pd.DataFrame(
         {
-            "Annual Production (AF)": [8000, 9000, 9500, 10000, 10500, 11000, 12000, 12500, 13000],
+            "Annual Production (AF)": water_prod_targs,
             "Total Water Production (m3)": water,
             "Total Cost ($)": cost,
             "Total Energy Cost ($)": energy_cost,
+            "Total Demand Cost ($)": demand_cost,
+            "Total Feed Cost ($)": feed_cost,
+            "Total Brine Cost ($)": brine_cost,
+            "Total Chemical Cost ($)": chemical_cost,
+            "Total Replacement Cost ($)": replacement_cost,
         }
     )
     df.to_csv("wrd_water_target_sweep_week.csv", index=False)
