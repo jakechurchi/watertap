@@ -281,6 +281,8 @@ def plot_function(m, n_time_points):
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
+
+    # Load price data
     price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_week.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
@@ -309,6 +311,12 @@ if __name__ == "__main__":
     # ]
 
     price_data["Emissions Intensity"] = 0
+
+    # Load PV data
+    pv_kW = price_data["solar_output_kW"]
+    pv_capacity = max(pv_kW)
+    pv_capacity_factors = pv_kW / pv_capacity
+
     m = PriceTakerModel()
     # Find start and end datetimes and time step  from the price data
     price_datetimes = pd.to_datetime(price_data["DateTime"])
@@ -324,8 +332,8 @@ if __name__ == "__main__":
         end_date=end_date,
         annual_production_AF=13000,
         timestep_hours=timestep_hours,
-        # fixed_monthly_cost = 10000,
-        # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
+        include_onsite_solar=True,
+        onsite_capacity=pv_capacity,
     )
 
     m.params.intake.update(
@@ -404,6 +412,7 @@ if __name__ == "__main__":
             "variable_demand_rate": price_data["Var Demand Rate"],
             "emissions_intensity": price_data["Emissions Intensity"],
             "customer_cost": price_data["Customer Cost"],
+            "power_generation.capacity_factor": pv_capacity_factors,
         }
     )
 
