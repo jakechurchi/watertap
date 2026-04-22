@@ -532,7 +532,7 @@ if __name__ == "__main__":
     water = []
     cost = []
     energy_cost = []
-    for annual_production in [8000, 9000, 10000, 11000, 12000, 13000]:
+    for annual_production in [8000, 9000, 9500, 10000, 10500, 11000, 12000, 12500, 13000]:
         print(
             f"\n\nRunning optimization for annual production of {annual_production} AF..."
         )
@@ -543,7 +543,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(
         {
-            "Annual Production (AF)": [8000, 9000, 10000, 11000, 12000, 13000],
+            "Annual Production (AF)": [8000, 9000, 9500, 10000, 10500, 11000, 12000, 12500, 13000],
             "Total Water Production (m3)": water,
             "Total Cost ($)": cost,
             "Total Energy Cost ($)": energy_cost,
