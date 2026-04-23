@@ -462,7 +462,7 @@ if __name__ == "__main__":
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
-        + m.total_replacement_cost  # function of degree of flexibility
+        #    + m.total_replacement_cost  # function of degree of flexibility
     )
 
     fs.constrain_water_production(m)

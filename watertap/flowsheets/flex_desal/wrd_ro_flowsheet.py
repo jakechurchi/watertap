@@ -306,48 +306,48 @@ def add_replacement_costs(m):
 
     # Capped flexibility metric: degree_of_flex = min(1, raw_degree_of_flex)
     # Using auxiliary variable and linear constraints for Gurobi compatibility
-    m.degree_of_flex_over_cap = Var(
-        within=Binary,
-        doc="Binary indicator: 1 if raw_degree_of_flex > 1, 0 otherwise",
-    )
+    # m.degree_of_flex_over_cap = Var(
+    #     within=Binary,
+    #     doc="Binary indicator: 1 if raw_degree_of_flex > 1, 0 otherwise",
+    # )
 
-    m.degree_of_flex = Var(
-        within=NonNegativeReals,
-        bounds=(0, 1),
-        doc="Degree of flexibility capped to [0, 1]",
-    )
+    # m.degree_of_flex = Var(
+    #     within=NonNegativeReals,
+    #     bounds=(0, 1),
+    #     doc="Degree of flexibility capped to [0, 1]",
+    # )
 
-    # Big-M value for linearization
-    big_M = 2.0
+    # # Big-M value for linearization
+    # big_M = 2.0
 
-    # Linearized min constraints:
-    # If raw <= 1: degree_of_flex = raw, indicator = 0
-    # If raw > 1:  degree_of_flex = 1, indicator = 1
-    m.degree_of_flex_switch_lower = Constraint(
-        expr=m.raw_degree_of_flex <= 1 + big_M * m.degree_of_flex_over_cap,
-        doc="Switch constraint: raw <= 1 + M*indicator",
-    )
-    m.degree_of_flex_switch_upper = Constraint(
-        expr=m.raw_degree_of_flex >= 1 - big_M * (1 - m.degree_of_flex_over_cap),
-        doc="Switch constraint: raw >= 1 - M*(1-indicator)",
-    )
-    m.degree_of_flex_le_raw = Constraint(
-        expr=m.degree_of_flex <= m.raw_degree_of_flex,
-        doc="degree_of_flex <= raw",
-    )
-    m.degree_of_flex_le_one = Constraint(
-        expr=m.degree_of_flex <= 1,
-        doc="degree_of_flex <= 1",
-    )
-    m.degree_of_flex_ge_raw_if_below = Constraint(
-        expr=m.degree_of_flex
-        >= m.raw_degree_of_flex - big_M * m.degree_of_flex_over_cap,
-        doc="degree_of_flex >= raw - M*indicator (forces equality when indicator=0)",
-    )
-    m.degree_of_flex_ge_one_if_above = Constraint(
-        expr=m.degree_of_flex >= 1 - big_M * (1 - m.degree_of_flex_over_cap),
-        doc="degree_of_flex >= 1 - M*(1-indicator) (forces equality when indicator=1)",
-    )
+    # # Linearized min constraints:
+    # # If raw <= 1: degree_of_flex = raw, indicator = 0
+    # # If raw > 1:  degree_of_flex = 1, indicator = 1
+    # m.degree_of_flex_switch_lower = Constraint(
+    #     expr=m.raw_degree_of_flex <= 1 + big_M * m.degree_of_flex_over_cap,
+    #     doc="Switch constraint: raw <= 1 + M*indicator",
+    # )
+    # m.degree_of_flex_switch_upper = Constraint(
+    #     expr=m.raw_degree_of_flex >= 1 - big_M * (1 - m.degree_of_flex_over_cap),
+    #     doc="Switch constraint: raw >= 1 - M*(1-indicator)",
+    # )
+    # m.degree_of_flex_le_raw = Constraint(
+    #     expr=m.degree_of_flex <= m.raw_degree_of_flex,
+    #     doc="degree_of_flex <= raw",
+    # )
+    # m.degree_of_flex_le_one = Constraint(
+    #     expr=m.degree_of_flex <= 1,
+    #     doc="degree_of_flex <= 1",
+    # )
+    # m.degree_of_flex_ge_raw_if_below = Constraint(
+    #     expr=m.degree_of_flex
+    #     >= m.raw_degree_of_flex - big_M * m.degree_of_flex_over_cap,
+    #     doc="degree_of_flex >= raw - M*indicator (forces equality when indicator=0)",
+    # )
+    # m.degree_of_flex_ge_one_if_above = Constraint(
+    #     expr=m.degree_of_flex >= 1 - big_M * (1 - m.degree_of_flex_over_cap),
+    #     doc="degree_of_flex >= 1 - M*(1-indicator) (forces equality when indicator=1)",
+    # )
 
     if params.replacement_types:
         for i, replacement_type in enumerate(params.replacement_types):
@@ -370,7 +370,8 @@ def add_replacement_costs(m):
                         params.replacement_lifetimes[i]
                         * (
                             1
-                            - params.replacement_max_flex_penalty[i] * m.degree_of_flex
+                            - params.replacement_max_flex_penalty[i]
+                            * m.raw_degree_of_flex
                         )
                     )
                     * m.params.num_months
