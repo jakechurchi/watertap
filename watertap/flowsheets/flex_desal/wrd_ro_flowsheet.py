@@ -383,7 +383,7 @@ def add_replacement_costs(m):
 
 
 def add_replacement_costs_smooth_min(m):
-    """Adds expressions for replacement costs"""
+    """Adds expressions for replacement costs. Currently unused as it increases solve time compared to big-M formulation. However, it is much more readable."""
     params: um_params.WRD_ROParams = m.params.wrd_ro
     # This should be moved elsewhere as "degree of flex doesn't have to be tied just to replacement costs"
     # Should be able to reformulate using the pyomo max function!!!
