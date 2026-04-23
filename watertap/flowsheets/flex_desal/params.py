@@ -270,6 +270,8 @@ class FlexDesalParams:
     include_onsite_solar: bool = False
     onsite_capacity: float = 0
 
+    nonworking_hours: list[int] = field(default_factory=list)
+
     def __post_init__(self):
         self.intake = IntakeParams()
         self.pretreatment = PretreatmentParams()

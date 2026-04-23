@@ -334,6 +334,22 @@ if __name__ == "__main__":
         timestep_hours=timestep_hours,
         include_onsite_solar=True,
         onsite_capacity=pv_capacity,
+        nonworking_hours=[
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+        ],  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
     )
 
     m.params.intake.update(
@@ -462,8 +478,9 @@ if __name__ == "__main__":
     # Could cause feasibility issues b/c this is a slakc varable essentially.
     # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
 
-    # Flowrates not fixed, but shouldn't randomly fluxuate either.
+    # Flowrates not fixed, but shouldn't randomly fluctuate either.
     fs.add_flow_changes_penalty_binary(m)
+    fs.add_working_hours_constraint(m)
 
     m.obj = pyo.Objective(
         expr=1e-4 * (m.total_cost + m.flow_changes_penalty),

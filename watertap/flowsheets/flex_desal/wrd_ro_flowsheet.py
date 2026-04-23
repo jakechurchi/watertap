@@ -603,6 +603,40 @@ def add_flow_changes_penalty_continuous(m):
     )
 
 
+def add_working_hours_constraint(m):
+    "Prevents shutdowns and startups duing nonworking hours (e.g., 6pm-8am)"
+
+    @m.Constraint(m.period.index_set())
+    def prevent_shutdowns(blk, d, t):
+        if (
+            t - 1
+        ) % 24 in m.params.nonworking_hours:  # Assuming time index is in hours and starts at 1
+            return (
+                sum(
+                    blk.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+                    for i in range(1, blk.params.wrd_ro.num_ro_skids + 1)
+                )
+                == 0
+            )
+        else:
+            return Constraint.Skip
+
+    @m.Constraint(m.period.index_set())
+    def prevent_startups(blk, d, t):
+        if (
+            t - 1
+        ) % 24 in m.params.nonworking_hours:  # Assuming time index is in hours and starts at 1
+            return (
+                sum(
+                    blk.period[d, t].reverse_osmosis.ro_skid[i].startup
+                    for i in range(1, blk.params.wrd_ro.num_ro_skids + 1)
+                )
+                == 0
+            )
+        else:
+            return Constraint.Skip
+
+
 def add_useful_expressions(m):
     """Defines useful expressions for custom objective functions"""
 
