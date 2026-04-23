@@ -453,7 +453,7 @@ if __name__ == "__main__":
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    fs.add_replacement_costs_pyomo_min(m)
+    fs.add_replacement_costs_smooth_min(m)
 
     m.total_cost = pyo.Expression(
         expr=m.total_energy_cost
