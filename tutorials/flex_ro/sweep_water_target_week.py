@@ -528,7 +528,7 @@ def one_week(annual_production_AF=13000):
 
 
 if __name__ == "__main__":
-    water_prod_targs = [12000, 12500, 13000]
+    water_prod_targs = [12200, 12400, 12600, 12800]
     water = []
     cost = []
     energy_cost = []
@@ -537,6 +537,7 @@ if __name__ == "__main__":
     brine_cost = []
     chemical_cost = []
     replacement_cost = []
+    deg_of_flex = []
 
     for annual_production in water_prod_targs:
         print(
@@ -551,6 +552,7 @@ if __name__ == "__main__":
         brine_cost.append(design_vars["total_brine_cost"])
         chemical_cost.append(design_vars["total_chemical_cost"])
         replacement_cost.append(design_vars["total_replacement_cost"])
+        deg_of_flex.append(design_vars["degree_of_flex"])
 
     df = pd.DataFrame(
         {
@@ -563,6 +565,7 @@ if __name__ == "__main__":
             "Total Brine Cost ($)": brine_cost,
             "Total Chemical Cost ($)": chemical_cost,
             "Total Replacement Cost ($)": replacement_cost,
+            "Degree of Flexibility": deg_of_flex,
         }
     )
     df.to_csv("wrd_water_target_sweep_week.csv", index=False)
