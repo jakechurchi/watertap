@@ -24,7 +24,7 @@ from pyomo.environ import (
     Binary,
     units as pyunits,
 )
-from pyomo.core.expr.numeric_expr import MaxExpression
+from pyomo.core.expr.numeric_expr import MinExpression
 from watertap.flowsheets.flex_desal import params as um_params
 from watertap.flowsheets.flex_desal import unit_models as um
 from watertap.flowsheets.flex_desal.wrd_unit_models import (
@@ -382,21 +382,24 @@ def add_replacement_costs(m):
         )
 
 
-def add_replacement_costs_pyomo_max(m):
+def add_replacement_costs_pyomo_min(m):
     """Adds expressions for replacement costs"""
     params: um_params.WRD_ROParams = m.params.wrd_ro
     # This should be moved elsewhere as "degree of flex doesn't have to be tied just to replacement costs"
     # Should be able to reformulate using the pyomo max function!!!
 
-    m.degree_of_flex = MaxExpression(
-        expr=sum(
-            m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
-            for d in m.set_days
-            for t in m.set_time
-            for i in range(1, params.num_ro_skids + 1)
-        )
-        / (
-            2 * m.params.num_days * params.num_ro_skids
+    m.degree_of_flex = Expression(
+        expr=MinExpression(
+            (
+                1,
+                sum(
+                    m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+                    for d in m.set_days
+                    for t in m.set_time
+                    for i in range(1, params.num_ro_skids + 1)
+                )
+                / (2 * m.params.num_days * params.num_ro_skids),
+            )
         ),  # 2 is arbitrary. Means that 2 shutdowns per day per skid would yield a raw_degree_of_flex of 1
         doc="Constraint to compute raw flexibility metric",
     )
