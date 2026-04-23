@@ -532,7 +532,7 @@ def add_flow_changes_penalty_binary(m):
 
     # The penalty is simply the number of flow changes multiplied by a scaling factor
     m.flow_changes_penalty = Expression(
-        expr=1  # Scaling factor (adjust as needed)
+        expr=5  # Scaling factor (adjust as needed)
         * (
             sum(
                 sum(
