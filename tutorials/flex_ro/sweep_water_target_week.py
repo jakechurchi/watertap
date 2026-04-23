@@ -528,7 +528,7 @@ def one_week(annual_production_AF=13000):
 
 
 if __name__ == "__main__":
-    water_prod_targs = [12200, 12400, 12600, 12800]
+    water_prod_targs = [12500]
     water = []
     cost = []
     energy_cost = []
