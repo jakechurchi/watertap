@@ -274,7 +274,7 @@ def plot_function(m, n_time_points):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig("wrd_pricetaker_summer_month.png", dpi=600)
+    fig.savefig(f"wrd_{m.params.annual_production_AF}_week.png", dpi=600)
     plt.show()
 
 
@@ -499,14 +499,6 @@ def one_week(annual_production_AF=13000):
 
     pyo.assert_optimal_termination(results)
 
-    design_var_values = m.get_design_var_values()
-    filtered_design_var_values = {
-        k: v
-        for k, v in design_var_values.items()
-        if "flow_change" not in k and "flow_changed" not in k
-    }
-    return filtered_design_var_values
-
     # print(filtered_design_var_values)
     # Write optimal values of all operational variables to a csv file
     # output_csv = script_dir / "wrd_dummy_result.csv"
@@ -524,12 +516,19 @@ def one_week(annual_production_AF=13000):
     #         "num_skids_online",
     #     ],
     # )
-    # fig.savefig("wrd_operation_profile.png")
-    # Return the values of all variables and expressions that do not vary with time
+    # fig.savefig(f"wrd_operation_profile_{annual_production}_week.png")
+
+    design_var_values = m.get_design_var_values()
+    filtered_design_var_values = {
+        k: v
+        for k, v in design_var_values.items()
+        if "flow_change" not in k and "flow_changed" not in k
+    }
+    return filtered_design_var_values
 
 
 if __name__ == "__main__":
-    water_prod_targs = [8000, 9000, 9500, 10000, 10500, 11000, 12000, 12500, 13000]
+    water_prod_targs = [12000, 12500, 13000]
     water = []
     cost = []
     energy_cost = []
