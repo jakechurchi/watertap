@@ -505,7 +505,7 @@ def one_week(annual_production_AF=13000):
     # m.get_operation_var_values().to_csv(output_csv)
     # print(f"Saved operation variable results to: {output_csv}")
 
-    # plot_function(m, n_time_points=len(price_data))
+    plot_function(m, n_time_points=len(price_data))
 
     # Plot operational variables
     # fig, axs = m.plot_operation_profile(
