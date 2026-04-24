@@ -10,6 +10,7 @@ import pandas as pd
 import pyomo.environ as pyo
 from pyomo.util.infeasible import log_infeasible_constraints
 from pathlib import Path
+
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
@@ -330,7 +331,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=13000,
+        annual_production_AF=10000,
         timestep_hours=timestep_hours,
         include_onsite_solar=True,
         onsite_capacity=pv_capacity,
@@ -350,6 +351,7 @@ if __name__ == "__main__":
             22,
             23,
         ],  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
+        rainy_days=1,
     )
 
     m.params.intake.update(
@@ -480,7 +482,10 @@ if __name__ == "__main__":
 
     # Flowrates not fixed, but shouldn't randomly fluctuate either.
     fs.add_flow_changes_penalty_binary(m)
+
     fs.add_working_hours_constraint(m)
+
+    fs.add_rain_shutdowns(m)
 
     m.obj = pyo.Objective(
         expr=1e-4 * (m.total_cost + m.flow_changes_penalty),

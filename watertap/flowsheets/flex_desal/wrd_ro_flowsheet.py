@@ -773,6 +773,16 @@ def add_working_hours_constraint(m):
             return Constraint.Skip
 
 
+def add_rain_shutdowns(m):
+    """Forces shutdown to occur for a rainy day."""
+    hours = 24 * m.params.rainy_days
+
+    # Currently applying to the first hours
+    @m.Constraint(m.set_days, range(1, hours + 1))
+    def rainy_day_shutdown(blk, d, t):
+        return blk.period[d, t].intake.feed_flowrate == 0
+
+
 def add_useful_expressions(m):
     """Defines useful expressions for custom objective functions"""
 
