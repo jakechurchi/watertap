@@ -453,7 +453,7 @@ if __name__ == "__main__":
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    # fs.add_replacement_costs(m)
+    fs.add_replacement_costs_piecewise(m)
 
     m.total_cost = pyo.Expression(
         expr=m.total_energy_cost
@@ -462,7 +462,7 @@ if __name__ == "__main__":
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
-        #    + m.total_replacement_cost  # function of degree of flexibility
+        + m.total_replacement_cost  # function of degree of flexibility
     )
 
     fs.constrain_water_production(m)
