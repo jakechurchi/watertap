@@ -468,7 +468,7 @@ def one_week(annual_production_AF=13000):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.025
+    mip_gap = 0.015
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     solver.options["MIPFocus"] = 2
@@ -528,7 +528,7 @@ def one_week(annual_production_AF=13000):
 
 
 if __name__ == "__main__":
-    water_prod_targs = [13500, 14500, 15500]
+    water_prod_targs = [11000, 11500, 12000]
     water = []
     cost = []
     energy_cost = []

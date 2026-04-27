@@ -359,7 +359,7 @@ if __name__ == "__main__":
             "energy_intensity": 0,
             "nominal_flowrate": 2500,
             "feed_cost": 0.16,
-            "chemical_cost": 0.01,
+            "chemical_cost": 0.0332,
         }
     )  # m3/hr
 
@@ -408,7 +408,7 @@ if __name__ == "__main__":
     m.params.posttreatment.update(
         {
             "energy_intensity": 0.101,
-            "chemical_cost": 0.43,
+            "chemical_cost": 0.0310,
         }  # This number is not confirmed at all
     )  # kWh/m3 #$/m3
 
