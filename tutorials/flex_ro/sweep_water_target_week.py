@@ -281,15 +281,15 @@ def plot_function(m, n_time_points):
 def one_week(annual_production_AF=13000):
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_week.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_winter_week.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
         + price_data["electric_energy_off_peak"]
         + price_data["electric_energy_super_off_peak"]
     )
-    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
-    price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
+    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_winter"]
+    price_data["Var Demand Rate"] = price_data["electric_demand_peak_winter"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
 
     # price_data["Energy Rate"] = (
@@ -468,7 +468,7 @@ def one_week(annual_production_AF=13000):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.0215
+    mip_gap = 0.025
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     solver.options["MIPFocus"] = 2
@@ -528,7 +528,7 @@ def one_week(annual_production_AF=13000):
 
 
 if __name__ == "__main__":
-    water_prod_targs = [11000, 11500, 12000]
+    water_prod_targs = [6000, 8000, 10000, 11500, 12000, 13500, 14000, 16000]
     water = []
     cost = []
     energy_cost = []
