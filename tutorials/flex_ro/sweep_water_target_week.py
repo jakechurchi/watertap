@@ -274,14 +274,14 @@ def plot_function(m, n_time_points):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig(f"wrd_{m.params.annual_production_AF}_winter_week.png", dpi=600)
+    fig.savefig(f"wrd_{m.params.annual_production_AF}_week.png", dpi=600)
     plt.show()
 
 
 def one_week(annual_production_AF=13000):
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_winter_week.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_week.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -468,7 +468,7 @@ def one_week(annual_production_AF=13000):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.025
+    mip_gap = 0.0185
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     solver.options["MIPFocus"] = 2
@@ -528,7 +528,7 @@ def one_week(annual_production_AF=13000):
 
 
 if __name__ == "__main__":
-    water_prod_targs = [6000, 8000, 10000, 11500, 12000, 13500, 14000, 16000]
+    water_prod_targs = [14000, 14500, 15000, 15500]
     water = []
     cost = []
     energy_cost = []
