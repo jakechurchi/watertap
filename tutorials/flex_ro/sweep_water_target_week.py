@@ -288,8 +288,8 @@ def one_week(annual_production_AF=13000):
         + price_data["electric_energy_off_peak"]
         + price_data["electric_energy_super_off_peak"]
     )
-    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_winter"]
-    price_data["Var Demand Rate"] = price_data["electric_demand_peak_winter"]
+    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
+    price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
 
     # price_data["Energy Rate"] = (
