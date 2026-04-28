@@ -278,18 +278,18 @@ def plot_function(m, n_time_points):
     plt.show()
 
 
-def one_week(annual_production_AF=13000):
+def one_week(annual_production_AF=13000, season="summer"):
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_week.csv")
+    price_data = pd.read_csv(script_dir / f"wrd_pricesignal_{season}_week.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
         + price_data["electric_energy_off_peak"]
         + price_data["electric_energy_super_off_peak"]
     )
-    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
-    price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
+    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed"]
+    price_data["Var Demand Rate"] = price_data["electric_demand_peak"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
 
     # price_data["Energy Rate"] = (
@@ -324,8 +324,6 @@ def one_week(annual_production_AF=13000):
         end_date=end_date,
         annual_production_AF=annual_production_AF,
         timestep_hours=timestep_hours,
-        # fixed_monthly_cost = 10000,
-        # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
 
     m.params.intake.update(
@@ -333,7 +331,7 @@ def one_week(annual_production_AF=13000):
             "energy_intensity": 0,
             "nominal_flowrate": 2500,
             "feed_cost": 0.16,
-            "chemical_cost": 0.01,
+            "chemical_cost": 0.0332,
         }
     )  # m3/hr
 
@@ -373,8 +371,8 @@ def one_week(annual_production_AF=13000):
             ],  # $ per replacement
             "replacement_lifetimes": [5, 20],  # years
             "replacement_max_flex_penalty": [
-                0.5,
-                0.5,
+                0.1,
+                0.1,
             ],  # Reduction in lifetime if shutdowns occur every day (?)
         }
     )
@@ -382,7 +380,7 @@ def one_week(annual_production_AF=13000):
     m.params.posttreatment.update(
         {
             "energy_intensity": 0.101,
-            "chemical_cost": 0.43,
+            "chemical_cost": 0.0310,
         }  # This number is not confirmed at all
     )  # kWh/m3 #$/m3
 
@@ -404,6 +402,7 @@ def one_week(annual_production_AF=13000):
             "variable_demand_rate": price_data["Var Demand Rate"],
             "emissions_intensity": price_data["Emissions Intensity"],
             "customer_cost": price_data["Customer Cost"],
+            # "power_generation.capacity_factor": pv_capacity_factors,
         }
     )
 
@@ -428,7 +427,7 @@ def one_week(annual_production_AF=13000):
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    fs.add_replacement_costs(m)
+    fs.add_replacement_costs_piecewise(m)
 
     m.total_cost = pyo.Expression(
         expr=m.total_energy_cost
@@ -456,6 +455,10 @@ def one_week(annual_production_AF=13000):
     # Flowrates not fixed, but shouldn't randomly fluxuate either.
     fs.add_flow_changes_penalty_binary(m)
 
+    # fs.add_working_hours_constraint(m)
+
+    # fs.add_rain_shutdowns(m)
+
     m.obj = pyo.Objective(
         expr=1e-4 * (m.total_cost + m.flow_changes_penalty),
         sense=pyo.minimize,
@@ -468,7 +471,7 @@ def one_week(annual_production_AF=13000):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.01
+    mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
@@ -528,7 +531,7 @@ def one_week(annual_production_AF=13000):
 
 
 if __name__ == "__main__":
-    water_prod_targs = [14000, 14500, 15000, 15500]
+    water_prod_targs = [6000, 10500, 15000]
     water = []
     cost = []
     energy_cost = []
@@ -543,7 +546,7 @@ if __name__ == "__main__":
         print(
             f"\n\nRunning optimization for annual production of {annual_production} AF..."
         )
-        design_vars = one_week(annual_production_AF=annual_production)
+        design_vars = one_week(annual_production_AF=annual_production, season="summer")
         water.append(design_vars["total_water_production"])
         cost.append(design_vars["total_cost"])
         energy_cost.append(design_vars["total_energy_cost"])

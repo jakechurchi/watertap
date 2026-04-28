@@ -1,4 +1,4 @@
-DateTime,electric_customer_fixed_charge,electric_energy_on_peak,electric_energy_mid_peak,electric_energy_off_peak,electric_energy_super_off_peak,electric_demand_fixed_winter,electric_demand_peak_winter
+DateTime,electric_customer_fixed_charge,electric_energy_on_peak,electric_energy_mid_peak,electric_energy_off_peak,electric_energy_super_off_peak,electric_demand_fixed,electric_demand_peak
 8/19/2021 0:00,0,0,0,0.11506,0,19.62,0
 8/19/2021 1:00,0,0,0,0.11506,0,19.62,0
 8/19/2021 2:00,0,0,0,0.11506,0,19.62,0

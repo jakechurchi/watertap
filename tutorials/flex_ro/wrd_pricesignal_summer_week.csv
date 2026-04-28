@@ -1,4 +1,4 @@
-DateTime,electric_customer_fixed_charge,electric_energy_on_peak,electric_energy_mid_peak,electric_energy_off_peak,electric_energy_super_off_peak,electric_demand_fixed_summer,electric_demand_peak_summer,solar_output_kW
+DateTime,electric_customer_fixed_charge,electric_energy_on_peak,electric_energy_mid_peak,electric_energy_off_peak,electric_energy_super_off_peak,electric_demand_fixed,electric_demand_peak,solar_output_kW
 8/19/2021 0:00,0,0,0,0.1016,0,19.94,0,28.32875538
 8/19/2021 1:00,0,0,0,0.1016,0,19.94,0,27.43582358
 8/19/2021 2:00,0,0,0,0.1016,0,19.94,0,26.58626813
