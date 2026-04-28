@@ -272,6 +272,7 @@ class FlexDesalParams:
 
     nonworking_hours: list[int] = field(default_factory=list)
     rainy_days: int = 0
+    CAPEX_yr: float = 0
 
     def __post_init__(self):
         self.intake = IntakeParams()

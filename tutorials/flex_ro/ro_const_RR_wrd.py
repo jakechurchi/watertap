@@ -291,8 +291,8 @@ if __name__ == "__main__":
         + price_data["electric_energy_off_peak"]
         + price_data["electric_energy_super_off_peak"]
     )
-    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
-    price_data["Var Demand Rate"] = price_data["electric_demand_peak_summer"]
+    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed"]
+    price_data["Var Demand Rate"] = price_data["electric_demand_peak"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
 
     # price_data["Energy Rate"] = (
@@ -335,23 +335,12 @@ if __name__ == "__main__":
         timestep_hours=timestep_hours,
         include_onsite_solar=True,
         onsite_capacity=pv_capacity,
-        nonworking_hours=[
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            18,
-            19,
-            20,
-            21,
-            22,
-            23,
-        ],  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
+        nonworking_hours=list(range(0, 8))
+        + list(
+            range(18, 24)
+        ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
         rainy_days=1,
+        CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
     )
 
     m.params.intake.update(
@@ -399,8 +388,8 @@ if __name__ == "__main__":
             ],  # $ per replacement
             "replacement_lifetimes": [5, 20],  # years
             "replacement_max_flex_penalty": [
-                0.5,
-                0.5,
+                0.1,
+                0.1,
             ],  # Reduction in lifetime if shutdowns occur every day (?)
         }
     )
@@ -466,6 +455,11 @@ if __name__ == "__main__":
         + m.total_chemical_cost
         + m.total_replacement_cost  # function of degree of flexibility
     )
+    # add CAPEX as a fixed cost to calculate LCOW
+    m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months * 12)
+    m.LCOW = pyo.Expression(
+        expr=(m.total_cost + m.fixed_cost) / (m.total_water_production)
+    )  # $/m3
 
     fs.constrain_water_production(m)
 

@@ -324,6 +324,7 @@ def one_week(annual_production_AF=13000, season="summer"):
         end_date=end_date,
         annual_production_AF=annual_production_AF,
         timestep_hours=timestep_hours,
+        CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
     )
 
     m.params.intake.update(
@@ -439,6 +440,12 @@ def one_week(annual_production_AF=13000, season="summer"):
         + m.total_replacement_cost
     )  # function of degree of flexibility
 
+    # add CAPEX as a fixed cost to calculate LCOW
+    m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months * 12)
+    m.LCOW = pyo.Expression(
+        expr=(m.total_cost + m.fixed_cost) / (m.total_water_production)
+    )  # $/m3
+
     fs.constrain_water_production(m)
 
     # If water recovery is static, it must be fixed
@@ -483,23 +490,6 @@ def one_week(annual_production_AF=13000, season="summer"):
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total cost: {m.total_cost():.2f}")
 
-    # termination_condition = results.solver.termination_condition
-    # print(f"Solver termination condition: {termination_condition}")
-
-    # if termination_condition in (
-    #     pyo.TerminationCondition.infeasible,
-    #     pyo.TerminationCondition.infeasibleOrUnbounded,
-    # ):
-    #     print("\nModel is infeasible. Logging infeasible constraints...")
-    #     logging.getLogger("pyomo.util.infeasible").setLevel(logging.INFO)
-    #     log_infeasible_constraints(
-    #         m,
-    #         tol=1e-7,
-    #         log_expression=True,
-    #         log_variables=True,
-    #     )
-    #     raise RuntimeError("Model infeasible. See logs above for violated constraints.")
-
     pyo.assert_optimal_termination(results)
 
     # print(filtered_design_var_values)
@@ -541,6 +531,7 @@ if __name__ == "__main__":
     chemical_cost = []
     replacement_cost = []
     deg_of_flex = []
+    LCOW = []
 
     for annual_production in water_prod_targs:
         print(
@@ -556,6 +547,7 @@ if __name__ == "__main__":
         chemical_cost.append(design_vars["total_chemical_cost"])
         replacement_cost.append(design_vars["total_replacement_cost"])
         deg_of_flex.append(design_vars["degree_of_flex"])
+        LCOW.append(design_vars["LCOW"])
 
     df = pd.DataFrame(
         {
