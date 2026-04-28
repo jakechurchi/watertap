@@ -478,7 +478,7 @@ def one_week(annual_production_AF=13000, season="summer"):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.03
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
