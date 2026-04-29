@@ -24,6 +24,7 @@ from pyomo.environ import (
     Binary,
     units as pyunits,
     Piecewise,
+    value,
 )
 from idaes.core.util.math import smooth_min
 from watertap.flowsheets.flex_desal import params as um_params
@@ -838,7 +839,7 @@ def calculate_flexibility_metrics(m, baseline_power=1000):
 
     energy_capacity = (
         sum(
-            max(0, baseline_power - m.period[d, t].power_from_grid)
+            max(0, baseline_power - value(m.period[d, t].power_from_grid))
             for d, t in m.period.index_set()
         )
         * m.params.timestep_hours
@@ -846,7 +847,9 @@ def calculate_flexibility_metrics(m, baseline_power=1000):
     m.energy_capacity = Param(initialize=energy_capacity)
     print(f"Total energy capacity (kWh): {energy_capacity:.2f}")
 
-    maximum_power = max(m.period[d, t].power_from_grid for d, t in m.period.index_set())
+    maximum_power = max(
+        value(m.period[d, t].power_from_grid) for d, t in m.period.index_set()
+    )
     m.maximum_power = Param(initialize=maximum_power)
     print(f"Maximum power (kW): {maximum_power:.2f}")
 
