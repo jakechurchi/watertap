@@ -331,7 +331,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=10000,
+        annual_production_AF=12000,
         timestep_hours=timestep_hours,
         include_onsite_solar=True,
         onsite_capacity=pv_capacity,
@@ -481,6 +481,10 @@ if __name__ == "__main__":
 
     fs.add_rain_shutdowns(m)
 
+    # Baseline power is a function of the target water production, but needs to be calculated by running this model!
+    fs.add_flexibility_metrics(m, baseline_power=1000)
+
+    # To define a baseline
     m.obj = pyo.Objective(
         expr=1e-4 * (m.total_op_cost + m.flow_changes_penalty),
         sense=pyo.minimize,
@@ -493,7 +497,7 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.09
+    mip_gap = 0.025
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
@@ -528,7 +532,7 @@ if __name__ == "__main__":
     filtered_design_var_values = {
         k: v
         for k, v in design_var_values.items()
-        if "flow_change" not in k and "flow_changed" not in k
+        if "flow_change" not in k and "flow_changed" not in k and "reduction" not in k
     }
     print(filtered_design_var_values)
 

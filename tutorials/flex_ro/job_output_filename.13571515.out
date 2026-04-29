@@ -1,6 +1,0 @@
-
-WARNING: SLURM_JOB_LICENSES is not set.
-Please request a license with your job submission using '-L gurobi:numberoflicenses'.
-Gurobi will fail in the future if you do not add the above to your job submission.
-
-python: can't open file '/home/rchurchi/watertap_test/watertap/tutorials/flex_ro/ro_const_RR_wrds.py': [Errno 2] No such file or directory
