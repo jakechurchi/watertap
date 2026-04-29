@@ -3,8 +3,8 @@
 #SBATCH --account=nawianalysis
 #SBATCH --time=00:05:00
 #SBATCH --nodes=1
-#SBATCH --ntasks= 32
 #SBATCH --partition=short
+#SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
 #SBATCH --output=job_output_filename.%j.out  # %j will be replaced with the job ID
