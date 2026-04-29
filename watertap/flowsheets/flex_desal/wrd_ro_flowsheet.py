@@ -833,6 +833,24 @@ def add_flexibility_metrics(m, baseline_power=1000):
     )
 
 
+def calculate_flexibility_metrics(m, baseline_power=1000):
+    """Calculates flexibility metrics based on model results. Should be called after solving the model."""
+
+    energy_capacity = (
+        sum(
+            max(0, baseline_power - m.period[d, t].power_from_grid)
+            for d, t in m.period.index_set()
+        )
+        * m.params.timestep_hours
+    )
+    m.energy_capacity = Param(initialize=energy_capacity)
+    print(f"Total energy capacity (kWh): {energy_capacity:.2f}")
+
+    maximum_power = max(m.period[d, t].power_from_grid for d, t in m.period.index_set())
+    m.maximum_power = Param(initialize=maximum_power)
+    print(f"Maximum power (kW): {maximum_power:.2f}")
+
+
 def add_useful_expressions(m):
     """Defines useful expressions for custom objective functions"""
 

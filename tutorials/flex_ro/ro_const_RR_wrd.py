@@ -482,7 +482,7 @@ if __name__ == "__main__":
     # fs.add_rain_shutdowns(m)
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
-    fs.add_flexibility_metrics(m, baseline_power=1000)
+    # fs.add_flexibility_metrics(m, baseline_power=1000)
 
     # To define a baseline
     m.obj = pyo.Objective(
@@ -531,6 +531,9 @@ if __name__ == "__main__":
     #     raise RuntimeError("Model infeasible. See logs above for violated constraints.")
 
     pyo.assert_optimal_termination(results)
+
+    # Baseline power is a function of the target water production, but needs to be calculated by running this model!
+    fs.calculate_flexibility_metrics(m, baseline_power=1000)
 
     design_var_values = m.get_design_var_values()
     filtered_design_var_values = {
