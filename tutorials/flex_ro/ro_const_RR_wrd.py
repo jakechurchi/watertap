@@ -493,10 +493,10 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.025
+    mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
-    solver.options["MIPFocus"] = 2
+    # solver.options["MIPFocus"] = 2
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
     # )
@@ -549,6 +549,3 @@ if __name__ == "__main__":
         ],
     )
     fig.savefig("wrd_operation_profile.png")
-    # Return the values of all variables and expressions that do not vary with time
-
-    # OK this runs and solves at least
