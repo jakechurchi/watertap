@@ -9,4 +9,4 @@
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-python ro_const_RR_wrds.py
+python ro_const_RR_wrd.py
