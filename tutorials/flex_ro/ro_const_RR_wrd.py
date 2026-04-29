@@ -339,7 +339,7 @@ if __name__ == "__main__":
         + list(
             range(18, 24)
         ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
-        rainy_days=1,
+        # rainy_days=1,
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
     )
 
@@ -479,7 +479,7 @@ if __name__ == "__main__":
 
     fs.add_working_hours_constraint(m)
 
-    fs.add_rain_shutdowns(m)
+    # fs.add_rain_shutdowns(m)
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
     fs.add_flexibility_metrics(m, baseline_power=1000)
@@ -489,6 +489,10 @@ if __name__ == "__main__":
         expr=1e-4 * (m.total_op_cost + m.flow_changes_penalty),
         sense=pyo.minimize,
     )
+
+    # Only to find the baseline power for this water production
+    m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
+
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
