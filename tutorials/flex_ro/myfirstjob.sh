@@ -3,6 +3,7 @@
 #SBATCH --account=nawianalysis
 #SBATCH --time=00:05:00
 #SBATCH --nodes=1
+#SBATCH --ntasks= 32
 #SBATCH --partition=short
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
