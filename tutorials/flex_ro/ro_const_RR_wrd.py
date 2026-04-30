@@ -477,12 +477,9 @@ if __name__ == "__main__":
     # Flowrates not fixed, but shouldn't randomly fluctuate either.
     fs.add_flow_changes_penalty_binary(m)
 
-    fs.add_working_hours_constraint(m)
+    # fs.add_working_hours_constraint(m)
 
     # fs.add_rain_shutdowns(m)
-
-    # Baseline power is a function of the target water production, but needs to be calculated by running this model!
-    # fs.add_flexibility_metrics(m, baseline_power=1000)
 
     # To define a baseline
     m.obj = pyo.Objective(
@@ -491,7 +488,7 @@ if __name__ == "__main__":
     )
 
     # Only to find the baseline power for this water production
-    m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
+    # m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     print(degrees_of_freedom(m))
 
@@ -501,7 +498,7 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.025
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2

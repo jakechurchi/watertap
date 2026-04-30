@@ -784,58 +784,14 @@ def add_rain_shutdowns(m):
         return blk.period[d, t].intake.feed_flowrate == 0
 
 
-def add_flexibility_metrics(m, baseline_power=1000):
-    """Adds expressions for calculating flexibility metrics"""
-
-    m.baseline_power_metric = Param(
-        initialize=baseline_power,
-        mutable=True,
-        units=pyunits.kW,
-        doc="Baseline power used to compute energy capacity",
-    )
-
-    # Positive-part variable for baseline-power_from_grid at each (day, time)
-    m.power_reduction = Var(
-        m.period.index_set(),
-        within=NonNegativeReals,
-        units=pyunits.kW,
-        doc="Positive part of baseline power minus grid power",
-    )
-    m.power_reduction_active = Var(
-        m.period.index_set(),
-        within=Binary,
-        doc="Binary switch for whether baseline power exceeds grid power",
-    )
-
-    # Maximum possible positive difference is baseline power since power_from_grid >= 0
-    big_M = baseline_power
-
-    @m.Constraint(m.period.index_set())
-    def power_reduction_ge_diff(blk, d, t):
-        return (
-            blk.power_reduction[d, t]
-            >= blk.baseline_power_metric - blk.period[d, t].power_from_grid
-        )
-
-    @m.Constraint(m.period.index_set())
-    def power_reduction_le_diff_when_active(blk, d, t):
-        return blk.power_reduction[d, t] <= blk.baseline_power_metric - blk.period[
-            d, t
-        ].power_from_grid + big_M * (1 - blk.power_reduction_active[d, t])
-
-    @m.Constraint(m.period.index_set())
-    def power_reduction_le_binary_cap(blk, d, t):
-        return blk.power_reduction[d, t] <= big_M * blk.power_reduction_active[d, t]
-
-    m.energy_capacity = Expression(
-        expr=sum(m.power_reduction[d, t] for d, t in m.period.index_set())
-        * m.params.timestep_hours,
-        doc="Flexibility metric defined as kWhs under the baseline power consumption",
-    )
-
-
 def calculate_flexibility_metrics(m, baseline_power=1000):
     """Calculates flexibility metrics based on model results. Should be called after solving the model."""
+
+    maximum_power = max(
+        value(m.period[d, t].power_from_grid) for d, t in m.period.index_set()
+    )
+    m.maximum_power = Var(initialize=maximum_power)
+    print(f"Maximum power (kW): {maximum_power:.2f}")
 
     energy_capacity = (
         sum(
@@ -846,12 +802,6 @@ def calculate_flexibility_metrics(m, baseline_power=1000):
     )
     m.energy_capacity = Var(initialize=energy_capacity)
     print(f"Total energy capacity (kWh): {energy_capacity:.2f}")
-
-    maximum_power = max(
-        value(m.period[d, t].power_from_grid) for d, t in m.period.index_set()
-    )
-    m.maximum_power = Var(initialize=maximum_power)
-    print(f"Maximum power (kW): {maximum_power:.2f}")
 
 
 def add_useful_expressions(m):
