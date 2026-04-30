@@ -844,13 +844,13 @@ def calculate_flexibility_metrics(m, baseline_power=1000):
         )
         * m.params.timestep_hours
     )
-    m.energy_capacity = Param(initialize=energy_capacity)
+    m.energy_capacity = Var(initialize=energy_capacity)
     print(f"Total energy capacity (kWh): {energy_capacity:.2f}")
 
     maximum_power = max(
         value(m.period[d, t].power_from_grid) for d, t in m.period.index_set()
     )
-    m.maximum_power = Param(initialize=maximum_power)
+    m.maximum_power = Var(initialize=maximum_power)
     print(f"Maximum power (kW): {maximum_power:.2f}")
 
 
