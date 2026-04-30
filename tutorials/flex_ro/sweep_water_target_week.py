@@ -274,7 +274,7 @@ def plot_function(m, n_time_points):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig(f"wrd_{m.params.annual_production_AF}_week.png", dpi=600)
+    fig.savefig(f"plots/wrd_{m.params.annual_production_AF}_week.png", dpi=600)
     plt.show()
 
 

@@ -294,6 +294,7 @@ if __name__ == "__main__":
     price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed"]
     price_data["Var Demand Rate"] = price_data["electric_demand_peak"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
+    price_data["Demand_Response_Price"] = price_data["electric_demand_response_price"]
 
     # price_data["Energy Rate"] = (
     #     price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
@@ -341,6 +342,7 @@ if __name__ == "__main__":
         ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
         # rainy_days=1,
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
+        include_demand_response=True,
     )
 
     m.params.intake.update(
@@ -420,6 +422,7 @@ if __name__ == "__main__":
             "emissions_intensity": price_data["Emissions Intensity"],
             "customer_cost": price_data["Customer Cost"],
             "power_generation.capacity_factor": pv_capacity_factors,
+            "demand_response_price": price_data["Demand_Response_Price"],
         }
     )
 
