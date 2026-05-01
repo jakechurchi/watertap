@@ -784,24 +784,74 @@ def add_rain_shutdowns(m):
         return blk.period[d, t].intake.feed_flowrate == 0
 
 
-def calculate_flexibility_metrics(m, baseline_power=1000):
+def calculate_flexibility_metrics(
+    m,
+    baseline_power=1000,
+    baseline_electricity_cost=100000,
+    baseline_replacement_cost=993,
+):
+    # Should this really be included in this file?
+    # Don't love having to pass the baseline costs because they would change depending on the time horizon
     """Calculates flexibility metrics based on model results. Should be called after solving the model."""
 
     maximum_power = max(
         value(m.period[d, t].power_from_grid) for d, t in m.period.index_set()
     )
-    m.maximum_power = Var(initialize=maximum_power)
     print(f"Maximum power (kW): {maximum_power:.2f}")
 
-    energy_capacity = (
+    # Discharging energy capacity
+    discharge_energy_capacity = (
         sum(
             max(0, baseline_power - value(m.period[d, t].power_from_grid))
             for d, t in m.period.index_set()
         )
         * m.params.timestep_hours
     )
-    m.energy_capacity = Var(initialize=energy_capacity)
-    print(f"Total energy capacity (kWh): {energy_capacity:.2f}")
+    print(f"Total energy capacity (kWh): {discharge_energy_capacity:.2f}")
+    discharge_time = sum(
+        (value(m.period[d, t].power_from_grid) < baseline_power)
+        * m.params.timestep_hours
+        for d, t in m.period.index_set()
+    )
+
+    # Charging energy capacity
+    charge_energy_capacity = (
+        sum(
+            max(0, value(m.period[d, t].power_from_grid) - baseline_power)
+            for d, t in m.period.index_set()
+        )
+        * m.params.timestep_hours
+    )
+    charge_time = sum(
+        (value(m.period[d, t].power_from_grid) > baseline_power)
+        * m.params.timestep_hours
+        for d, t in m.period.index_set()
+    )
+
+    discharge_power_capacity = discharge_energy_capacity / discharge_time
+    charge_poower_capacity = charge_energy_capacity / charge_time
+
+    round_trip_efficiency = discharge_energy_capacity / charge_energy_capacity
+    LCOF = (
+        (
+            value(
+                m.total_energy_cost
+                + m.total_demand_cost
+                + m.total_customer_cost
+                - m.total_demand_response_revenue
+            )
+            - baseline_electricity_cost
+        )
+        - (value(m.total_replacement_cost) - baseline_replacement_cost)
+    ) / (discharge_energy_capacity)
+    print(f"Levelized Cost of Flexibility ($/kWh): {LCOF:.2f}")
+    # Levelized Cost of Flexibility. Only flexibility costs are the replacement costs
+
+    m.maximum_power = Var(initialize=maximum_power)
+    m.energy_capacity = Var(initialize=discharge_energy_capacity)
+    m.power_capacity = Var(initialize=discharge_power_capacity)
+    m.round_trip_efficiency = Var(initialize=round_trip_efficiency)
+    m.LCOF = Var(initialize=LCOF)
 
 
 def add_useful_expressions(m):

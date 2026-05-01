@@ -448,7 +448,9 @@ if __name__ == "__main__":
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
     fs.add_replacement_costs_piecewise(m)
-    fs.add_useful_expressions(m)
+    fs.add_useful_expressions(
+        m
+    )  # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
     m.total_op_cost = pyo.Expression(
         expr=m.total_energy_cost
@@ -535,7 +537,9 @@ if __name__ == "__main__":
     pyo.assert_optimal_termination(results)
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
-    fs.calculate_flexibility_metrics(m, baseline_power=1000)
+    fs.calculate_flexibility_metrics(
+        m, baseline_power=1062
+    )  # 1062 is for 1200 AF yearly target
 
     design_var_values = m.get_design_var_values()
     filtered_design_var_values = {
