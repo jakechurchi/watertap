@@ -1,0 +1,36 @@
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-04-30 14:05:43 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+3865
+Set parameter TokenServer to value "10.60.1.73"
+Traceback (most recent call last):
+  File "/home/rchurchi/watertap_test/watertap/tutorials/flex_ro/ro_const_RR_wrd.py", line 511, in <module>
+    results = solver.solve(m, tee=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/pyomo/contrib/solver/common/base.py", line 651, in solve
+    results: Results = super().solve(model)
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/pyomo/contrib/solver/solvers/gurobi/gurobi_direct_base.py", line 340, in solve
+    gurobi_model, solution_loader, has_obj = self._create_solver_model(
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/pyomo/contrib/solver/solvers/gurobi/gurobi_direct_minlp.py", line 627, in _create_solver_model
+    grb_model, var_map, pyo_obj, grb_cons, pyo_cons = writer.write(
+                                                      ^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/pyomo/contrib/solver/solvers/gurobi/gurobi_direct_minlp.py", line 492, in write
+    grb_model = gurobipy.Model()
+                ^^^^^^^^^^^^^^^^
+  File "src/gurobipy/_model.pyx", line 146, in gurobipy._model.Model.__init__
+  File "src/gurobipy/gurobi.pxi", line 60, in gurobipy._core.gurobi._getdefaultenv
+  File "src/gurobipy/env.pxi", line 108, in gurobipy._core.Env.__init__
+gurobipy._exception.GurobiError: Request denied: use limit (24) exceeded
