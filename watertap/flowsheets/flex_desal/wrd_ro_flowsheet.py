@@ -20,6 +20,7 @@ from pyomo.environ import (
     Expression,
     NonNegativeReals,
     Param,
+    Reals,
     Var,
     Binary,
     units as pyunits,
@@ -61,11 +62,32 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
         initialize=0, mutable=True, doc="Demand-response prices"
     )
     blk.baseline_power = Param(
-        initialize=1000, mutable=True, doc="Baseline power requirement"
+        initialize=1062, mutable=True, doc="Baseline power requirement"
+    )
+    blk.demand_response_power_delta = Var(
+        within=Reals,
+        doc="Difference between baseline and grid power",
+    )
+    blk.calculate_demand_response_power_delta = Constraint(
+        expr=blk.demand_response_power_delta
+        == blk.baseline_power - blk.power_from_grid,
+        doc="Computes baseline minus purchased grid power",
+    )
+    blk.demand_response_power_eligible = Var(
+        within=NonNegativeReals,
+        doc="Eligible demand-response power reduction",
+    )
+    blk.calculate_demand_response_power_eligible = Piecewise(
+        blk.demand_response_power_eligible,
+        blk.demand_response_power_delta,
+        pw_pts=[-1e6, 0, 1e6],
+        pw_constr_type="EQ",
+        f_rule=[0, 0, 1e6],
+        pw_repn="INC",
     )
     blk.demand_response_revenue = Expression(
         expr=blk.demand_response_price
-        * (blk.baseline_power - blk.power_from_grid)
+        * blk.demand_response_power_eligible
         * params.timestep_hours,
         doc="Revenue generated from demand response",
     )
@@ -828,30 +850,32 @@ def calculate_flexibility_metrics(
         for d, t in m.period.index_set()
     )
 
+    # Power Capacities
     discharge_power_capacity = discharge_energy_capacity / discharge_time
-    charge_poower_capacity = charge_energy_capacity / charge_time
+    charge_power_capacity = charge_energy_capacity / charge_time
 
     round_trip_efficiency = discharge_energy_capacity / charge_energy_capacity
-    LCOF = (
+
+    LVOF = (
         (
-            value(
+            baseline_electricity_cost
+            - value(
                 m.total_energy_cost
                 + m.total_demand_cost
                 + m.total_customer_cost
                 - m.total_demand_response_revenue
             )
-            - baseline_electricity_cost
         )
-        - (value(m.total_replacement_cost) - baseline_replacement_cost)
+        - (baseline_replacement_cost - value(m.total_replacement_cost))
     ) / (discharge_energy_capacity)
-    print(f"Levelized Cost of Flexibility ($/kWh): {LCOF:.2f}")
+    print(f"Levelized Cost of Flexibility ($/kWh): {LVOF:.2f}")
     # Levelized Cost of Flexibility. Only flexibility costs are the replacement costs
 
     m.maximum_power = Var(initialize=maximum_power)
     m.energy_capacity = Var(initialize=discharge_energy_capacity)
     m.power_capacity = Var(initialize=discharge_power_capacity)
     m.round_trip_efficiency = Var(initialize=round_trip_efficiency)
-    m.LCOF = Var(initialize=LCOF)
+    m.LVOF = Var(initialize=LVOF)
 
 
 def add_useful_expressions(m):
