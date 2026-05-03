@@ -66,6 +66,7 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
     )
     blk.demand_response_power_delta = Var(
         within=Reals,
+        bounds=(0, 1e6),
         doc="Difference between baseline and grid power",
     )
     blk.calculate_demand_response_power_delta = Constraint(
@@ -829,7 +830,7 @@ def calculate_flexibility_metrics(
         )
         * m.params.timestep_hours
     )
-    print(f"Total energy capacity (kWh): {discharge_energy_capacity:.2f}")
+    print(f"Discharge energy capacity (kWh): {discharge_energy_capacity:.2f}")
     discharge_time = sum(
         (value(m.period[d, t].power_from_grid) < baseline_power)
         * m.params.timestep_hours
@@ -844,6 +845,7 @@ def calculate_flexibility_metrics(
         )
         * m.params.timestep_hours
     )
+    print(f"Charge energy capacity (kWh): {charge_energy_capacity:.2f}")
     charge_time = sum(
         (value(m.period[d, t].power_from_grid) > baseline_power)
         * m.params.timestep_hours
@@ -854,6 +856,7 @@ def calculate_flexibility_metrics(
     discharge_power_capacity = discharge_energy_capacity / discharge_time
     charge_power_capacity = charge_energy_capacity / charge_time
 
+    # Currently giving values above 1 which doesn't make sense. I think charging capacity is too low? At 10,000.
     round_trip_efficiency = discharge_energy_capacity / charge_energy_capacity
 
     LVOF = (
