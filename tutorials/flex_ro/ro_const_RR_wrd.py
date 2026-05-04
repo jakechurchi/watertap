@@ -340,7 +340,7 @@ if __name__ == "__main__":
         + list(
             range(18, 24)
         ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
-        # rainy_days=1,
+        rainy_days=1,
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
         include_demand_response=True,
     )

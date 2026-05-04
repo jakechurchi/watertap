@@ -76,6 +76,7 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
     )
     blk.demand_response_power_eligible = Var(
         within=NonNegativeReals,
+        units=pyunits.kW,
         doc="Eligible demand-response power reduction",
     )
     blk.calculate_demand_response_power_eligible = Piecewise(
