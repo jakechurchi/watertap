@@ -64,31 +64,31 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
     blk.baseline_power = Param(
         initialize=1062, mutable=True, doc="Baseline power requirement"
     )
-    blk.demand_response_power_delta = Var(
-        within=Reals,
-        bounds=(0, 1e6),
-        doc="Difference between baseline and grid power",
-    )
-    blk.calculate_demand_response_power_delta = Constraint(
-        expr=blk.demand_response_power_delta
-        == blk.baseline_power - blk.power_from_grid,
-        doc="Computes baseline minus purchased grid power",
-    )
-    blk.demand_response_power_eligible = Var(
-        within=NonNegativeReals,
-        doc="Eligible demand-response power reduction",
-    )
-    blk.calculate_demand_response_power_eligible = Piecewise(
-        blk.demand_response_power_eligible,
-        blk.demand_response_power_delta,
-        pw_pts=[-1e6, 0, 1e6],
-        pw_constr_type="EQ",
-        f_rule=[0, 0, 1e6],
-        pw_repn="INC",
-    )
+    # blk.demand_response_power_delta = Var(
+    #     within=Reals,
+    #     bounds=(0, 1e6),
+    #     doc="Difference between baseline and grid power",
+    # )
+    # blk.calculate_demand_response_power_delta = Constraint(
+    #     expr=blk.demand_response_power_delta
+    #     == blk.baseline_power - blk.power_from_grid,
+    #     doc="Computes baseline minus purchased grid power",
+    # )
+    # blk.demand_response_power_eligible = Var(
+    #     within=NonNegativeReals,
+    #     doc="Eligible demand-response power reduction",
+    # )
+    # blk.calculate_demand_response_power_eligible = Piecewise(
+    #     blk.demand_response_power_eligible,
+    #     blk.demand_response_power_delta,
+    #     pw_pts=[-1e6, 0, 1e6],
+    #     pw_constr_type="EQ",
+    #     f_rule=[0, 0, 1e6],
+    #     pw_repn="INC",
+    # )
     blk.demand_response_revenue = Expression(
         expr=blk.demand_response_price
-        * blk.demand_response_power_eligible
+        * (blk.baseline_power - blk.power_from_grid)
         * params.timestep_hours,
         doc="Revenue generated from demand response",
     )

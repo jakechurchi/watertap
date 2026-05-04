@@ -495,7 +495,7 @@ if __name__ == "__main__":
     )
 
     # Only to find the baseline power for this water production
-    m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
+    # m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     print(degrees_of_freedom(m))
 
