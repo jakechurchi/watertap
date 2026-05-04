@@ -431,7 +431,7 @@ if __name__ == "__main__":
 
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
-    fs.add_delayed_shutdown_constraints(m)
+    # fs.add_delayed_shutdown_constraints(m)
 
     m.total_water_production = pyo.Expression(
         expr=m.params.timestep_hours
