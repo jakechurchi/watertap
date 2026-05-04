@@ -1,0 +1,93 @@
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-05-03 10:37:19 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+5208
+Set parameter TokenServer to value "10.60.1.73"
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.01
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.01
+
+Optimize a model with 18294 rows, 16979 columns and 51533 nonzeros
+Model fingerprint: 0x14309f2b
+Model has 2352 quadratic constraints
+Model has 1 general nonlinear constraint (0 nonlinear terms)
+Variable types: 11601 continuous, 5378 integer (5378 binary)
+Coefficient statistics:
+  Matrix range     [2e-02, 1e+06]
+  QMatrix range    [2e-07, 1e+00]
+  QLMatrix range   [3e-04, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+06]
+  RHS range        [1e+00, 1e+06]
+  QRHS range       [3e-01, 5e-01]
+Presolve model has 1 nlconstr
+Added 4 variables to disaggregate expressions.
+Presolve removed 16897 rows and 15602 columns
+Presolve time: 0.14s
+Presolved: 1467 rows, 1382 columns, 6237 nonzeros
+Presolved model has 16 bilinear constraint(s)
+Presolved model has 2 nonlinear constraint(s)
+
+Solving non-convex MINLP
+
+Variable types: 1378 continuous, 4 integer (4 binary)
+
+Root relaxation: objective 9.828276e+00, 30 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    9.82828    0   15          -    9.82828      -     -    0s
+     0     0   10.03481    0   12          -   10.03481      -     -    0s
+     0     0   11.26939    0   12          -   11.26939      -     -    0s
+     0     0   11.47008    0   13          -   11.47008      -     -    0s
+     0     0   11.52960    0   12          -   11.52960      -     -    0s
+     0     0   11.54729    0   12          -   11.54729      -     -    0s
+     0     0   11.56473    0   13          -   11.56473      -     -    0s
+     0     0   11.56615    0   13          -   11.56615      -     -    0s
+     0     0   11.57514    0   13          -   11.57514      -     -    0s
+     0     0   11.58737    0   13          -   11.58737      -     -    0s
+     0     0   11.69618    0   11          -   11.69618      -     -    0s
+H    0     0                      11.8210163   11.69618  1.06%     -    0s
+H    0     0                      11.8181573   11.69618  1.03%     -    0s
+     0     2   11.69618    0   11   11.81816   11.69618  1.03%     -    0s
+
+Cutting planes:
+  RLT: 5
+
+Explored 1 nodes (78 simplex iterations) in 0.19 seconds (0.25 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 2: 11.8182 11.821 
+
+Optimal solution found (tolerance 1.00e-02)
+Best objective 1.181815729911e+01, best bound 1.171201085502e+01, gap 0.8982%
+m.flow_changes_penalty(): 0.0
+Total operational cost: 118181.57
+Maximum power (kW): 1035.55
+Discharge energy capacity (kWh): 7383.44
+Charge energy capacity (kWh): 0.00
+Traceback (most recent call last):
+  File "/home/rchurchi/watertap_test/watertap/tutorials/flex_ro/ro_const_RR_wrd.py", line 540, in <module>
+    fs.calculate_flexibility_metrics(
+  File "/home/rchurchi/watertap_test/watertap/watertap/flowsheets/flex_desal/wrd_ro_flowsheet.py", line 857, in calculate_flexibility_metrics
+    charge_power_capacity = charge_energy_capacity / charge_time
+                            ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+ZeroDivisionError: float division by zero
