@@ -449,13 +449,14 @@ if __name__ == "__main__":
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
     # fs.add_replacement_costs_piecewise(m)
-    # fs.add_useful_expressions(m)
+    fs.add_useful_expressions(m)
     # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
     m.total_op_cost = pyo.Expression(
         expr=m.total_energy_cost
         + m.total_demand_cost
         + m.total_customer_cost
+        - m.total_demand_response_revenue
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
