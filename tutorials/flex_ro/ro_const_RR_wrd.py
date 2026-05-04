@@ -459,7 +459,6 @@ if __name__ == "__main__":
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
-        + m.total_replacement_cost  # function of degree of flexibility
     )
     # add CAPEX as a fixed cost to calculate LCOW
     m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months / 12)
