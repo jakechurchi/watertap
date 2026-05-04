@@ -7,7 +7,7 @@
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=job_output_filename.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=job_output_with_delayed_shutdown.%j.out  # %j will be replaced with the job ID
 
 
 module load gurobi

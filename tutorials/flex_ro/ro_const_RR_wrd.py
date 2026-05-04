@@ -431,6 +431,7 @@ if __name__ == "__main__":
 
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
+    fs.add_delayed_shutdown_constraints(m)
 
     m.total_water_production = pyo.Expression(
         expr=m.params.timestep_hours
@@ -485,7 +486,7 @@ if __name__ == "__main__":
 
     # fs.add_working_hours_constraint(m)
 
-    # fs.add_rain_shutdowns(m)
+    fs.add_rain_shutdowns(m)
 
     # To define a baseline
     m.obj = pyo.Objective(
