@@ -263,6 +263,25 @@ def add_delayed_startup_constraints(m):
         )
 
 
+def add_delayed_shutdown_constraints(m):
+    # Consider implmenting with the add_ramping_limits from IDAES price_taker_model
+    """Adds the delayed shutdown constraints to the model"""
+    params: um_params.FlexDesalParams = m.params
+
+    """Specific to WRD where the planned shutdowns seem to occur over a period 60-100 minutes, meaning it's 
+    not realistic to have all trains go from on to off in same hour. This says 30 mins per train about right"""
+
+    @m.Constraint(m.period.index_set())
+    def posttreatment_unit_commitment_shutdown(blk, d, t):
+        return (
+            sum(
+                blk.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+                for i in range(1, params.wrd_ro.num_ro_skids + 1)
+            )
+            <= 2
+        )
+
+
 def add_demand_and_fixed_costs(m):
     """Adds variables and expressions/constraints for demand and fixed costs"""
 
