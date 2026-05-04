@@ -340,7 +340,7 @@ if __name__ == "__main__":
         + list(
             range(18, 24)
         ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
-        rainy_days=1,  # This will reduce the maxumim value for annual_production AF
+        # rainy_days=1,  # This will reduce the maxumim value for annual_production AF
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
         include_demand_response=True,
     )
@@ -448,8 +448,8 @@ if __name__ == "__main__":
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    fs.add_replacement_costs_piecewise(m)
-    fs.add_useful_expressions(m)
+    # fs.add_replacement_costs_piecewise(m)
+    # fs.add_useful_expressions(m)
     # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
     m.total_op_cost = pyo.Expression(
@@ -485,7 +485,7 @@ if __name__ == "__main__":
 
     # fs.add_working_hours_constraint(m)
 
-    fs.add_rain_shutdowns(m)
+    # fs.add_rain_shutdowns(m)
 
     # To define a baseline
     m.obj = pyo.Objective(
@@ -504,7 +504,7 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.01
+    mip_gap = 0.05
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
