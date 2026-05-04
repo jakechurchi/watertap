@@ -456,7 +456,6 @@ if __name__ == "__main__":
         expr=m.total_energy_cost
         + m.total_demand_cost
         + m.total_customer_cost
-        - m.total_demand_response_revenue
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
