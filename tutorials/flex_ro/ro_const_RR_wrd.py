@@ -332,7 +332,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=9000,
+        annual_production_AF=12000,
         timestep_hours=timestep_hours,
         include_onsite_solar=True,
         onsite_capacity=pv_capacity,
