@@ -511,7 +511,7 @@ if __name__ == "__main__":
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
     # )
-    results = solver.solve(m, tee=True)
+    results = solver.solve(m, tee=True, warmstart=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
