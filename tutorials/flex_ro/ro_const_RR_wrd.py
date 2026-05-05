@@ -504,16 +504,13 @@ if __name__ == "__main__":
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.02
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     solver.options["MIPGapAbs"] = (
         0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     )
     # solver.options["MIPFocus"] = 1
-    # solver.options["StartNodeLimit"] = (
-    #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
-    # )
     results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
