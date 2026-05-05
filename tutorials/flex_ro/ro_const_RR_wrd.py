@@ -507,7 +507,7 @@ if __name__ == "__main__":
     mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
-    solver.options["MIPFocus"] = 1
+    # solver.options["MIPFocus"] = 1
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
     # )
