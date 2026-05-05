@@ -495,7 +495,7 @@ if __name__ == "__main__":
             + m.total_demand_cost
             + m.total_customer_cost
             - m.total_demand_response_revenue
-            + m.flow_changes_penalty
+            # + m.flow_changes_penalty
         ),
         sense=pyo.minimize,
     )
@@ -521,7 +521,7 @@ if __name__ == "__main__":
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
     # )
-    results = solver.solve(m, tee=True, warmstart_discrete_vars=True)
+    results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
