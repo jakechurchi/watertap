@@ -1,0 +1,121 @@
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-05-05 17:41:05 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+4029
+Set parameter TokenServer to value "10.60.1.73"
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.04
+Set parameter MIPGapAbs to value 0.1
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.04
+MIPGapAbs  0.1
+
+Optimize a model with 17446 rows, 16299 columns and 47991 nonzeros
+Model fingerprint: 0x9856ce0a
+Model has 168 quadratic objective terms
+Model has 2352 quadratic constraints
+Variable types: 11091 continuous, 5208 integer (5208 binary)
+Coefficient statistics:
+  Matrix range     [3e-02, 2e+03]
+  QMatrix range    [2e-07, 1e+00]
+  QLMatrix range   [3e-04, 1e+00]
+  Objective range  [1e-05, 5e-03]
+  QObjective range [2e-04, 2e-04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e+00, 3e+05]
+  QRHS range       [3e-01, 5e-01]
+Presolve removed 7591 rows and 8618 columns
+Presolve time: 0.09s
+Presolved: 18423 rows, 8186 columns, 45823 nonzeros
+Presolved model has 336 SOS constraint(s)
+Presolved model has 2352 bilinear constraint(s)
+
+Solving non-convex MIQCP
+
+Variable types: 4539 continuous, 3647 integer (3647 binary)
+Found heuristic solution: objective 11.9664450
+
+Root relaxation: unbounded, 0 iterations, 0.01 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     2  postponed    0        11.96644          -      -     -    3s
+     7    12  postponed    3        11.96644          -      -  5411    5s
+   121   160  postponed    8        11.96644          -      -  7172   11s
+   371   430 infeasible   11        11.96644          -      -  7292   18s
+   647   699 infeasible   14        11.96644          -      -  7070   24s
+  1126  1107 infeasible   19        11.96644          -      -  6829   36s
+  1938  1655 infeasible   26        11.96644          -      -  5480   50s
+  3158  2470 infeasible   37        11.96644          -      -  5363   72s
+  4759  3515 infeasible   53        11.96644          -      -  5512   95s
+  6482  4899  postponed   70        11.96644          -      -  5544  116s
+  8496  8147 infeasible   87        11.96644          -      -  5259  136s
+ 12425 10926 infeasible  103        11.96644          -      -  4135  151s
+ 15663 10928    9.08331  106 2292   11.96644    9.08331  24.1%  3588  169s
+ 15664 10929   10.40071  175 1027   11.96644   10.40071  13.1%  3588  172s
+ 15666 10930   11.06989  335 1149   11.96644   10.57082  11.7%  3588  177s
+ 15668 10932   10.60626   65 1203   11.96644   10.60626  11.4%  3587  181s
+ 15671 10934   10.61997  169 1168   11.96644   10.61997  11.3%  3587  185s
+ 15674 10936   10.62332   65 1155   11.96644   10.62332  11.2%  3586  190s
+ 15680 10940   10.63327  171 1103   11.96644   10.63327  11.1%  3584  195s
+ 15686 10944   10.77580  281 1129   11.96644   10.63483  11.1%  3583  200s
+ 15690 10946   10.63871   37 1126   11.96644   10.63871  11.1%  3582  205s
+ 15695 10950   10.64193   38 1111   11.96644   10.64193  11.1%  3581  210s
+ 15703 10955   10.64563  104 1007   11.96644   10.64563  11.0%  3579  215s
+ 15708 10958   10.64563   24  913   11.96644   10.64563  11.0%  3578  231s
+H15708 10409                      11.5200709   10.64563  7.59%  3578  236s
+H15710  9892                      11.5200114   10.64563  7.59%  3587  322s
+ 15712  9895   10.79500   14 2967   11.52001   10.64615  7.59%  3588  331s
+ 15716  9902   10.88346   15 3182   11.52001   10.64728  7.58%  3589  342s
+ 15724  9915   10.93438   16 3235   11.52001   10.64778  7.57%  3591  347s
+H15740  9447                      11.3220293   10.65781  5.87%  3590  352s
+H15743  8976                      11.3048896   10.65781  5.72%  3590  352s
+H15761  8523                      11.2551866   10.65847  5.30%  3590  352s
+H15762  8097                      11.1915639   10.65847  4.76%  3590  352s
+H15804  7793                      11.1020010   10.65847  4.00%  3590  362s
+H15835  7400                      11.0966196   10.65847  3.95%  3588  362s
+
+Cutting planes:
+  Learned: 345
+  Gomory: 19
+  Cover: 505
+  Implied bound: 389
+  Projected implied bound: 1
+  MIR: 628
+  StrongCG: 2
+  Flow cover: 1207
+  GUB cover: 12
+  Zero half: 1
+  Network: 1
+  RLT: 1957
+  Relax-and-lift: 242
+  BQP: 3
+
+Explored 15885 nodes (57005139 simplex iterations) in 362.33 seconds (833.60 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 9: 11.0966 11.102 11.1916 ... 11.9664
+
+Optimal solution found (tolerance 4.00e-02)
+Best objective 1.109661957422e+01, best bound 1.065846684207e+01, gap 3.9485%
+m.flow_changes_penalty(): 3900.0
+Total operational cost: 107066.20
+{'fixed_demand_cost': 5250.288540850989, 'variable_demand_cost': 5137.48528552684, 'fixed_monthly_cost': 171938.17204301074, 'total_water_production': 282179.6712328784, 'total_energy_cost': 17920.67520143692, 'total_demand_cost': 10387.77382637783, 'total_customer_cost': 0.0, 'total_feed_cost': 51524.05401409898, 'total_brine_cost': 18264.83909105726, 'total_chemical_cost': 19588.853609253812, 'total_water_revenue': 0.0, 'total_demand_response_revenue': 10620.0, 'total_emissions_cost': 0.0, 'total_op_cost': 107066.19574222481, 'fixed_cost': 121551.98252688172, 'total_cost': 228618.17826910655, 'LCOW': 0.8101865640081195}
+Saved operation variable results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_dummy_result.csv
