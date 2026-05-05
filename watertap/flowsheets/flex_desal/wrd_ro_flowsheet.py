@@ -224,6 +224,16 @@ def build_desal_flowsheet(blk, params: um_params.FlexDesalParams):
         )
         blk.net_power_consumption += -blk.power_generation.power_utilized
 
+        # IF BATTERY is included, NOT SURE THIS VARIABLE IS NEEDED!
+        blk.excess_solar_power = Var(
+            within=NonNegativeReals,
+            units=pyunits.kW,
+            doc="Excess solar power that is generated but not utilized",
+        )
+        blk.net_power_consumption += (
+            blk.excess_solar_power
+        )  # Slack variable so that when plant power is zero, the solar has somewhere to go.
+
     if params.include_battery:
         blk.battery = OperationModel()
         blk.net_power_consumption += blk.battery.power_charge - blk.battery.discharge
