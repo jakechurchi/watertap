@@ -513,12 +513,15 @@ if __name__ == "__main__":
 
     mip_gap = 0.02
     solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap
+    solver.options["MIPGap"] = mip_gap  # 2.0 %
+    solver.options["MIPGapAbs"] = (
+        0.02  # $2,000 (b/c objective functino is scaled down by 1e-4)
+    )
     # solver.options["MIPFocus"] = 1
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
     # )
-    results = solver.solve(m, tee=True)
+    results = solver.solve(m, tee=True, warmstart_discrete_vars=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
