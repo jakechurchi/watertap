@@ -87,6 +87,7 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
     #     f_rule=[0, 0, 1e4],
     #     pw_repn="INC",
     # )
+
     blk.demand_response_revenue = Expression(
         expr=blk.demand_response_price
         * (blk.baseline_power - blk.power_from_grid)
@@ -576,8 +577,9 @@ def add_flow_costs(m):
     # Arguably this could be applied to the brine as well but that's tbd
     m.total_feed_cost = Expression(
         expr=sum(
-            m.period[:, :].intake.feed_cost
-            * (1 - m.period[:, :].brine_discharge.op_mode)
+            m.period[d, t].intake.feed_cost
+            * (1 - m.period[d, t].brine_discharge.op_mode)
+            for d, t in m.period.index_set()
         )
         * m.params.timestep_hours,
         doc="Total cost of feed water over the time horizon ($)",
