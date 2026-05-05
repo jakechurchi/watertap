@@ -572,8 +572,14 @@ def add_replacement_costs_piecewise(m):
 def add_flow_costs(m):
     """Adds expressions for feed and brine costs"""
 
+    # If the brine discharge in being operated, then plant start-up is occurring, and the feed is being recirculated, so there is no cost.
+    # Arguably this could be applied to the brine as well but that's tbd
     m.total_feed_cost = Expression(
-        expr=sum(m.period[:, :].intake.feed_cost) * m.params.timestep_hours,
+        expr=sum(
+            m.period[:, :].intake.feed_cost
+            * (1 - m.period[:, :].brine_discharge.op_mode)
+        )
+        * m.params.timestep_hours,
         doc="Total cost of feed water over the time horizon ($)",
     )
 
