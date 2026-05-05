@@ -489,7 +489,14 @@ if __name__ == "__main__":
 
     # To define a baseline
     m.obj = pyo.Objective(
-        expr=1e-4 * (m.total_op_cost + m.flow_changes_penalty),
+        expr=1e-4
+        * (
+            m.total_energy_cost
+            + m.total_demand_cost
+            + m.total_customer_cost
+            - m.total_demand_response_revenue
+            + m.flow_changes_penalty
+        ),
         sense=pyo.minimize,
     )
 
@@ -511,7 +518,7 @@ if __name__ == "__main__":
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
     # )
-    results = solver.solve(m, tee=True, warmstart=True)
+    results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
