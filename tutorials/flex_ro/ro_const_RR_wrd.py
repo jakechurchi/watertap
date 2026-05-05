@@ -495,7 +495,7 @@ if __name__ == "__main__":
             + m.total_demand_cost
             + m.total_customer_cost
             - m.total_demand_response_revenue
-            # + m.flow_changes_penalty
+            + m.flow_changes_penalty
         ),
         sense=pyo.minimize,
     )
@@ -515,7 +515,7 @@ if __name__ == "__main__":
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     solver.options["MIPGapAbs"] = (
-        0.02  # $2,000 (b/c objective functino is scaled down by 1e-4)
+        0.2  # $2,000 (b/c objective functino is scaled down by 1e-4)
     )
     # solver.options["MIPFocus"] = 1
     # solver.options["StartNodeLimit"] = (
