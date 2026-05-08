@@ -339,7 +339,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=12000,
+        annual_production_AF=10000,
         timestep_hours=timestep_hours,
         include_onsite_solar=True,
         onsite_capacity=pv_capacity,
@@ -384,11 +384,15 @@ if __name__ == "__main__":
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
-            "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 5.411e-1,
-            "surrogate_b": -9.826e-4,
-            "surrogate_c": 1.100e-6,
+            # "surrogate_type": "quadratic_energy_intensity",
+            # "surrogate_a": 5.411e-1,
+            # "surrogate_b": -9.826e-4,
+            # "surrogate_c": 1.100e-6,
+            "surrogate_type": "PySMO_polyfit",
+            "surrogate_file": script_dir / "ro_power_poly_fit_order_2.json",
+            "minimum_recovery": 0.88,
             "nominal_recovery": 0.92,
+            "maximum_recovery": 0.925,
             "num_ro_skids": 4,
             "replacement_types": ["membranes", "motors"],
             "replacement_costs": [
@@ -507,18 +511,18 @@ if __name__ == "__main__":
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    # solver = get_solver()
+    solver = get_solver()
     # solver.options["max_iter"] = 500
-    # results = solver.solve(m, tee=True)
-
-    mip_gap = 0.04
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 2.0 %
-    solver.options["MIPGapAbs"] = (
-        0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
-    )
-    # solver.options["MIPFocus"] = 1
     results = solver.solve(m, tee=True)
+
+    # mip_gap = 0.04
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap  # 2.0 %
+    # solver.options["MIPGapAbs"] = (
+    #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
+    # )
+    # solver.options["MIPFocus"] = 1
+    # results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")

@@ -11,6 +11,9 @@ from pyomo.environ import (
 from watertap.flowsheets.flex_desal import params as um_params
 from watertap.flowsheets.flex_desal.unit_models import _add_required_variables
 
+from idaes.core.surrogate.pysmo_surrogate import PysmoSurrogate
+from idaes.core.surrogate.surrogate_block import SurrogateBlock
+
 
 def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
     """
@@ -46,6 +49,31 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
             ),
             doc="Calculates the specific energy requirement",
         )
+
+    elif params.surrogate_type == "PySMO_polyfit":
+        energy_surrogate = PysmoSurrogate.load_from_file(params.surrogate_file)
+        blk.energy_surrogate = SurrogateBlock()
+        blk.energy_surrogate.build_model(
+            energy_surrogate,
+            input_vars=[blk.recovery, blk.feed_flowrate],
+            output_vars=[blk.energy_intensity],
+        )
+        blk.calculate_energy_intensity = Constraint(
+            expr=blk.energy_intensity
+            == blk.energy_surrogate.outputs["energy_intensity"],
+            doc="Calculates the specific energy requirement using PySMO surrogate",
+        )
+        # Have to add an additional constraint to limit the max flowrate for a given recovery. This is restricting the domain of the surrogate.
+        # Probably just going to hardcode this fit for now.
+        blk.max_flowrate_for_recovery = Constraint(
+            expr=blk.feed_flowrate
+            <= (
+                blk.coeffs["a"]
+                + blk.coeffs["b"] * blk.recovery
+                + blk.coeffs["c"] * blk.recovery**2
+            )
+        )
+
     else:
         raise ValueError("Unrecognized surrogate type")
 

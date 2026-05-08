@@ -310,9 +310,9 @@ class WRD_ROParams(UnitParams):
     minimum_flowrate: float = 0
     nominal_flowrate: float = 337.670
     maximum_flowrate: float = 400
-    minimum_recovery: float = 0.4  # Not used
-    nominal_recovery: float = 0.465
-    maximum_recovery: float = 0.55  # Not used
+    minimum_recovery: float = 0.88
+    nominal_recovery: float = 0.92
+    maximum_recovery: float = 0.925
     minimum_uptime: int = 1
     minimum_downtime: int = 4
     startup_delay: int = 8
@@ -325,6 +325,7 @@ class WRD_ROParams(UnitParams):
     def __post_init__(self):
         # self._surrogate = # load the surrogate model here.
         self.surrogate_type: str = "constant_energy_intensity"
+        self.surrogate_file: Optional[str] = None
         self.surrogate_a = 1
         self.surrogate_b = 1
         self.surrogate_c = 1
