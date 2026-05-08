@@ -369,9 +369,9 @@ if __name__ == "__main__":
             "nominal_flowrate": 900,
             "maximum_flowrate": 989,
             "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 2.83e-1,
-            "surrogate_b": -3.44e-4,
-            "surrogate_c": 2.46e-7,
+            "surrogate_a": 2.71e-1,
+            "surrogate_b": -3.32e-4,
+            "surrogate_c": 2.39e-7,
             "nominal_recovery": 0.96,
             "num_uf_pumps": 3,
         }
@@ -384,12 +384,9 @@ if __name__ == "__main__":
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
-            # "surrogate_type": "quadratic_energy_intensity",
-            # "surrogate_a": 5.411e-1,
-            # "surrogate_b": -9.826e-4,
-            # "surrogate_c": 1.100e-6,
+            "allow_variable_recovery": True,
             "surrogate_type": "PySMO_polyfit",
-            "surrogate_file": script_dir / "ro_power_poly_fit_order_2.json",
+            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_2.json",
             "minimum_recovery": 0.88,
             "nominal_recovery": 0.92,
             "maximum_recovery": 0.925,
@@ -488,7 +485,7 @@ if __name__ == "__main__":
             uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
 
-    # Could cause feasibility issues b/c this is a slakc varable essentially.
+    # Could cause feasibility issues b/c this is a slack variable essentially.
     # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
 
     # Flowrates not fixed, but shouldn't randomly fluctuate either.
@@ -509,7 +506,7 @@ if __name__ == "__main__":
 
     print(degrees_of_freedom(m))
 
-    # dt = DiagnosticsToolbox(m)
+    dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
     solver = get_solver()
     # solver.options["max_iter"] = 500

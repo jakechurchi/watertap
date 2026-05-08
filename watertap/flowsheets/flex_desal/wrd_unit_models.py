@@ -30,11 +30,11 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
     _add_required_variables(blk)
     blk.coeffs = Param(["a", "b", "c"], initialize=params.surrogate_coeffs)
 
-    blk.operational_limits_lower = Constraint(
+    blk.op_flow_limits_lower = Constraint(
         expr=blk.feed_flowrate >= blk.op_mode * params.minimum_flowrate,
         doc="Enforce minimum flowrate when operating",
     )
-    blk.operational_limits_upper = Constraint(
+    blk.op_flow_limits_upper = Constraint(
         expr=blk.feed_flowrate <= blk.op_mode * params.maximum_flowrate,
         doc="Enforce maximum flowrate when operating",
     )
@@ -55,23 +55,23 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
         blk.energy_surrogate = SurrogateBlock()
         blk.energy_surrogate.build_model(
             energy_surrogate,
-            input_vars=[blk.recovery, blk.feed_flowrate],
+            input_vars=[blk.recovery, blk.feed_flowrate],  # RR,
             output_vars=[blk.energy_intensity],
         )
-        blk.calculate_energy_intensity = Constraint(
-            expr=blk.energy_intensity
-            == blk.energy_surrogate.outputs["energy_intensity"],
-            doc="Calculates the specific energy requirement using PySMO surrogate",
+
+        # The maximum and minimum flowrate limits are now functions of recovery. This restricts the domain of the surrogate.
+        # Probably just going to hardcode this fit. !! NOT UPDATED YET !!
+
+        blk.flow_limit_from_RR_upper = Constraint(
+            # With more data points in the surrogate, I could revisit and make linear
+            expr=blk.feed_flowrate <= (590 + exp(500 * (blk.recovery - 0.9))),
+            doc="Upper flow constraint goes away above 0.9 RR",
         )
-        # Have to add an additional constraint to limit the max flowrate for a given recovery. This is restricting the domain of the surrogate.
-        # Probably just going to hardcode this fit for now.
-        blk.max_flowrate_for_recovery = Constraint(
+
+        blk.flow_limit_from_RR_lower = Constraint(
             expr=blk.feed_flowrate
-            <= (
-                blk.coeffs["a"]
-                + blk.coeffs["b"] * blk.recovery
-                + blk.coeffs["c"] * blk.recovery**2
-            )
+            >= blk.op_mode * (544 + 7555 * (blk.recovery - 0.917)),
+            doc="Lower flow constraint based on recovery. In active below .914 RR",
         )
 
     else:
@@ -171,13 +171,15 @@ def wrd_reverse_osmosis_operation_model(blk, params: um_params.WRD_ROParams):
 
     # Update bounds on recovery and energy intensity for all skids
     # I'm struggling to understand why there are bounds on energy intensity. Shouldn't flowrate bounds do this implicitly?
-    ei_lb, ei_ub = params.get_energy_intensity_bounds()
+    # ei_lb, ei_ub = params.get_energy_intensity_bounds()
     for skid in blk.set_ro_skids:
         # Note: feed_flowrate lower bound is 0 to allow shutdown
         # Minimum flowrate when operating is enforced by operational_limits_lower constraint
         blk.ro_skid[skid].feed_flowrate.setub(params.maximum_flowrate)
         # blk.ro_skid[skid].energy_intensity.setlb(ei_lb)
-        blk.ro_skid[skid].energy_intensity.setub(ei_ub)
+        # blk.ro_skid[skid].energy_intensity.setub(ei_ub)
+        blk.ro_skid[skid].recovery.setlb(params.minimum_recovery)
+        blk.ro_skid[skid].recovery.setub(params.maximum_recovery)
 
 
 # Currently implementing UF same way as RO.

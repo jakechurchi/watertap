@@ -362,9 +362,9 @@ if __name__ == "__main__":
             "nominal_flowrate": 900,
             "maximum_flowrate": 989,
             "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 2.83e-1,
-            "surrogate_b": -3.44e-4,
-            "surrogate_c": 2.46e-7,
+            "surrogate_a": 2.71e-1,
+            "surrogate_b": -3.32e-4,
+            "surrogate_c": 2.39e-7,
             "nominal_recovery": 0.96,
             "num_uf_pumps": 3,
         }
