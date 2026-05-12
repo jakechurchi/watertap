@@ -282,7 +282,7 @@ def plot_function(m, n_time_points):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig("wrd_pricetaker_summer_month.png", dpi=600)
+    fig.savefig("wrd_pricetaker_summer_day.png", dpi=600)
     plt.show()
 
 

@@ -7,10 +7,10 @@
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=PT.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=PT_short.%j.out  # %j will be replaced with the job ID
 
 
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-python ro_const_RR_wrd.py
+python wrd_pricetaker_short.py
