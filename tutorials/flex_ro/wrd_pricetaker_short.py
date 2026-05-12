@@ -515,9 +515,9 @@ if __name__ == "__main__":
     mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
-    solver.options["MIPGapAbs"] = (
-        0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
-    )
+    # solver.options["MIPGapAbs"] = (
+    #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
+    # )
     # solver.options["MIPFocus"] = 1
     results = solver.solve(m, tee=True)
 
