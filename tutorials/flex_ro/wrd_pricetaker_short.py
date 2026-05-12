@@ -506,20 +506,20 @@ if __name__ == "__main__":
 
     print(degrees_of_freedom(m))
 
-    dt = DiagnosticsToolbox(m)
+    # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    solver = get_solver()
+    # solver = get_solver()
     # solver.options["max_iter"] = 500
-    results = solver.solve(m, tee=True)
-
-    # mip_gap = 0.04
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap  # 2.0 %
-    # solver.options["MIPGapAbs"] = (
-    #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
-    # )
-    # solver.options["MIPFocus"] = 1
     # results = solver.solve(m, tee=True)
+
+    mip_gap = 0.04
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap  # 2.0 %
+    solver.options["MIPGapAbs"] = (
+        0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
+    )
+    # solver.options["MIPFocus"] = 1
+    results = solver.solve(m, tee=True)
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
