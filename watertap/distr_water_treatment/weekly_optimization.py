@@ -82,6 +82,7 @@ def build_flowsheet(
     PV_CAP=1,
     wind_CAP=1,
     battery_CAP=1,
+    plant_CAP=1,
     SEC=0.1,
 ):
 
@@ -96,16 +97,10 @@ def build_flowsheet(
         units=pyunits.h,
         doc="Duration of each multiperiod time block",
     )
-    # This could very well be a varable, like the capacity of the
-    m.fs.total_plant_production_capacity = Param(
-        initialize=1.5 * (100 / 24),  # m3 per hour
-        units=pyunits.m**3 / pyunits.h,
-        doc="Total plant production capacity in m3 per hour",
-    )
 
     m.fs.total_water_production = Var(
-        initialize=m.fs.total_plant_production_capacity,
-        bounds=(0, m.fs.total_plant_production_capacity),
+        initialize=150 / 24,
+        bounds=(0, 8.2),
         units=pyunits.m**3 / pyunits.h,
         doc="Water produced in a hour in m3",
     )
@@ -205,10 +200,10 @@ def build_flowsheet(
     # THIS WILL BE DETERMINED LATER BASED ON FLOWSHEET OF EACH PROCESS. SEC or power as a function of salinity.
     # def calculate_power(sal):
     #     # For time being, let's assume this can be made linear so that the problem can be solved as MILP.
-    #     return m.fs.total_plant_production_capacity * m.fs.sec
+    #     return plant_CAP* m.fs.sec
 
     m.fs.power_consumption = Expression(
-        expr=m.fs.plant_on * m.fs.total_plant_production_capacity * m.fs.sec,
+        expr=m.fs.total_water_production * m.fs.sec,
         doc="Power consumption in kW",
     )
 
@@ -236,14 +231,34 @@ def build_flowsheet(
             - b.fs.battery_charge
         )
 
-    # Constrain water production
-    @m.Constraint(
-        doc="Water production must be equal to plant capacity when plant is on"
+    # Linearize z = y*x for production, where:
+    # z = total_water_production, y = plant_on (binary), x = plant_CAP (continuous)
+    # with x bounded by [L, U].
+    plant_cap_lb = (
+        (plant_CAP.lb if plant_CAP.lb is not None else 0) * pyunits.m**3 / pyunits.h
     )
-    def eq_production_constraint(b):
-        return (
-            b.fs.total_water_production
-            == b.fs.plant_on * b.fs.total_plant_production_capacity
+    plant_cap_ub = (
+        (plant_CAP.ub if plant_CAP.ub is not None else 8.4) * pyunits.m**3 / pyunits.h
+    )
+
+    @m.Constraint(doc="Production upper bound when plant is on")
+    def eq_production_on_upper(b):
+        return b.fs.total_water_production <= plant_cap_ub * b.fs.plant_on
+
+    @m.Constraint(doc="Production lower bound when plant is on")
+    def eq_production_on_lower(b):
+        return b.fs.total_water_production >= plant_cap_lb * b.fs.plant_on
+
+    @m.Constraint(doc="Production equals capacity when plant is on (upper envelope)")
+    def eq_production_capacity_upper(b):
+        return b.fs.total_water_production <= plant_CAP - plant_cap_lb * (
+            1 - b.fs.plant_on
+        )
+
+    @m.Constraint(doc="Production equals capacity when plant is on (lower envelope)")
+    def eq_production_capacity_lower(b):
+        return b.fs.total_water_production >= plant_CAP - plant_cap_ub * (
+            1 - b.fs.plant_on
         )
 
     m.fs.acc_production = Var(
@@ -325,9 +340,9 @@ def unfix_dof(m):
 
 def initialize_mp(m):
     print("Initializing multi-period model...")
-    # Check if first time step
-    max_flow = 1.5 * 100 / 24  # m3/hr
-    m.fs.total_water_production.set_value(max_flow)
+    #
+    # max_flow = 1.5 * 100 / 24  # m3/hr
+    # m.fs.total_water_production.set_value(max_flow)
     m.fs.plant_on.set_value(1)
 
 
@@ -375,7 +390,15 @@ def create_mp(
         units=pyunits.kWh,
         doc="Capacity of battery system in kWh",
     )
-    # m.fs.wind_CAP.fix(0)
+
+    # This could very well be a varable, like the capacity of the
+    m.fs.total_plant_production_capacity = Var(
+        initialize=150 / 24,  # m3 per hour
+        bounds=(4.1, 8.2),  # m3 per hour (100 - 200 m3/day)
+        units=pyunits.m**3 / pyunits.h,
+        doc="Total plant production capacity in m3 per hour",
+    )
+
     m.fs.mp = MultiPeriodModel(
         n_time_points=n_time_points,
         process_model_func=build_flowsheet,
@@ -397,6 +420,7 @@ def create_mp(
             "PV_CAP": m.fs.PV_CAP,
             "wind_CAP": m.fs.wind_CAP,
             "battery_CAP": m.fs.battery_CAP,
+            "plant_CAP": m.fs.total_plant_production_capacity,
             "SEC": 1,  # This could be made a function of salinity in the future
         }
         for t in range(n_time_points)
@@ -445,6 +469,20 @@ def create_mp(
     #         >= pyunits.convert(daily_production_target * pyunits.days, to_units=pyunits.m**3)
     #     )
 
+    # Prevent an isolated single on-hour between two off-hours.
+    @m.Constraint(
+        range(n_time_points),
+        doc="Middle hour cannot be on when both neighboring hours are off",
+    )
+    def eq_no_isolated_on_hour(b, t):
+        if t == 0 or t == n_time_points - 1:
+            return Constraint.Skip
+        return (
+            b.fs.mp.blocks[t].process.fs.plant_on
+            <= b.fs.mp.blocks[t - 1].process.fs.plant_on
+            + b.fs.mp.blocks[t + 1].process.fs.plant_on
+        )
+
     @m.Constraint(doc="Total production")
     def total_production(b):
         return sum(
@@ -455,18 +493,39 @@ def create_mp(
             ]
         ) >= pyunits.convert(total_water_production_target, to_units=pyunits.m**3)
 
+    # Cost values for the treatment plant
+    m.fs.unit_CAPEX = Param(
+        initialize=900,
+        units=CURRENCY_UNIT / (pyunits.m**3 / pyunits.h),
+        doc="Capital cost per unit of plant capacity in $/(m3/h)",
+    )
+
+    m.fs.unit_OPEX = Param(
+        initialize=100,
+        units=CURRENCY_UNIT / (pyunits.m**3 / pyunits.h),
+        doc="Operating cost per unit of plant capacity in $/(m3/h)",
+    )
+
     # Create a cost expression based on capacity of wind and PV
     m.total_cost = Expression(
         expr=(
-            1524 * (CURRENCY_UNIT / pyunits.kW * m.fs.PV_CAP)
-            + 5000 * (CURRENCY_UNIT / pyunits.kW) * m.fs.wind_CAP
-            + 800 * (CURRENCY_UNIT / pyunits.kWh) * m.fs.battery_CAP
+            (
+                1524 * (CURRENCY_UNIT / pyunits.kW * m.fs.PV_CAP)
+                + 5000 * (CURRENCY_UNIT / pyunits.kW) * m.fs.wind_CAP
+                + 800 * (CURRENCY_UNIT / pyunits.kWh) * m.fs.battery_CAP
+                + m.fs.unit_CAPEX * m.fs.total_plant_production_capacity
+            )
+            / 20
+            + (667 * (CURRENCY_UNIT / pyunits.kWh) * m.fs.battery_CAP) / 10
+            + 22 * (CURRENCY_UNIT / pyunits.kW * m.fs.PV_CAP)
+            + 39 * (CURRENCY_UNIT / pyunits.kW) * m.fs.wind_CAP
         )
+        + 5.25 * ((CURRENCY_UNIT / pyunits.kWh) * m.fs.battery_CAP)
+        + m.fs.unit_OPEX * m.fs.total_plant_production_capacity
     )
 
     # Set objective
     m.fs.obj = Objective(expr=m.total_cost)
-
     return m
 
 
@@ -652,11 +711,20 @@ if __name__ == "__main__":
 
     print("Degrees of freedom:", degrees_of_freedom(m))
     print("Total water production (m3):", total_water_production)
+    print(
+        "Capacity of Treatment Plant (m3/day):",
+        value(
+            pyunits.convert(
+                m.fs.total_plant_production_capacity,
+                to_units=pyunits.m**3 / pyunits.day,
+            )
+        ),
+    )
     print("PV size (kW):", value(m.fs.PV_CAP))
     print("Battery size (kWh):", value(m.fs.battery_CAP))
     print("Wind size (kW):", value(m.fs.wind_CAP))
-    print("Total target water production in m3:", total_water_production_target())
-    print("Total Energy System CAPEX:", m.total_cost(), "2021 $")
+    print("Total target water production in m3:", value(total_water_production_target))
+    print("Total Annualized Cost:", value(m.total_cost()), "2021 $")
     print("SEC (kWh/m3):", sec_kwh_per_m3)
 
     output_figure_path = os.path.join(
