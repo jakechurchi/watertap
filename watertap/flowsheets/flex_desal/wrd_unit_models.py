@@ -52,6 +52,10 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
 
     elif params.surrogate_type == "PySMO_polyfit":
         energy_surrogate = PysmoSurrogate.load_from_file(params.surrogate_file)
+        if energy_surrogate._input_bounds["Feed Flow m3/hr"][0] != 0:
+            raise ValueError(
+                "Surrogate input bounds are not correct. Lower bound should be 0."
+            )
         blk.energy_surrogate = SurrogateBlock()
         blk.energy_surrogate.build_model(
             energy_surrogate,
