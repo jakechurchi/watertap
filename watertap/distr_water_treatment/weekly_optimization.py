@@ -67,7 +67,9 @@ def load_renewable_prod_data(n):
     return PV_prod[:n], wind_prod[:n]
 
 
-def build_flowsheet(m=None, sal_value=1, PV_prod=1, wind_prod=1, PV_CAP=1, wind_CAP=1):
+def build_flowsheet(
+    m=None, sal_value=1, PV_prod=1, wind_prod=1, PV_CAP=1, wind_CAP=1, battery_CAP=1
+):
 
     if m is None:
         m = ConcreteModel()
@@ -101,6 +103,42 @@ def build_flowsheet(m=None, sal_value=1, PV_prod=1, wind_prod=1, PV_CAP=1, wind_
         doc="Binary variable indicating if the plant is on",
     )
 
+    # Variables for Battery
+    m.fs.battery_level = Var(
+        initialize=0,
+        bounds=(0, None),
+        units=pyunits.kWh,
+        doc="Battery charge in kWh",
+    )
+
+    m.fs.previous_battery_level = Var(
+        initialize=0,
+        bounds=(0, None),
+        units=pyunits.kWh,
+        doc="Battery charge in kWh from previous time step",
+    )
+
+    m.fs.battery_change = Var(
+        initialize=0,
+        bounds=(None, None),
+        units=pyunits.kWh,
+        doc="Change in battery charge in kWh",
+    )
+
+    # Constraint the upper and lower bounds of battery level
+    @m.Constraint(doc="Battery level cannot exceed capacity")
+    def eq_battery_capacity(b):
+        return b.fs.battery_level <= battery_CAP
+
+    @m.Constraint(doc="Battery level cannot drop below 20% of capacity")
+    def eq_battery_non_negative(b):
+        return b.fs.battery_level >= 0.2 * battery_CAP
+
+    # Update battery level base on charge
+    @m.Constraint(doc="Battery level update constraint")
+    def eq_battery_level(b):
+        return b.fs.battery_level == b.fs.previous_battery_level + b.fs.battery_change
+
     # Function to calculate energy consumption per m3 of water treated.
     # THIS WILL BE DETERMINED LATER BASED ON FLOWSHEET OF EACH PROCESS. SEC or power as a function of salinity.
     def calculate_power(sal):
@@ -114,12 +152,21 @@ def build_flowsheet(m=None, sal_value=1, PV_prod=1, wind_prod=1, PV_CAP=1, wind_
 
     # Constrain Energy consumption below available renewable energy
     @m.Constraint(
-        doc="Energy consumption must be less than or equal to available renewable energy"
+        doc="Energy consumption must be less than or equal to available renewable energy plus battery discharge"
     )
     def eq_energy_constraint(b):
         return (
             b.fs.energy_consumption
             <= (PV_prod * PV_CAP + wind_prod * wind_CAP) * b.fs.time_step
+            - b.fs.battery_change
+        )
+
+    @m.Constraint(doc="Battery charge update constraint")
+    def eq_battery_charge(b):
+        return (
+            b.fs.battery_change
+            == (PV_prod * PV_CAP + wind_prod * wind_CAP) * b.fs.time_step
+            - b.fs.energy_consumption
         )
 
     # Constrain water production
@@ -160,16 +207,16 @@ def build_flowsheet(m=None, sal_value=1, PV_prod=1, wind_prod=1, PV_CAP=1, wind_
         doc="Accumulate energy consumption in kWh from previous step",
     )
 
+    @m.Constraint(doc="Constraint to calculate total energy consumption")
+    def eq_acc_energy(b):
+        return b.fs.acc_energy == b.fs.pre_acc_energy + b.fs.energy_consumption
+
     @m.Constraint(doc="Constraint to accumulate water production")
     def eq_acc_water_prod(b):
         return (
             b.fs.acc_production
             == b.fs.pre_acc_production + b.fs.total_water_production * b.fs.time_step
         )
-
-    @m.Constraint(doc="Constraint to calculate total energy consumption")
-    def eq_acc_energy(b):
-        return b.fs.acc_energy == b.fs.pre_acc_energy + b.fs.energy_consumption
 
     # This would only be required if we use a generator of like an LCOE
     # m.fs.energy_cost = Var(
@@ -196,6 +243,7 @@ def get_wrd_variable_pairs(t1, t2):
     return [
         (t1.fs.acc_production, t2.fs.pre_acc_production),
         (t1.fs.acc_energy, t2.fs.pre_acc_energy),
+        (t1.fs.battery_level, t2.fs.previous_battery_level),
     ]
 
 
@@ -253,6 +301,13 @@ def create_mp(
         doc="Capacity of wind system in kW",
     )
 
+    m.fs.battery_CAP = Var(
+        initialize=100,
+        bounds=(0, None),
+        units=pyunits.kWh,
+        doc="Capacity of battery system in kWh",
+    )
+
     m.fs.mp = MultiPeriodModel(
         n_time_points=n_time_points,
         process_model_func=build_flowsheet,
@@ -273,6 +328,7 @@ def create_mp(
             "wind_prod": wind_prod[t],
             "PV_CAP": m.fs.PV_CAP,
             "wind_CAP": m.fs.wind_CAP,
+            "battery_CAP": m.fs.battery_CAP,
         }
         for t in range(n_time_points)
     }
@@ -292,7 +348,7 @@ def create_mp(
 
     m.fs.mp.blocks[0].process.fs.pre_acc_production.fix(0)
     m.fs.mp.blocks[0].process.fs.pre_acc_energy.fix(0)
-
+    m.fs.mp.blocks[0].process.fs.previous_battery_level.fix(0)
     # Add constraint for every 24 hours of water production
     # m.fs.days = range(int(value(n_days)))
     # @m.Constraint(m.fs.days, doc="Daily production target for each 24-hour period")
@@ -319,6 +375,7 @@ def create_mp(
         expr=(
             1000 * (CURRENCY_UNIT / pyunits.kW * m.fs.PV_CAP)
             + 1500 * (CURRENCY_UNIT / pyunits.kW) * m.fs.wind_CAP
+            + 500 * (CURRENCY_UNIT / pyunits.kWh) * m.fs.battery_CAP
         )
     )
 
@@ -328,52 +385,97 @@ def create_mp(
     return m
 
 
-def plot_function(n_time_points, water_prod, energy_gen, energy_consumption):
+def plot_function(
+    n_time_points,
+    water_prod,
+    energy_gen,
+    energy_consumption,
+    battery_level,
+    salinity,
+    save_path=None,
+):
     time = np.linspace(0, n_time_points - 1, n_time_points)
     water_prod_vals = [value(w) for w in water_prod]
     energy_gen_vals = [value(e) for e in energy_gen]
     energy_cons_vals = [value(e) for e in energy_consumption]
+    battery_vals = [value(b) for b in battery_level]
+    sal_vals = [value(s) for s in salinity]
 
-    fig, ax_left = plt.subplots(1, 1, figsize=(10, 6))
-    ax_right = ax_left.twinx()
+    fig, (ax_energy, ax_water) = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
 
-    water_line = ax_left.plot(
-        time,
-        water_prod_vals,
-        color="tab:blue",
-        linewidth=2,
-        label="Water production",
-    )
-    energy_line = ax_right.plot(
+    # --- Top subplot: battery level, power consumption, power generated ---
+    ax_energy_right = ax_energy.twinx()
+
+    gen_line = ax_energy.plot(
         time,
         energy_gen_vals,
         color="tab:orange",
         linewidth=2,
         linestyle="--",
-        label="Energy generation",
+        label="Power generated (kW)",
     )
-    energy_cons_line = ax_right.plot(
+    cons_line = ax_energy.plot(
         time,
         energy_cons_vals,
-        color="tab:green",
+        color="tab:blue",
         linewidth=2,
         linestyle="-.",
-        label="Energy consumption",
+        label="Power consumption (kWh)",
+    )
+    bat_line = ax_energy_right.plot(
+        time,
+        battery_vals,
+        color="tab:green",
+        linewidth=2,
+        label="Battery level (kWh)",
     )
 
-    ax_left.set_xlabel("Time step")
-    ax_left.set_ylabel("Water production (m3/h)", color="tab:blue")
-    ax_right.set_ylabel("Energy generation (kW)", color="tab:orange")
-    ax_left.tick_params(axis="y", labelcolor="tab:blue")
-    ax_right.tick_params(axis="y", labelcolor="tab:orange")
-    ax_left.grid(alpha=0.3)
+    ax_energy.set_ylabel("Power (kW / kWh)", color="tab:orange")
+    ax_energy_right.set_ylabel("Battery level (kWh)", color="tab:green")
+    ax_energy.tick_params(axis="y", labelcolor="tab:orange")
+    ax_energy_right.tick_params(axis="y", labelcolor="tab:green")
+    ax_energy.grid(alpha=0.3)
 
-    lines = water_line + energy_line + energy_cons_line
-    labels = [line.get_label() for line in lines]
-    ax_left.legend(lines, labels, loc="upper left")
+    lines_top = gen_line + cons_line + bat_line
+    labels_top = [line.get_label() for line in lines_top]
+    ax_energy.legend(lines_top, labels_top, loc="upper left")
+    ax_energy.set_title("Energy and Battery")
 
-    plt.title("Water Production and Energy Generation")
+    # --- Bottom subplot: water production and salinity ---
+    ax_water_right = ax_water.twinx()
+
+    water_line = ax_water.plot(
+        time,
+        water_prod_vals,
+        color="tab:blue",
+        linewidth=2,
+        label="Water production (m3/h)",
+    )
+    sal_line = ax_water_right.plot(
+        time,
+        sal_vals,
+        color="tab:red",
+        linewidth=2,
+        linestyle=":",
+        label="Salinity (g/L)",
+    )
+
+    ax_water.set_xlabel("Time step")
+    ax_water.set_ylabel("Water production (m3/h)", color="tab:blue")
+    ax_water_right.set_ylabel("Salinity (g/L)", color="tab:red")
+    ax_water.tick_params(axis="y", labelcolor="tab:blue")
+    ax_water_right.tick_params(axis="y", labelcolor="tab:red")
+    ax_water.grid(alpha=0.3)
+
+    lines_bot = water_line + sal_line
+    labels_bot = [line.get_label() for line in lines_bot]
+    ax_water.legend(lines_bot, labels_bot, loc="upper left")
+    ax_water.set_title("Water Production and Salinity")
+
     plt.tight_layout()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Figure saved to: {save_path}")
     plt.show()
 
 
@@ -407,39 +509,75 @@ if __name__ == "__main__":
     assert_units_consistent(m)
     # print_unfixed_vars(m)
 
-    # solver = get_solver()
-    # solver = SolverFactory('mindtpy')
-    # results = solver.solve(m)
-    os.environ["PATH"] = (
-        r"C:\Users\rchurchi\AppData\Local\anaconda3\pkgs\glpk-4.65-h17947e8_4\Library\bin"
-        + os.pathsep
-        + os.environ.get("PATH", "")
-    )
+    # os.environ["PATH"] = (
+    #     r"C:\Users\rchurchi\AppData\Local\anaconda3\pkgs\glpk-4.65-h17947e8_4\Library\bin"
+    #     + os.pathsep
+    #     + os.environ.get("PATH", "")
+    # )
 
     # dt = DiagnosticsToolbox(m)
 
-    solver = SolverFactory("mindtpy")
-    results = solver.solve(
-        m,
-        strategy="OA",
-        mip_solver="glpk",
-        nlp_solver="ipopt",
-        tee=True,
-    )
+    # solver = SolverFactory("mindtpy")
+    # results = solver.solve(
+    #     m,
+    #     strategy="OA",
+    #     mip_solver="glpk",
+    #     nlp_solver="ipopt",
+    #     tee=True,
+    # )
+
+    # solver = SolverFactory("glpk")
+    # results = solver.solve(m, tee=True)
+
+    # mip_gap = 0.01
+    solver = SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap  # 2.0 %
+    # solver.options["MIPGapAbs"] = (
+    #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
+    # )
+    # solver.options["MIPFocus"] = 1
+    results = solver.solve(m, tee=True)
 
     water_prod = [
-        m.fs.mp.blocks[i].process.fs.total_water_production()
+        m.fs.mp.blocks[i].process.fs.total_water_production
         for i in range(n_time_points)
     ]
-    energy_gen = value(m.fs.PV_CAP) * PV_prod + value(m.fs.wind_CAP) * wind_prod
-    energy_consumption = [
-        m.fs.mp.blocks[i].process.fs.energy_consumption() for i in range(n_time_points)
+    energy_gen = [
+        value(m.fs.PV_CAP) * PV_prod[i] + value(m.fs.wind_CAP) * wind_prod[i]
+        for i in range(n_time_points)
     ]
+    energy_consumption = [
+        m.fs.mp.blocks[i].process.fs.energy_consumption for i in range(n_time_points)
+    ]
+    battery_level = [
+        m.fs.mp.blocks[i].process.fs.battery_level for i in range(n_time_points)
+    ]
+    salinity = [sal_values[i] for i in range(n_time_points)]
+
+    total_water_production = sum(
+        value(m.fs.mp.blocks[i].process.fs.total_water_production)
+        * value(m.fs.mp.blocks[i].process.fs.time_step)
+        for i in range(n_time_points)
+    )
 
     print("Degrees of freedom:", degrees_of_freedom(m))
-
-    print("Total production in m3:", m.total_production())
+    print("Total water production (m3):", total_water_production)
+    print("PV size (kW):", value(m.fs.PV_CAP))
+    print("Battery size (kWh):", value(m.fs.battery_CAP))
+    print("Wind size (kW):", value(m.fs.wind_CAP))
     print("Total target water production in m3:", total_water_production_target())
-    print("Total energy cost:", m.total_cost(), "2021 $")
+    print("Total Energy System CAPEX:", m.total_cost(), "2021 $")
 
-    plot_function(n_time_points, water_prod, energy_gen, energy_consumption)
+    output_figure_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "weekly_optimization_results.png",
+    )
+    plot_function(
+        n_time_points,
+        water_prod,
+        energy_gen,
+        energy_consumption,
+        battery_level,
+        salinity,
+        save_path=output_figure_path,
+    )
