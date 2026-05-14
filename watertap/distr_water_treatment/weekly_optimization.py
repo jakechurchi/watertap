@@ -504,7 +504,7 @@ def print_unfixed_vars(model):
 
 
 if __name__ == "__main__":
-    n_days = 7
+    n_days = 3
     n_time_points = 24 * n_days
     daily_production_target = 0 * pyunits.m**3 / pyunits.day
     total_water_production_target = (
