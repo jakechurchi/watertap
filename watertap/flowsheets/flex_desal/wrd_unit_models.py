@@ -62,16 +62,10 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
         # The maximum and minimum flowrate limits are now functions of recovery. This restricts the domain of the surrogate.
         # Probably just going to hardcode this fit. !! NOT UPDATED YET !!
 
-        blk.flow_limit_from_RR_upper = Constraint(
-            # With more data points in the surrogate, I could revisit and make linear
-            expr=blk.feed_flowrate <= (590 + exp(500 * (blk.recovery - 0.9))),
-            doc="Upper flow constraint goes away above 0.9 RR",
-        )
-
-        blk.flow_limit_from_RR_lower = Constraint(
+        blk.flow_limit_from_RR = Constraint(
             expr=blk.feed_flowrate
-            >= blk.op_mode * (544 + 7555 * (blk.recovery - 0.917)),
-            doc="Lower flow constraint based on recovery. In active below .914 RR",
+            >= blk.op_mode * (3 * pyunits.m**3 / pyunits.hr * 15 / (1 - blk.recovery)),
+            doc="Lower flow constraint based on recovery",
         )
 
     else:
