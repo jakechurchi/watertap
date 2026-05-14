@@ -421,7 +421,7 @@ def create_mp(
             "wind_CAP": m.fs.wind_CAP,
             "battery_CAP": m.fs.battery_CAP,
             "plant_CAP": m.fs.total_plant_production_capacity,
-            "SEC": 1,  # This could be made a function of salinity in the future
+            "SEC": 0.1,  # This could be made a function of salinity in the future
         }
         for t in range(n_time_points)
     }
