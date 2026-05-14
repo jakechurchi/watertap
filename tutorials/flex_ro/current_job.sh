@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=PT_with_DR
 #SBATCH --account=nawianalysis
-#SBATCH --time=00:30:00
+#SBATCH --time=00:10:00
 #SBATCH --nodes=2
 #SBATCH --partition=short
 #SBATCH -L gurobi:1
