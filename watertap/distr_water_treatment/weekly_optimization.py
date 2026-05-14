@@ -633,7 +633,7 @@ def print_unfixed_vars(model):
 
 
 if __name__ == "__main__":
-    n_days = 3
+    n_days = 7
     n_time_points = 24 * n_days
     daily_production_target = 0 * pyunits.m**3 / pyunits.day
     total_water_production_target = (
@@ -655,11 +655,11 @@ if __name__ == "__main__":
     assert_units_consistent(m)
     # print_unfixed_vars(m)
 
-    os.environ["PATH"] = (
-        r"C:\Users\rchurchi\AppData\Local\anaconda3\pkgs\glpk-4.65-h17947e8_4\Library\bin"
-        + os.pathsep
-        + os.environ.get("PATH", "")
-    )
+    # os.environ["PATH"] = (
+    #     r"C:\Users\rchurchi\AppData\Local\anaconda3\pkgs\glpk-4.65-h17947e8_4\Library\bin"
+    #     + os.pathsep
+    #     + os.environ.get("PATH", "")
+    # )
 
     # dt = DiagnosticsToolbox(m)
 
@@ -672,11 +672,11 @@ if __name__ == "__main__":
     #     tee=True,
     # )
 
-    solver = SolverFactory("glpk")
+    # solver = SolverFactory("glpk")
     # results = solver.solve(m, tee=True)
 
     # mip_gap = 0.01
-    # solver = SolverFactory("gurobi_direct_minlp")
+    solver = SolverFactory("gurobi_direct_minlp")
     # solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
