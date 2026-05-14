@@ -118,9 +118,10 @@ def build_flowsheet(
         doc="Battery charge in kWh from previous time step",
     )
 
+    ## NOTE: THESE BOUNDS ARE JUST RANDOM
     m.fs.battery_change = Var(
         initialize=0,
-        bounds=(None, None),
+        bounds=(-50, 50),
         units=pyunits.kWh,
         doc="Change in battery charge in kWh",
     )
@@ -289,21 +290,21 @@ def create_mp(
     # Create Variables for sizing the wind and PV systems (and battery eventually)
     m.fs.PV_CAP = Var(
         initialize=100,
-        bounds=(0, None),
+        bounds=(0, 1000),
         units=pyunits.kW,
         doc="Capacity of PV system in kW",
     )
 
     m.fs.wind_CAP = Var(
         initialize=100,
-        bounds=(0, None),
+        bounds=(0, 1000),
         units=pyunits.kW,
         doc="Capacity of wind system in kW",
     )
 
     m.fs.battery_CAP = Var(
         initialize=100,
-        bounds=(0, None),
+        bounds=(0, 1000),
         units=pyunits.kWh,
         doc="Capacity of battery system in kWh",
     )
@@ -342,9 +343,25 @@ def create_mp(
         unfix_dof_options=None,
     )
 
+    # Tight variable bounds to shrink search space while preserving feasibility.
+    # pv_cap_ub = value(m.fs.PV_CAP.ub)
+    # wind_cap_ub = value(m.fs.wind_CAP.ub)
+    # battery_cap_ub = value(m.fs.battery_CAP.ub)
+    # max_sal = max(value(s) for s in sal_values)
+    # max_pv_prod = max(PV_prod)
+    # max_wind_prod = max(wind_prod)
+    # max_energy_consumption_step = 50 * max_sal
+    # max_generation_step = max_pv_prod * pv_cap_ub + max_wind_prod * wind_cap_ub
+
     for t in range(n_time_points):
         initialize_mp(m.fs.mp.blocks[t].process)
         unfix_dof(m.fs.mp.blocks[t].process)
+
+        # b = m.fs.mp.blocks[t].process.fs
+        # b.battery_level.setub(battery_cap_ub)
+        # b.previous_battery_level.setub(battery_cap_ub)
+        # b.battery_change.setlb(-max_energy_consumption_step)
+        # b.battery_change.setub(max_generation_step)
 
     m.fs.mp.blocks[0].process.fs.pre_acc_production.fix(0)
     m.fs.mp.blocks[0].process.fs.pre_acc_energy.fix(0)
