@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=PT_with_DR
+#SBATCH --job-name=PT_week
 #SBATCH --account=nawianalysis
 #SBATCH --time=00:30:00
 #SBATCH --nodes=2
-#SBATCH --partition=short
+#SBATCH --partition=debug
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
