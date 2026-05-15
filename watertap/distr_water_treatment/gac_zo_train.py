@@ -87,12 +87,12 @@ def report(m):
         print("\nCosting")
         print(
             f"Unit capital cost: "
-            f"{value(m.fs.unit.costing.capital_cost):.2f} "
+            f"{value(m.fs.unit.costing.capital_cost):.6f} "
             f"{m.fs.costing.base_currency}"
         )
         print(
             f"Total capital cost: "
-            f"{value(m.fs.costing.total_capital_cost):.2f} "
+            f"{value(m.fs.costing.total_capital_cost):.6f} "
             f"{m.fs.costing.base_currency}"
         )
         print(
@@ -101,15 +101,14 @@ def report(m):
             f"{m.fs.costing.base_currency}/{m.fs.costing.base_period}"
         )
         if "activated_carbon" in m.fs.costing.used_flows:
-            activated_carbon_cost_per_hr = value(
+            activated_carbon_cost_per_yr = value(
                 pyunits.convert(
                     m.fs.costing.aggregate_flow_costs["activated_carbon"],
-                    to_units=m.fs.costing.base_currency / pyunits.hr,
+                    to_units=pyunits.USD_2018 / pyunits.year,
                 )
             )
             print(
-                f"Activated carbon cost rate: ${activated_carbon_cost_per_hr:.4f}/hr "
-                f"({m.fs.costing.base_currency}/hr)"
+                f"Activated carbon cost rate: ${activated_carbon_cost_per_yr:.2f}/year (USD)"
             )
         print(f"LCOW: {value(m.fs.costing.LCOW):.6f} {m.fs.costing.base_currency}/m^3")
         print(
@@ -123,9 +122,9 @@ if __name__ == "__main__":
     m = build_model()
     set_operating_conditions(
         m,
-        flow_mass_h2o=100,  # kg/hr
-        flow_mass_tss=1,  # kg/hr
-        flow_mass_nonvolatile_toc=1,  # kg/hr
+        flow_mass_h2o=100000 / 24 / 3600,  # kg/s
+        flow_mass_tss=1 / 3600,  # kg/s
+        flow_mass_nonvolatile_toc=1 / 3600,  # kg/s
         use_default_removal=False,
     )
     add_costing(m)
