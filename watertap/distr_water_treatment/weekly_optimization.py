@@ -574,41 +574,62 @@ def plot_function(
     n_time_points,
     pv_energy_gen,
     wind_energy_gen,
+    battery_charge,
+    battery_discharge,
     energy_consumption,
     battery_level,
     sec_kwh_per_m3,
+    lcow_usd_per_m3,
     month=None,
     tech=None,
     save_path=None,
 ):
     time = np.linspace(0, n_time_points - 1, n_time_points)
-    pv_energy_gen_vals = [1000 * value(e) for e in pv_energy_gen]
-    wind_energy_gen_vals = [1000 * value(e) for e in wind_energy_gen]
-    energy_cons_vals = [1000 * value(e) for e in energy_consumption]
-    battery_vals = [1000 * value(b) for b in battery_level]
+    pv_energy_gen_vals = [value(e) for e in pv_energy_gen]
+    wind_energy_gen_vals = [value(e) for e in wind_energy_gen]
+    battery_discharge_vals = [value(e) for e in battery_discharge]
+    energy_cons_vals = [value(e) for e in energy_consumption]
+    battery_vals = [value(b) for b in battery_level]
 
     fig, ax_energy = plt.subplots(1, 1, figsize=(12, 6))
 
     # --- Top subplot: battery level, power consumption, power generated ---
     ax_energy_right = ax_energy.twinx()
+    ax_energy_right.set_zorder(ax_energy.get_zorder() - 1)
+    ax_energy.patch.set_visible(False)
 
     total_generation_vals = [
         pv + wind for pv, wind in zip(pv_energy_gen_vals, wind_energy_gen_vals)
+    ]
+    stacked_energy_vals = [
+        pv + wind + discharge
+        for pv, wind, discharge in zip(
+            pv_energy_gen_vals,
+            wind_energy_gen_vals,
+            battery_discharge_vals,
+        )
     ]
     gen_stack = ax_energy.stackplot(
         time,
         pv_energy_gen_vals,
         wind_energy_gen_vals,
-        colors=["tab:orange", "tab:purple"],
-        alpha=0.5,
-        labels=["PV energy generated (Wh)", "Wind energy generated (Wh)"],
+        battery_discharge_vals,
+        colors=["#FFBF87", "#CAB3DE", "#B4E9CF"],
+        alpha=0.9,
+        labels=[
+            "PV energy generated (kWh)",
+            "Wind energy generated (kWh)",
+            "Battery discharge (kWh)",
+        ],
+        zorder=2,
     )
     total_gen_line = ax_energy.plot(
         time,
         total_generation_vals,
         color="tab:brown",
         linewidth=2,
-        label="Total renewable generation (Wh)",
+        label="Total renewable generation (kWh)",
+        zorder=3,
     )
     cons_line = ax_energy.plot(
         time,
@@ -616,36 +637,39 @@ def plot_function(
         color="tab:blue",
         linewidth=2,
         linestyle="-.",
-        label="Energy consumption (Wh)",
+        label="Energy consumption (kWh)",
+        zorder=3,
     )
     bat_line = ax_energy_right.plot(
         time,
         battery_vals,
         color="tab:green",
-        linewidth=2,
-        label="Battery level (Wh)",
-        linestyle=":",
+        linewidth=1.8,
+        label="Battery level (kWh)",
+        linestyle="-",
+        zorder=0,
     )
 
-    ax_energy.set_ylabel("Energy (Wh)", color="tab:orange", fontsize=14)
-    ax_energy_right.set_ylabel("Battery level (Wh)", color="tab:green", fontsize=14)
+    ax_energy.set_ylabel("Energy (kWh)", color="tab:orange", fontsize=14)
+    ax_energy_right.set_ylabel("Battery level (kWh)", color="tab:green", fontsize=14)
     ax_energy.tick_params(axis="y", labelcolor="tab:orange", labelsize=14)
     ax_energy_right.tick_params(axis="y", labelcolor="tab:green", labelsize=14)
     # Use identical y-axis limits on both axes for direct visual comparison.
     shared_top_max = (
         max(
+            max(stacked_energy_vals),
             max(total_generation_vals),
             max(energy_cons_vals),
             max(battery_vals),
             0,
         )
-        + 200
+        + 0.2
     )
     shared_top_min = 0
     ax_energy.set_ylim(shared_top_min, shared_top_max)
     ax_energy_right.set_ylim(shared_top_min, shared_top_max)
     ax_energy.grid(alpha=0.3)
-    ax_energy.set_xlabel("Time step", fontsize=14)
+    ax_energy.set_xlabel("Hours", fontsize=14)
     ax_energy.tick_params(axis="x", labelsize=14)
 
     lines_top = [
@@ -653,6 +677,7 @@ def plot_function(
         total_gen_line[0],
         gen_stack[0],
         gen_stack[1],
+        gen_stack[2],
         bat_line[0],
     ]
     labels_top = [line.get_label() for line in lines_top]
@@ -660,7 +685,7 @@ def plot_function(
     month_label = str(month) if month is not None else "default"
     tech_label = str(tech) if tech is not None else "unspecified"
     ax_energy.set_title(
-        f"Energy and Battery | Month: {month_label} | Treatment Tech: {tech_label} | SEC: {sec_kwh_per_m3:.2f} kWh/m3",
+        f"Energy and Battery | Month: {month_label} | Treatment Tech: {tech_label} | SEC: {sec_kwh_per_m3:.2f} kWh/m3 | LCOW: {lcow_usd_per_m3:.2f} $/m3",
         fontsize=14,
     )
 
@@ -679,7 +704,7 @@ def print_unfixed_vars(model):
 
 
 def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
-    n_days = 5
+    n_days = 1
     n_time_points = 24 * n_days
     daily_production_target = 0 * pyunits.m**3 / pyunits.day
     total_water_production_target = (
@@ -711,6 +736,7 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     # )
 
     # dt = DiagnosticsToolbox(m)
+    # solver = SolverFactory("glpk")
 
     # solver = SolverFactory("mindtpy")
     # results = solver.solve(
@@ -720,9 +746,6 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     #     nlp_solver="ipopt",
     #     tee=True,
     # )
-
-    # solver = SolverFactory("glpk")
-    # results = solver.solve(m, tee=True)
 
     # mip_gap = 0.01
     solver = SolverFactory("gurobi_direct_minlp")
@@ -746,6 +769,12 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     energy_consumption = [
         m.fs.mp.blocks[i].process.fs.energy_consumption for i in range(n_time_points)
     ]
+    battery_charge = [
+        m.fs.mp.blocks[i].process.fs.battery_charge for i in range(n_time_points)
+    ]
+    battery_discharge = [
+        m.fs.mp.blocks[i].process.fs.battery_discharge for i in range(n_time_points)
+    ]
     battery_level = [
         m.fs.mp.blocks[i].process.fs.battery_level for i in range(n_time_points)
     ]
@@ -757,6 +786,7 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     )
     total_energy_consumption = sum(value(e) for e in energy_consumption)
     sec_kwh_per_m3 = total_energy_consumption / total_water_production
+    lcow_usd_per_m3 = value(m.total_cost) / total_water_production
 
     print("Degrees of freedom:", degrees_of_freedom(m))
     print("Total water production (m3):", total_water_production)
@@ -775,6 +805,7 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     print("Total target water production in m3:", value(total_water_production_target))
     print("Total Annualized Cost:", value(m.total_cost()), "2021 $")
     print("SEC (kWh/m3):", sec_kwh_per_m3)
+    print("LCOW ($/m3):", lcow_usd_per_m3)
 
     month_label = "default" if month is None else str(month)
     output_figure_path = os.path.join(
@@ -785,9 +816,12 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
         n_time_points,
         pv_energy_gen,
         wind_energy_gen,
+        battery_charge,
+        battery_discharge,
         energy_consumption,
         battery_level,
         sec_kwh_per_m3,
+        lcow_usd_per_m3,
         month=month,
         tech=tech,
         save_path=output_figure_path,
@@ -816,12 +850,12 @@ def get_tech_parameters(tech, month):
             unit_opex = 16.2
             SEC = 0.200
     elif tech == "RO":
-        unit_capex = 750
+        unit_capex = 1575
         if month_label == "October":
-            unit_opex = 46.9
+            unit_opex = 98.4
             SEC = 0.403
         else:
-            unit_opex = 37.5
+            unit_opex = 78.8
             SEC = 0.372
     else:
         raise ValueError(f"Unsupported tech '{tech}'")
@@ -831,7 +865,7 @@ def get_tech_parameters(tech, month):
 
 if __name__ == "__main__":
     months = ["June", "October"]
-    techs = ["UF+GAC", "UF+IX"]
+    techs = ["RO"]
 
     results_rows = []
 

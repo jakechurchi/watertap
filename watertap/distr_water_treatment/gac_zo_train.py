@@ -90,6 +90,25 @@ def report(m):
             f"{value(m.fs.unit.costing.capital_cost):.6f} "
             f"{m.fs.costing.base_currency}"
         )
+        if all(
+            hasattr(m.fs.unit.costing, c)
+            for c in ["contactor_cost", "adsorbent_cost", "other_process_cost"]
+        ):
+            print(
+                f"  C_unit contactor cost: "
+                f"{value(m.fs.unit.costing.contactor_cost):.6f} "
+                f"{m.fs.costing.base_currency}"
+            )
+            print(
+                f"  C_unit adsorbent cost: "
+                f"{value(m.fs.unit.costing.adsorbent_cost):.6f} "
+                f"{m.fs.costing.base_currency}"
+            )
+            print(
+                f"  C_unit other process cost: "
+                f"{value(m.fs.unit.costing.other_process_cost):.6f} "
+                f"{m.fs.costing.base_currency}"
+            )
         print(
             f"Total capital cost: "
             f"{value(m.fs.costing.total_capital_cost):.6f} "
@@ -122,7 +141,7 @@ if __name__ == "__main__":
     m = build_model()
     set_operating_conditions(
         m,
-        flow_mass_h2o=100000 / 24 / 3600,  # kg/s
+        flow_mass_h2o=100 * 1000 / 24 / 3600,  # kg/s
         flow_mass_tss=1 / 3600,  # kg/s
         flow_mass_nonvolatile_toc=1 / 3600,  # kg/s
         use_default_removal=False,
