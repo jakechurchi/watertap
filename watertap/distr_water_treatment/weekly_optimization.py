@@ -577,6 +577,8 @@ def plot_function(
     energy_consumption,
     battery_level,
     sec_kwh_per_m3,
+    month=None,
+    tech=None,
     save_path=None,
 ):
     time = np.linspace(0, n_time_points - 1, n_time_points)
@@ -655,8 +657,11 @@ def plot_function(
     ]
     labels_top = [line.get_label() for line in lines_top]
     ax_energy.legend(lines_top, labels_top, loc="upper left", fontsize=14)
+    month_label = str(month) if month is not None else "default"
+    tech_label = str(tech) if tech is not None else "unspecified"
     ax_energy.set_title(
-        f"Energy and Battery | SEC: {sec_kwh_per_m3:.2f} kWh/m3", fontsize=14
+        f"Energy and Battery | Month: {month_label} | Tech: {tech_label} | SEC: {sec_kwh_per_m3:.2f} kWh/m3",
+        fontsize=14,
     )
 
     plt.tight_layout()
@@ -673,7 +678,7 @@ def print_unfixed_vars(model):
             print(f"  {v.name}")
 
 
-def main(SEC=0.1, unit_opex=100, unit_capex=900, month=None):
+def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     n_days = 7
     n_time_points = 24 * n_days
     daily_production_target = 0 * pyunits.m**3 / pyunits.day
@@ -782,6 +787,8 @@ def main(SEC=0.1, unit_opex=100, unit_capex=900, month=None):
         energy_consumption,
         battery_level,
         sec_kwh_per_m3,
+        month=month,
+        tech=tech,
         save_path=output_figure_path,
     )
 
@@ -790,4 +797,24 @@ def main(SEC=0.1, unit_opex=100, unit_capex=900, month=None):
 
 if __name__ == "__main__":
     month = "June"
-    main(month=month)
+    tech = "GAC"
+    if tech == "GAC":
+        unit_capex = 710.5
+        if month == "October":
+            unit_opex = 146.7
+            SEC = 0.188
+        else:
+            unit_opex = 109.6
+            SEC = 0.140
+    elif tech == "RO":
+        pass
+    elif tech == "IX":
+        unit_capex = 249.5
+        if month == "October":
+            unit_opex = 18
+            SEC = 0.248
+        else:
+            unit_opex = 16.2
+            SEC = 0.200
+
+    main(month=month, tech=tech, unit_capex=unit_capex, unit_opex=unit_opex, SEC=SEC)
