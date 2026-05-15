@@ -50,11 +50,49 @@ def build_feed_sal_vals(n):
     return sal[:n]
 
 
-def load_renewable_prod_data(n):
+def load_renewable_prod_data(n, month=None):
     # Load data for PV and wind production for the week
     # For now, this is just made up data, but eventually we can use my real data
     # NORMALIZED
     n = int(value(n))
+
+    if month is not None:
+        month_str = str(month).strip()
+        if month_str.lower().endswith(".csv"):
+            profiles_filename = month_str
+        else:
+            profiles_filename = f"{month_str}_renewable_profiles.csv"
+
+        profiles_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), profiles_filename
+        )
+        if not os.path.exists(profiles_path):
+            raise FileNotFoundError(
+                f"Renewable profile file not found: {profiles_path}"
+            )
+
+        df_profiles = pd.read_csv(profiles_path)
+        required_cols = {"PV_prod", "wind_prod"}
+        missing_cols = required_cols.difference(df_profiles.columns)
+        if missing_cols:
+            raise ValueError(
+                f"{profiles_filename} is missing required columns: "
+                + ", ".join(sorted(missing_cols))
+            )
+
+        if df_profiles.empty:
+            raise ValueError(f"No renewable profile data found in {profiles_path}")
+
+        PV_prod = df_profiles["PV_prod"].to_numpy(dtype=float)
+        wind_prod = df_profiles["wind_prod"].to_numpy(dtype=float)
+
+        if len(PV_prod) < n:
+            reps = int(np.ceil(n / len(PV_prod)))
+            PV_prod = np.tile(PV_prod, reps)
+            wind_prod = np.tile(wind_prod, reps)
+
+        return PV_prod[:n], wind_prod[:n]
+
     PV_prod = np.zeros(24)
     wind_prod = np.zeros(24)
 
@@ -352,6 +390,9 @@ def create_mp(
     sal_values=None,
     PV_prod=None,
     wind_prod=None,
+    SEC=0.1,
+    unit_opex=100,
+    unit_capex=900,
     daily_production_target=100 * pyunits.m**3 / pyunits.day,
     total_water_production_target=100 * pyunits.m**3 / pyunits.day,
 ):
@@ -421,7 +462,7 @@ def create_mp(
             "wind_CAP": m.fs.wind_CAP,
             "battery_CAP": m.fs.battery_CAP,
             "plant_CAP": m.fs.total_plant_production_capacity,
-            "SEC": 0.1,  # This could be made a function of salinity in the future
+            "SEC": SEC,  # This could be made a function of salinity in the future
         }
         for t in range(n_time_points)
     }
@@ -495,13 +536,13 @@ def create_mp(
 
     # Cost values for the treatment plant
     m.fs.unit_CAPEX = Param(
-        initialize=900,
+        initialize=unit_capex,
         units=CURRENCY_UNIT / (pyunits.m**3 / pyunits.h),
         doc="Capital cost per unit of plant capacity in $/(m3/h)",
     )
 
     m.fs.unit_OPEX = Param(
-        initialize=100,
+        initialize=unit_opex,
         units=CURRENCY_UNIT / (pyunits.m**3 / pyunits.h),
         doc="Operating cost per unit of plant capacity in $/(m3/h)",
     )
@@ -632,7 +673,7 @@ def print_unfixed_vars(model):
             print(f"  {v.name}")
 
 
-if __name__ == "__main__":
+def main(SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     n_days = 7
     n_time_points = 24 * n_days
     daily_production_target = 0 * pyunits.m**3 / pyunits.day
@@ -641,7 +682,7 @@ if __name__ == "__main__":
     )
 
     sal_values = build_feed_sal_vals(n=n_time_points)
-    PV_prod, wind_prod = load_renewable_prod_data(n=n_time_points)
+    PV_prod, wind_prod = load_renewable_prod_data(n=n_time_points, month=month)
 
     m = create_mp(
         n_days=n_days,
@@ -649,6 +690,9 @@ if __name__ == "__main__":
         sal_values=sal_values,
         PV_prod=PV_prod,
         wind_prod=wind_prod,
+        SEC=SEC,
+        unit_opex=unit_opex,
+        unit_capex=unit_capex,
         daily_production_target=daily_production_target,
         total_water_production_target=total_water_production_target,
     )
@@ -740,3 +784,10 @@ if __name__ == "__main__":
         sec_kwh_per_m3,
         save_path=output_figure_path,
     )
+
+    return m
+
+
+if __name__ == "__main__":
+    month = "June"
+    main(month=month)
