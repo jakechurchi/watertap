@@ -800,7 +800,7 @@ def get_tech_parameters(tech, month):
     month_label = str(month) if month is not None else "default"
 
     if tech == "UF+GAC":
-        unit_capex = 710.5
+        unit_capex = 850.5
         if month_label == "October":
             unit_opex = 146.7
             SEC = 0.188
@@ -808,7 +808,7 @@ def get_tech_parameters(tech, month):
             unit_opex = 109.6
             SEC = 0.140
     elif tech == "UF+IX":
-        unit_capex = 249.5
+        unit_capex = 389.5
         if month_label == "October":
             unit_opex = 18
             SEC = 0.248
@@ -831,7 +831,7 @@ def get_tech_parameters(tech, month):
 
 if __name__ == "__main__":
     months = ["June", "October"]
-    techs = ["RO", "UF+GAC", "UF+IX"]
+    techs = ["UF+GAC", "UF+IX"]
 
     results_rows = []
 
