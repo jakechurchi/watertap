@@ -704,7 +704,7 @@ def print_unfixed_vars(model):
 
 
 def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
-    n_days = 1
+    n_days = 5
     n_time_points = 24 * n_days
     daily_production_target = 0 * pyunits.m**3 / pyunits.day
     total_water_production_target = (
