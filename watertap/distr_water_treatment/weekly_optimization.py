@@ -864,8 +864,8 @@ def get_tech_parameters(tech, month):
 
 
 if __name__ == "__main__":
-    months = ["June", "October"]
-    techs = ["RO"]
+    months = ["October", "June"]
+    techs = ["RO", "UF+GAC", "UF+IX"]
 
     results_rows = []
 

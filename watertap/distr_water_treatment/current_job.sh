@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=distrib_treat_opt
 #SBATCH --account=nawianalysis
-#SBATCH --time=01:00:00
+#SBATCH --time=00:30:00
 #SBATCH --nodes=2
 #SBATCH --partition=short
 #SBATCH -L gurobi:1
