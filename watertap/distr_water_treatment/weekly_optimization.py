@@ -679,7 +679,7 @@ def print_unfixed_vars(model):
 
 
 def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
-    n_days = 7
+    n_days = 5
     n_time_points = 24 * n_days
     daily_production_target = 0 * pyunits.m**3 / pyunits.day
     total_water_production_target = (
@@ -776,9 +776,10 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     print("Total Annualized Cost:", value(m.total_cost()), "2021 $")
     print("SEC (kWh/m3):", sec_kwh_per_m3)
 
+    month_label = "default" if month is None else str(month)
     output_figure_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "weekly_optimization_results.png",
+        f"weekly_optimization_results_{tech}_{month_label}.png",
     )
     plot_function(
         n_time_points,
@@ -795,26 +796,74 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
     return m
 
 
-if __name__ == "__main__":
-    month = "June"
-    tech = "GAC"
+def get_tech_parameters(tech, month):
+    month_label = str(month) if month is not None else "default"
+
     if tech == "GAC":
         unit_capex = 710.5
-        if month == "October":
+        if month_label == "October":
             unit_opex = 146.7
             SEC = 0.188
         else:
             unit_opex = 109.6
             SEC = 0.140
-    elif tech == "RO":
-        pass
     elif tech == "IX":
         unit_capex = 249.5
-        if month == "October":
+        if month_label == "October":
             unit_opex = 18
             SEC = 0.248
         else:
             unit_opex = 16.2
             SEC = 0.200
+    elif tech == "RO":
+        raise NotImplementedError("Tech 'RO' parameter set is not implemented yet.")
+    else:
+        raise ValueError(f"Unsupported tech '{tech}'")
 
-    main(month=month, tech=tech, unit_capex=unit_capex, unit_opex=unit_opex, SEC=SEC)
+    return {"unit_capex": unit_capex, "unit_opex": unit_opex, "SEC": SEC}
+
+
+if __name__ == "__main__":
+    months = ["June", "October"]
+    techs = ["GAC", "IX"]
+
+    results_rows = []
+
+    for month in months:
+        for tech in techs:
+            params = get_tech_parameters(tech=tech, month=month)
+            m = main(
+                month=month,
+                tech=tech,
+                unit_capex=params["unit_capex"],
+                unit_opex=params["unit_opex"],
+                SEC=params["SEC"],
+            )
+
+            results_rows.append(
+                {
+                    "month": month,
+                    "tech": tech,
+                    "total_cost": value(m.total_cost),
+                    "pv_capacity_kw": value(m.fs.PV_CAP),
+                    "wind_capacity_kw": value(m.fs.wind_CAP),
+                    "battery_capacity_kwh": value(m.fs.battery_CAP),
+                    "total_plant_production_capacity_m3_per_h": value(
+                        m.fs.total_plant_production_capacity
+                    ),
+                    "total_plant_production_capacity_m3_per_day": value(
+                        pyunits.convert(
+                            m.fs.total_plant_production_capacity,
+                            to_units=pyunits.m**3 / pyunits.day,
+                        )
+                    ),
+                }
+            )
+
+    results_df = pd.DataFrame(results_rows)
+    output_csv_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "weekly_optimization_summary.csv",
+    )
+    results_df.to_csv(output_csv_path, index=False)
+    print(f"Summary CSV saved to: {output_csv_path}")
