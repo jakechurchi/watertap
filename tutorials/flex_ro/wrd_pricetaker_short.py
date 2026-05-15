@@ -27,7 +27,7 @@ from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 from idaes.core.util.model_statistics import degrees_of_freedom
 
 
-def plot_function(m, n_time_points):
+def plot_function(m, n_time_points, output_stem):
     time = np.linspace(0, n_time_points - 1, n_time_points)
     fig, (ax_energy, ax_demand, ax_trains) = plt.subplots(3, 1, figsize=(12, 12))
 
@@ -282,16 +282,66 @@ def plot_function(m, n_time_points):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig("wrd_pricetaker_summer_day.png", dpi=600)
+    fig.savefig(f"{output_stem}.png", dpi=600)
     plt.show()
 
 
-if __name__ == "__main__":
+def _fix_nominal_flowrates(m):
+    for p in m.period:
+        for skid in m.period[p].reverse_osmosis.set_ro_skids:
+            m.period[p].reverse_osmosis.ro_skid[skid].feed_flowrate.fix(
+                m.params.wrd_ro.nominal_flowrate
+            )
+
+
+def _restrict_flexible_trains(m, num_flexible_trains):
+    ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
+    n_ro_skids = len(ro_skids)
+
+    if num_flexible_trains < 0 or num_flexible_trains > n_ro_skids:
+        raise ValueError(
+            "Invalid num_flexible_trains "
+            f"'{num_flexible_trains}'. Valid range is [0, {n_ro_skids}]."
+        )
+
+    non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
+
+    for p in m.period:
+        for skid in non_flexible_skids:
+            ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
+            ro_skid.op_mode.fix(1)
+            ro_skid.startup.fix(0)
+            ro_skid.shutdown.fix(0)
+
+
+def main(season, flex_type, num_flexible_trains=4):
+    season_map = {
+        "summer": "wrd_pricesignal_summer_week.csv",
+        "winter": "wrd_pricesignal_winter_week.csv",
+    }
+    season_key = season.lower()
+    if season_key not in season_map:
+        raise ValueError(
+            f"Invalid season '{season}'. Valid options are: {sorted(season_map)}"
+        )
+
+    flex_type_key = flex_type.lower()
+    valid_flex_types = {"rr", "flow", "both", "no_flex"}
+    if flex_type_key not in valid_flex_types:
+        raise ValueError(
+            "Invalid flex_type "
+            f"'{flex_type}'. Valid options are: {sorted(valid_flex_types)}"
+        )
+
+    output_suffix = (
+        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
+    )
+
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
 
     # Load price data
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_weekday.csv")
+    price_data = pd.read_csv(script_dir / season_map[season_key])
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -302,22 +352,6 @@ if __name__ == "__main__":
     price_data["Var Demand Rate"] = price_data["electric_demand_peak"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
     price_data["Demand_Response_Price"] = price_data["electric_demand_response_price"]
-
-    # price_data["Energy Rate"] = (
-    #     price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_2_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_3_2022-07-05_2022-07-14_0"]
-    # )
-    # price_data["Fixed Demand Rate"] = price_data[
-    #     "electric_demand_maximum_2022-07-05_2022-07-14_0"
-    # ]
-    # price_data["Var Demand Rate"] = price_data[
-    #     "electric_demand_peak-summer_2022-07-05_2022-07-14_0"
-    # ]
-    # price_data["Customer Cost"] = price_data[
-    #     "electric_customer_0_2022-07-05_2022-07-14_0"
-    # ]
 
     price_data["Emissions Intensity"] = 0
 
@@ -339,7 +373,7 @@ if __name__ == "__main__":
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=10000,
+        annual_production_AF=12000,
         timestep_hours=timestep_hours,
         include_onsite_solar=True,
         onsite_capacity=pv_capacity,
@@ -384,11 +418,11 @@ if __name__ == "__main__":
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
-            "allow_variable_recovery": True,
+            "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
             "surrogate_type": "PySMO_polyfit",
             "surrogate_file": script_dir / "ro_SEC_poly_fit_order_2.json",
             "minimum_recovery": 0.88,
-            "nominal_recovery": 0.92,
+            "nominal_recovery": 0.925,
             "maximum_recovery": 0.925,
             "num_ro_skids": 4,
             "replacement_types": ["membranes", "motors"],
@@ -420,6 +454,8 @@ if __name__ == "__main__":
         flowsheet_func=fs.build_desal_flowsheet,
         flowsheet_options={"params": m.params},
     )
+
+    _restrict_flexible_trains(m, num_flexible_trains=num_flexible_trains)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
@@ -485,6 +521,9 @@ if __name__ == "__main__":
             uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
 
+    if flex_type_key == "rr":
+        _fix_nominal_flowrates(m)
+
     # Could cause feasibility issues b/c this is a slack variable essentially.
     # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
 
@@ -502,7 +541,8 @@ if __name__ == "__main__":
     )
 
     # Only to find the baseline power for this water production
-    # m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
+    if flex_type_key == "no_flex":
+        m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     print(degrees_of_freedom(m))
 
@@ -557,19 +597,37 @@ if __name__ == "__main__":
     print(filtered_design_var_values)
 
     # Write optimal values of all operational variables to a csv file
-    output_csv = script_dir / "wrd_dummy_result.csv"
+    output_csv = script_dir / f"wrd_result_{output_suffix}.csv"
     m.get_operation_var_values().to_csv(output_csv)
     print(f"Saved operation variable results to: {output_csv}")
 
-    plot_function(m, n_time_points=len(price_data))
-
-    # Plot operational variables
-    fig, axs = m.plot_operation_profile(
-        operation_vars=[
-            "fixed_demand_rate",
-            "variable_demand_rate",
-            "posttreatment.product_flowrate",
-            "num_skids_online",
-        ],
+    plot_function(
+        m,
+        n_time_points=len(price_data),
+        output_stem=script_dir / f"wrd_pricetaker_{output_suffix}",
     )
-    fig.savefig("wrd_operation_profile.png")
+
+    # # Plot operational variables
+    # fig, axs = m.plot_operation_profile(
+    #     operation_vars=[
+    #         "fixed_demand_rate",
+    #         "variable_demand_rate",
+    #         "posttreatment.product_flowrate",
+    #         "num_skids_online",
+    #     ],
+    # )
+    # fig.savefig(script_dir / f"wrd_operation_profile_{output_suffix}.png")
+
+    return m
+
+
+if __name__ == "__main__":
+    seasons = ["summer", "winter"]
+    flex_types = ["flow", "rr", "no_flex"]
+    num_flex_skids = 0
+
+    results_rows = []
+
+    for season in seasons:
+        for flex_type in flex_types:
+            main(season=season, flex_type=flex_type, num_flexible_trains=num_flex_skids)
