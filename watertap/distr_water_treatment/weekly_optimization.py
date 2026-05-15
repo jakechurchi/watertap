@@ -412,22 +412,22 @@ def create_mp(
 
     # Create Variables for sizing the wind and PV systems (and battery eventually)
     m.fs.PV_CAP = Var(
-        initialize=10,
+        initialize=5,
         bounds=(0, 10),
         units=pyunits.kW,
         doc="Capacity of PV system in kW",
     )
 
     m.fs.wind_CAP = Var(
-        initialize=10,
+        initialize=5,
         bounds=(0, 10),
         units=pyunits.kW,
         doc="Capacity of wind system in kW",
     )
 
     m.fs.battery_CAP = Var(
-        initialize=10,
-        bounds=(0, 20),
+        initialize=5,
+        bounds=(0, 10),
         units=pyunits.kWh,
         doc="Capacity of battery system in kWh",
     )
@@ -639,9 +639,9 @@ def plot_function(
             max(battery_vals),
             0,
         )
-        + 50
+        + 200
     )
-    shared_top_min = min(0, min(battery_vals), min(energy_cons_vals)) - 10
+    shared_top_min = 0
     ax_energy.set_ylim(shared_top_min, shared_top_max)
     ax_energy_right.set_ylim(shared_top_min, shared_top_max)
     ax_energy.grid(alpha=0.3)
@@ -656,11 +656,11 @@ def plot_function(
         bat_line[0],
     ]
     labels_top = [line.get_label() for line in lines_top]
-    ax_energy.legend(lines_top, labels_top, loc="upper left", fontsize=14)
+    ax_energy.legend(lines_top, labels_top, loc="upper left", fontsize=14, ncol=2)
     month_label = str(month) if month is not None else "default"
     tech_label = str(tech) if tech is not None else "unspecified"
     ax_energy.set_title(
-        f"Energy and Battery | Month: {month_label} | Tech: {tech_label} | SEC: {sec_kwh_per_m3:.2f} kWh/m3",
+        f"Energy and Battery | Month: {month_label} | Treatment Tech: {tech_label} | SEC: {sec_kwh_per_m3:.2f} kWh/m3",
         fontsize=14,
     )
 
@@ -799,7 +799,7 @@ def main(tech="GAC", SEC=0.1, unit_opex=100, unit_capex=900, month=None):
 def get_tech_parameters(tech, month):
     month_label = str(month) if month is not None else "default"
 
-    if tech == "GAC":
+    if tech == "UF+GAC":
         unit_capex = 710.5
         if month_label == "October":
             unit_opex = 146.7
@@ -807,7 +807,7 @@ def get_tech_parameters(tech, month):
         else:
             unit_opex = 109.6
             SEC = 0.140
-    elif tech == "IX":
+    elif tech == "UF+IX":
         unit_capex = 249.5
         if month_label == "October":
             unit_opex = 18
@@ -816,7 +816,13 @@ def get_tech_parameters(tech, month):
             unit_opex = 16.2
             SEC = 0.200
     elif tech == "RO":
-        raise NotImplementedError("Tech 'RO' parameter set is not implemented yet.")
+        unit_capex = 750
+        if month_label == "October":
+            unit_opex = 46.9
+            SEC = 0.403
+        else:
+            unit_opex = 37.5
+            SEC = 0.372
     else:
         raise ValueError(f"Unsupported tech '{tech}'")
 
@@ -825,7 +831,7 @@ def get_tech_parameters(tech, month):
 
 if __name__ == "__main__":
     months = ["June", "October"]
-    techs = ["GAC", "IX"]
+    techs = ["RO", "UF+GAC", "UF+IX"]
 
     results_rows = []
 
