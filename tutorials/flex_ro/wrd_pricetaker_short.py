@@ -444,7 +444,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.0012
+    mip_gap = 0.0015
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
@@ -515,7 +515,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["no_flex", "rr", "flow"]
+    flex_types = ["both"]
     num_flex_skids = [0]
 
     results_rows = []
