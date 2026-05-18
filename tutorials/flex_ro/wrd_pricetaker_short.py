@@ -29,7 +29,12 @@ from idaes.core.util.model_statistics import degrees_of_freedom
 
 def plot_function(m, n_time_points, output_stem):
     time = np.linspace(0, n_time_points - 1, n_time_points)
-    fig, (ax_energy, ax_demand, ax_trains) = plt.subplots(3, 1, figsize=(12, 12))
+    fig = plt.figure(figsize=(12, 12))
+    gs = fig.add_gridspec(2, 1, height_ratios=[1, 1.6])
+    ax_energy = fig.add_subplot(gs[0])
+    ax_trains = fig.add_subplot(gs[1], sharex=ax_energy)
+    ax_energy.set_facecolor("#f5f5f5")
+    ax_trains.set_facecolor("#f5f5f5")
 
     # First subplot: Energy consumption and electricity price
     energy = [
@@ -59,103 +64,16 @@ def plot_function(m, n_time_points, output_stem):
     ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
     ax_price.set_ylim(0, 0.17)
 
-    # Add working hours shading
-    for i in range(int(n_time_points / 24)):
-        ax_energy.axvspan(
-            24 * i,
-            24 * i + 8,
-            facecolor="grey",
-            alpha=0.1,
-            label="Nonworking Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_energy.axvspan(
-            24 * i + 8,
-            24 * i + 18,
-            facecolor="gold",
-            alpha=0.3,
-            label="Working Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_energy.axvspan(
-            24 * i + 18,
-            24 * i + 24,
-            facecolor="grey",
-            alpha=0.1,
-            label="_nolegend_",
-            zorder=0,
-        )
-
     handle1, label1 = ax_energy.get_legend_handles_labels()
     handle2, label2 = ax_price.get_legend_handles_labels()
     handles = handle2 + handle1
     labels = label2 + label1
     leg1 = ax_price.legend(
-        handles, labels, loc="lower left", framealpha=1.0, ncol=2, fontsize=11
+        handles, labels, loc="lower left", framealpha=1.0, ncol=1, fontsize=11
     )
     leg1.set_zorder(1000)
     leg1.get_frame().set_facecolor("white")
     ax_energy.xaxis.set_major_locator(plt.MaxNLocator(24))
-
-    # Second subplot: Demand charges
-    fixed_demand_profile = [
-        v[None] for v in m.period[:, :].fixed_demand_rate.extract_values()
-    ]
-    fixed_line = ax_demand.plot(
-        time + 0.5,
-        fixed_demand_profile,
-        label="Fixed Demand Charge",
-        color="red",
-        linestyle="-",
-        linewidth=2,
-    )
-    on_peak_demand_profile = [
-        v[None] for v in m.period[:, :].variable_demand_rate.extract_values()
-    ]
-    on_peak_line = ax_demand.plot(
-        time + 0.5,
-        on_peak_demand_profile,
-        label="On-Peak Demand Charge",
-        color="purple",
-        linestyle="-",
-        linewidth=2,
-    )
-
-    for i in range(int(n_time_points)):
-        ax_demand.axvspan(
-            24 * i,
-            24 * i + 8,
-            facecolor="grey",
-            alpha=0.1,
-            label="Nonworking Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_demand.axvspan(
-            24 * i + 8,
-            24 * i + 18,
-            facecolor="gold",
-            alpha=0.3,
-            label="Working Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_demand.axvspan(
-            24 * i + 18,
-            24 * i + 24,
-            facecolor="grey",
-            alpha=0.1,
-            label="_nolegend_",
-            zorder=0,
-        )
-
-    ax_demand.legend(
-        handles=[fixed_line[0], on_peak_line[0]],
-        loc="lower left",
-        fontsize=11,
-        framealpha=1.0,
-    )
-    ax_demand.xaxis.set_major_locator(plt.MaxNLocator(24))
-    ax_demand.set_ylabel("Demand Charge ($/kW)", fontsize=12)
-    ax_demand.set_title("Demand Charges", fontsize=14, fontweight="bold")
 
     # Third subplot: Water production and RO train flow rates
     prod = [
@@ -182,28 +100,28 @@ def plot_function(m, n_time_points, output_stem):
     ax_trains.xaxis.set_major_locator(plt.MaxNLocator(24))
     ax_trains.grid(False)
 
-    # Extract RO train flow rates and convert to % of max flow
-    max_train_flow = 53150 / 24 / 4  # m3/hr
+    # Extract RO train flow rates and convert to % of nominal train flow
+    nominal_train_flow = 602  # m3/hr
     train_1_flows = [
-        v[None] / max_train_flow * 100
+        v[None] / nominal_train_flow * 100
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[1]
         .product_flowrate.extract_values()
     ]
     train_2_flows = [
-        v[None] / max_train_flow * 100
+        v[None] / nominal_train_flow * 100
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[2]
         .product_flowrate.extract_values()
     ]
     train_3_flows = [
-        v[None] / max_train_flow * 100
+        v[None] / nominal_train_flow * 100
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[3]
         .product_flowrate.extract_values()
     ]
     train_4_flows = [
-        v[None] / max_train_flow * 100
+        v[None] / nominal_train_flow * 100
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[4]
         .product_flowrate.extract_values()
@@ -228,37 +146,11 @@ def plot_function(m, n_time_points, output_stem):
         linestyle="--",
         linewidth=2,
         alpha=0.5,
-        label="Max Capacity",
+        label="Nominal Capacity",
         zorder=0,
     )
     ax_trains_pct.set_ylim(0, 125)
-    ax_trains_pct.set_ylabel("Flow Rate (% of Max)", fontsize=12)
-
-    for i in range(int(n_time_points / 24)):
-        ax_trains_pct.axvspan(
-            24 * i,
-            24 * i + 8,
-            facecolor="grey",
-            alpha=0.1,
-            label="Nonworking Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_trains_pct.axvspan(
-            24 * i + 8,
-            24 * i + 18,
-            facecolor="gold",
-            alpha=0.3,
-            label="Working Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_trains_pct.axvspan(
-            24 * i + 18,
-            24 * i + 24,
-            facecolor="grey",
-            alpha=0.1,
-            label="_nolegend_",
-            zorder=0,
-        )
+    ax_trains_pct.set_ylabel("Flow Rate (% of Nominal)", fontsize=12)
 
     handle_t, label_t = ax_trains.get_legend_handles_labels()
     handle_t2, label_t2 = ax_trains_pct.get_legend_handles_labels()
@@ -268,17 +160,17 @@ def plot_function(m, n_time_points, output_stem):
         loc="lower left",
         fontsize=11,
         framealpha=1.0,
-        ncol=3,
+        ncol=2,
     )
     leg3.get_frame().set_facecolor("white")
 
     # Set consistent x-axis limits and formatting
-    for a in (ax_energy, ax_demand, ax_trains):
+    for a in (ax_energy, ax_trains):
         a.set_xlim(0, n_time_points)
         a.xaxis.set_major_locator(plt.MaxNLocator(24))
 
     # Tick labels for all axes
-    for a in (ax_energy, ax_price, ax_demand, ax_trains, ax_trains_pct):
+    for a in (ax_energy, ax_price, ax_trains, ax_trains_pct):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
@@ -553,7 +445,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 2.0 %
+    # solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -621,12 +513,38 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
-    flex_types = ["flow", "rr", "no_flex"]
+    seasons = ["winter"]  # , "summer"]
+    flex_types = ["flow"]  # , "rr", "no_flex"]
     num_flex_skids = 0
 
     results_rows = []
 
     for season in seasons:
         for flex_type in flex_types:
-            main(season=season, flex_type=flex_type, num_flexible_trains=num_flex_skids)
+            m = main(
+                season=season, flex_type=flex_type, num_flexible_trains=num_flex_skids
+            )
+            results_rows.append(
+                {
+                    "Season": season,
+                    "Flexibility Type": flex_type,
+                    "Num Flexible Trains": num_flex_skids,
+                    "Total Operational Cost": m.total_op_cost(),
+                    "Total Water Production (m3)": m.total_water_production(),
+                    "LCOW ($/m3)": m.LCOW(),
+                    "Total Energy Cost": m.total_energy_cost(),
+                    "Fixed Demand Cost": m.fixed_demand_cost(),
+                    "Variable Demand Cost": m.variable_demand_cost(),
+                    "Total Feed Cost": m.total_feed_cost(),
+                    "Total Brine Cost": m.total_brine_cost(),
+                    "Total Chemical Cost": m.total_chemical_cost(),
+                    "Total Demand Response Revenue": m.total_demand_response_revenue(),
+                    "Total Cost": m.total_cost(),
+                }
+            )
+
+    results_df = pd.DataFrame(results_rows)
+    script_dir = Path(__file__).parent
+    results_csv = script_dir / f"wrd_pricetaker_summary_results.csv"
+    results_df.to_csv(results_csv, index=False)
+    print(f"Saved summary results to: {results_csv}")
