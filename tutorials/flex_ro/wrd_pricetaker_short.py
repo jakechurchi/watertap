@@ -430,7 +430,7 @@ def main(season, flex_type, num_flexible_trains=4):
     )
 
     # Only to find the baseline power for this water production
-    if flex_type_key == "no_flex":
+    if flex_type_key == "no_flex" and num_flexible_trains == 0:
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     print(degrees_of_freedom(m))
@@ -473,8 +473,15 @@ def main(season, flex_type, num_flexible_trains=4):
     pyo.assert_optimal_termination(results)
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
+    if season_key == "winter":
+        baseline_electricity_cost = 25005  # $
+    else:
+        baseline_electricity_cost = 50843  # $/kWh
     fs.calculate_flexibility_metrics(
-        m, baseline_power=1080
+        m,
+        baseline_power=1080,
+        baseline_electricity_cost=baseline_electricity_cost,
+        baseline_replacement_cost=992,
     )  # 1080 is for 1200 AF yearly target
 
     design_var_values = m.get_design_var_values()
@@ -512,8 +519,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["no_flex", "rr"]
-    num_flex_skids = [1, 2]
+    flex_types = ["no_flex"]
+    num_flex_skids = [2]
 
     results_rows = []
 
