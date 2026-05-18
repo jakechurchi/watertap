@@ -309,7 +309,6 @@ def _restrict_flexible_trains(m, num_flexible_trains):
     for p in m.period:
         for skid in non_flexible_skids:
             ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
-            ro_skid.op_mode.fix(1)
             ro_skid.startup.fix(0)
             ro_skid.shutdown.fix(0)
 
