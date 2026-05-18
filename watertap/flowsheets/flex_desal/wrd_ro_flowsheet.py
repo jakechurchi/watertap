@@ -901,21 +901,25 @@ def calculate_flexibility_metrics(
     else:
         charge_power_capacity = 0
 
-    # Currently giving values above 1 which doesn't make sense. I think charging capacity is too low? At 10,000.
-    round_trip_efficiency = discharge_energy_capacity / charge_energy_capacity
+    # Not implementing this because it doesn't make much sense:
+    # Also, currently giving values above 1 which doesn't make sense. I think charging capacity is too low? At 10,000.
+    round_trip_efficiency = 0
 
-    LVOF = (
-        (
-            baseline_electricity_cost
-            - value(
-                m.total_energy_cost
-                + m.total_demand_cost
-                + m.total_customer_cost
-                - m.total_demand_response_revenue
+    if discharge_energy_capacity == 0:
+        LVOF = float("nan")
+    else:
+        LVOF = (
+            (
+                baseline_electricity_cost
+                - value(
+                    m.total_energy_cost
+                    + m.total_demand_cost
+                    + m.total_customer_cost
+                    - m.total_demand_response_revenue
+                )
             )
-        )
-        - (baseline_replacement_cost - value(m.total_replacement_cost))
-    ) / (discharge_energy_capacity)
+            - (baseline_replacement_cost - value(m.total_replacement_cost))
+        ) / (discharge_energy_capacity)
     print(f"Levelized Cost of Flexibility ($/kWh): {LVOF:.2f}")
     # Levelized Cost of Flexibility. Only flexibility costs are the replacement costs
 
