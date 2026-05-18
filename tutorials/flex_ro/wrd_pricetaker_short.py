@@ -443,9 +443,9 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.01
+    mip_gap = 0.001
     solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap  # 2.0 %
+    solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
