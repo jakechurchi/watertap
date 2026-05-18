@@ -443,7 +443,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.001
+    mip_gap = 0.0011
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
@@ -475,9 +475,9 @@ def main(season, flex_type, num_flexible_trains=4):
     pyo.assert_optimal_termination(results)
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
-    # fs.calculate_flexibility_metrics(
-    #     m, baseline_power=1062
-    # )  # 1062 is for 1200 AF yearly target
+    fs.calculate_flexibility_metrics(
+        m, baseline_power=1062
+    )  # 1062 is for 1200 AF yearly target
 
     design_var_values = m.get_design_var_values()
     filtered_design_var_values = {
@@ -540,6 +540,10 @@ if __name__ == "__main__":
                     "Total Chemical Cost": m.total_chemical_cost(),
                     "Total Demand Response Revenue": m.total_demand_response_revenue(),
                     "Total Cost": m.total_cost(),
+                    "MMaximum Power": m.maximum_power(),
+                    "Energy Capacity": m.energy_capacity(),
+                    "Power Capacity": m.power_capacity(),
+                    "LVOF": m.LVOF(),
                 }
             )
 
