@@ -891,8 +891,15 @@ def calculate_flexibility_metrics(
     )
 
     # Power Capacities
-    discharge_power_capacity = discharge_energy_capacity / discharge_time
-    charge_power_capacity = charge_energy_capacity / charge_time
+    if discharge_time > 0:
+        discharge_power_capacity = discharge_energy_capacity / discharge_time
+    else:
+        discharge_power_capacity = 0
+
+    if charge_time > 0:
+        charge_power_capacity = charge_energy_capacity / charge_time
+    else:
+        charge_power_capacity = 0
 
     # Currently giving values above 1 which doesn't make sense. I think charging capacity is too low? At 10,000.
     round_trip_efficiency = discharge_energy_capacity / charge_energy_capacity
