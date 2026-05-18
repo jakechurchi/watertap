@@ -179,11 +179,8 @@ def plot_function(m, n_time_points, output_stem):
 
 
 def _fix_nominal_flowrates(m):
-    for p in m.period:
-        for skid in m.period[p].reverse_osmosis.set_ro_skids:
-            m.period[p].reverse_osmosis.ro_skid[skid].feed_flowrate.fix(
-                m.params.wrd_ro.nominal_flowrate
-            )
+    m.params.wrd_ro.minimum_flowrate = m.params.wrd_ro.nominal_flowrate
+    m.params.wrd_ro.maximum_flowrate = m.params.wrd_ro.nominal_flowrate
 
 
 def _restrict_flexible_trains(m, num_flexible_trains):
@@ -477,8 +474,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
     fs.calculate_flexibility_metrics(
-        m, baseline_power=1062
-    )  # 1062 is for 1200 AF yearly target
+        m, baseline_power=1080
+    )  # 1080 is for 1200 AF yearly target
 
     design_var_values = m.get_design_var_values()
     filtered_design_var_values = {
@@ -515,8 +512,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["both"]
-    num_flex_skids = [0]
+    flex_types = ["no_flex", "rr"]
+    num_flex_skids = [1, 2]
 
     results_rows = []
 
