@@ -383,7 +383,7 @@ def main(season, flex_type, num_flexible_trains=4):
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    # fs.add_replacement_costs_piecewise(m)
+    fs.add_replacement_costs_piecewise(m)
     fs.add_useful_expressions(m)
     # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
@@ -395,6 +395,7 @@ def main(season, flex_type, num_flexible_trains=4):
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
+        + m.total_replacement_cost
     )
     # add CAPEX as a fixed cost to calculate LCOW
     m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months / 12)
@@ -443,7 +444,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.0011
+    mip_gap = 0.0012
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
@@ -514,21 +515,22 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["flow", "rr", "no_flex"]
-    num_flex_skids = 0
+    flex_types = ["no_flex", "rr", "flow"]
+    num_flex_skids = [0]
 
     results_rows = []
 
     for season in seasons:
         for flex_type in flex_types:
-            m = main(
-                season=season, flex_type=flex_type, num_flexible_trains=num_flex_skids
-            )
+            for num_skids in num_flex_skids:
+                m = main(
+                    season=season, flex_type=flex_type, num_flexible_trains=num_skids
+                )
             results_rows.append(
                 {
                     "Season": season,
                     "Flexibility Type": flex_type,
-                    "Num Flexible Trains": num_flex_skids,
+                    "Num Flexible Trains": num_skids,
                     "Total Operational Cost": m.total_op_cost(),
                     "Total Water Production (m3)": m.total_water_production(),
                     "LCOW ($/m3)": m.LCOW(),
@@ -538,6 +540,7 @@ if __name__ == "__main__":
                     "Total Feed Cost": m.total_feed_cost(),
                     "Total Brine Cost": m.total_brine_cost(),
                     "Total Chemical Cost": m.total_chemical_cost(),
+                    "Total Replacement Cost": m.total_replacement_cost(),
                     "Total Demand Response Revenue": m.total_demand_response_revenue(),
                     "Total Cost": m.total_cost(),
                     "MMaximum Power": m.maximum_power(),
