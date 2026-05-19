@@ -204,8 +204,8 @@ def _restrict_flexible_trains(m, num_flexible_trains):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "wrd_pricesignal_summer_week.csv",
-        "winter": "wrd_pricesignal_winter_week.csv",
+        "summer": "wrd_pricesignal_summer_2_day.csv",
+        "winter": "wrd_pricesignal_winter_2_day.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:

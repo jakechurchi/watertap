@@ -8,7 +8,7 @@
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
 #SBATCH --output=PT_week_flex_types.%j.out  # %j will be replaced with the job ID
-
+#SBATCH --qos="high"
 
 module load gurobi
 module load anaconda3
