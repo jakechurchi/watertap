@@ -75,24 +75,30 @@ def plot_function(m, n_time_points, output_stem):
     leg1.get_frame().set_facecolor("white")
     ax_energy.xaxis.set_major_locator(plt.MaxNLocator(24))
 
-    # Third subplot: Water production and RO train flow rates
+    # Second subplot: Water production and RO train flow rates
     prod = [
         v[None] for v in m.period[:, :].posttreatment.product_flowrate.extract_values()
     ]
     ax_trains.plot(
-        time + 0.5, prod, label="Water Production (m3/hr)", color="blue", marker="o"
+        time + 0.5,
+        prod,
+        label="Water Production (m$^3$/h)",
+        color="black",
+        linestyle="--",
+        linewidth=2,
+        alpha=0.75,
     )
     ax_trains.set_ylim(0, 2500)
     ax_trains.axhline(
-        y=53150 / 24,
+        y=602 * 4,
         color="blue",
         linestyle="--",
         linewidth=2,
-        alpha=0.5,
-        label="Maximum Production Capacity (m3/h)",
+        alpha=0.75,
+        label="Nominal Plant Capacity (m$^3$/h)",
         zorder=0,
     )
-    ax_trains.set_ylabel("Water Production (m3/h)", fontsize=12)
+    ax_trains.set_ylabel("Water Production (m$^3$/h)", fontsize=12)
     ax_trains.set_xlabel("Hours", fontsize=12)
     ax_trains.set_title(
         "Water Production & RO Train Flow Rates", fontsize=14, fontweight="bold"
@@ -100,63 +106,46 @@ def plot_function(m, n_time_points, output_stem):
     ax_trains.xaxis.set_major_locator(plt.MaxNLocator(24))
     ax_trains.grid(False)
 
-    # Extract RO train flow rates and convert to % of nominal train flow
-    nominal_train_flow = 602  # m3/hr
+    # Extract RO train flow rates (m3/hr) for stacked plotting
     train_1_flows = [
-        v[None] / nominal_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[1]
         .product_flowrate.extract_values()
     ]
     train_2_flows = [
-        v[None] / nominal_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[2]
         .product_flowrate.extract_values()
     ]
     train_3_flows = [
-        v[None] / nominal_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[3]
         .product_flowrate.extract_values()
     ]
     train_4_flows = [
-        v[None] / nominal_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[4]
         .product_flowrate.extract_values()
     ]
 
-    ax_trains_pct = ax_trains.twinx()
-    ax_trains_pct.plot(
-        time + 0.5, train_1_flows, label="RO Train 1", marker="o", linewidth=2
-    )
-    ax_trains_pct.plot(
-        time + 0.5, train_2_flows, label="RO Train 2", marker="s", linewidth=2
-    )
-    ax_trains_pct.plot(
-        time + 0.5, train_3_flows, label="RO Train 3", marker="^", linewidth=2
-    )
-    ax_trains_pct.plot(
-        time + 0.5, train_4_flows, label="RO Train 4", marker="d", linewidth=2
-    )
-    ax_trains_pct.axhline(
-        y=100,
-        color="red",
-        linestyle="--",
-        linewidth=2,
+    ax_trains.stackplot(
+        time + 0.5,
+        train_1_flows,
+        train_2_flows,
+        train_3_flows,
+        train_4_flows,
+        labels=["RO Train 1", "RO Train 2", "RO Train 3", "RO Train 4"],
         alpha=0.5,
-        label="Nominal Capacity",
-        zorder=0,
     )
-    ax_trains_pct.set_ylim(0, 125)
-    ax_trains_pct.set_ylabel("Flow Rate (% of Nominal)", fontsize=12)
 
     handle_t, label_t = ax_trains.get_legend_handles_labels()
-    handle_t2, label_t2 = ax_trains_pct.get_legend_handles_labels()
-    leg3 = ax_trains_pct.legend(
-        handle_t + handle_t2,
-        label_t + label_t2,
+    leg3 = ax_trains.legend(
+        handle_t,
+        label_t,
         loc="lower left",
         fontsize=11,
         framealpha=1.0,
@@ -170,7 +159,7 @@ def plot_function(m, n_time_points, output_stem):
         a.xaxis.set_major_locator(plt.MaxNLocator(24))
 
     # Tick labels for all axes
-    for a in (ax_energy, ax_price, ax_trains, ax_trains_pct):
+    for a in (ax_energy, ax_price, ax_trains):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
@@ -204,8 +193,8 @@ def _restrict_flexible_trains(m, num_flexible_trains):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "wrd_pricesignal_summer_week.csv",
-        "winter": "wrd_pricesignal_winter_week.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_2_day.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_2_day.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -447,13 +436,13 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    # solver = get_solver()
+    solver = get_solver()
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.005
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 2.0 %
+    # mip_gap = 0.005
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -528,9 +517,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
+    seasons = ["summer"]
     flex_types = ["both"]
-    num_flex_skids = [4]
+    num_flex_skids = [2]
 
     results_rows = []
 
@@ -557,7 +546,7 @@ if __name__ == "__main__":
                     "Total Replacement Cost": m.total_replacement_cost(),
                     "Total Demand Response Revenue": m.total_demand_response_revenue(),
                     "Total Cost": m.total_cost(),
-                    "MMaximum Power": m.maximum_power(),
+                    "Maximum Power": m.maximum_power(),
                     "Energy Capacity": m.energy_capacity(),
                     "Power Capacity": m.power_capacity(),
                     "LVOF": m.LVOF(),
