@@ -423,9 +423,19 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # fs.add_rain_shutdowns(m)
 
-    # To define a baseline
+    # This does not include the replacement costs atm because they don't drive the optimization
     m.obj = pyo.Objective(
-        expr=1e-4 * (m.total_op_cost + m.flow_changes_penalty),
+        expr=1e-4
+        * (
+            m.total_energy_cost
+            + m.total_demand_cost
+            + m.total_customer_cost
+            - m.total_demand_response_revenue
+            + m.total_feed_cost
+            + m.total_brine_cost
+            + m.total_chemical_cost
+            + m.flow_changes_penalty
+        ),
         sense=pyo.minimize,
     )
 

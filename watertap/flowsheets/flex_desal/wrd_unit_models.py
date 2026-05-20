@@ -63,9 +63,6 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
             output_vars=[blk.energy_intensity],
         )
 
-        # The maximum and minimum flowrate limits are now functions of recovery. This restricts the domain of the surrogate.
-        # Probably just going to hardcode this fit. !! NOT UPDATED YET !!
-
         blk.flow_limit_from_RR = Constraint(
             expr=blk.feed_flowrate
             >= blk.op_mode * (3 * pyunits.m**3 / pyunits.hr * 15 / (1 - blk.recovery)),
