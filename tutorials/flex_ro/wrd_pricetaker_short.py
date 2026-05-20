@@ -27,22 +27,135 @@ from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 from idaes.core.util.model_statistics import degrees_of_freedom
 
 
-def plot_function(m, n_time_points, output_stem):
+def plot_function(m, n_time_points, output_stem, peak_hours=None):
     time = np.linspace(0, n_time_points - 1, n_time_points)
     fig = plt.figure(figsize=(12, 12))
-    gs = fig.add_gridspec(2, 1, height_ratios=[1, 1.6])
+    gs = fig.add_gridspec(2, 1, height_ratios=[1, 1])
     ax_energy = fig.add_subplot(gs[0])
     ax_trains = fig.add_subplot(gs[1], sharex=ax_energy)
     ax_energy.set_facecolor("#f5f5f5")
     ax_trains.set_facecolor("#f5f5f5")
 
-    # First subplot: Energy consumption and electricity price
-    energy = [
+    if peak_hours is not None:
+        peak_legend_added = False
+        for i, is_peak in enumerate(peak_hours):
+            if is_peak:
+                # Shade full hourly intervals where variable demand charges apply.
+                span_label = "Peak Hours" if not peak_legend_added else None
+                ax_energy.axvspan(
+                    i,
+                    i + 1,
+                    color="grey",
+                    alpha=0.2,
+                    edgecolor="none",
+                    linewidth=0,
+                    zorder=-1,
+                    label=span_label,
+                )
+                ax_trains.axvspan(
+                    i,
+                    i + 1,
+                    color="grey",
+                    alpha=0.2,
+                    edgecolor="none",
+                    linewidth=0,
+                    zorder=-1,
+                    label=span_label,
+                )
+                peak_legend_added = True
+
+    # First subplot: Stacked energy consumption by major equipment
+    total_energy = [
         pyo.value(v[None])
         for v in m.period[:, :].net_power_consumption.extract_values()
     ]
+
+    ro1_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[1]
+        .power_consumption.extract_values()
+    ]
+    ro2_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[2]
+        .power_consumption.extract_values()
+    ]
+    ro3_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[3]
+        .power_consumption.extract_values()
+    ]
+    ro4_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[4]
+        .power_consumption.extract_values()
+    ]
+
+    uf1_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .pretreatment.uf_pumps[1]
+        .power_consumption.extract_values()
+    ]
+    uf2_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .pretreatment.uf_pumps[2]
+        .power_consumption.extract_values()
+    ]
+    uf3_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .pretreatment.uf_pumps[3]
+        .power_consumption.extract_values()
+    ]
+
+    other_energy = np.array(total_energy) - (
+        np.array(ro1_energy)
+        + np.array(ro2_energy)
+        + np.array(ro3_energy)
+        + np.array(ro4_energy)
+        + np.array(uf1_energy)
+        + np.array(uf2_energy)
+        + np.array(uf3_energy)
+    )
+    # Clip tiny negatives from solver tolerances so stackplot remains well-defined.
+    other_energy = np.maximum(other_energy, 0.0)
+
+    ax_energy.stackplot(
+        time + 0.5,
+        ro1_energy,
+        ro2_energy,
+        ro3_energy,
+        ro4_energy,
+        uf1_energy,
+        uf2_energy,
+        uf3_energy,
+        other_energy,
+        labels=[
+            "RO Train 1",
+            "RO Train 2",
+            "RO Train 3",
+            "RO Train 4",
+            "UF Pump 1",
+            "UF Pump 2",
+            "UF Pump 3",
+            "Post-Treatment",
+        ],
+        alpha=0.5,
+    )
+
     ax_energy.plot(
-        time + 0.5, energy, label="Energy Consumption (kWh)", color="orange", marker="o"
+        time + 0.5,
+        total_energy,
+        label="Total Energy Consumption",
+        color="black",
+        linestyle="--",
+        linewidth=2,
     )
     ax_energy.set_ylim(0, 2500)
     ax_energy.set_ylabel("Energy Consumption (kWh)", fontsize=12)
@@ -57,8 +170,8 @@ def plot_function(m, n_time_points, output_stem):
         time + 0.5,
         elec_price,
         label="Electricity Cost ($/kWh)",
-        color="black",
-        linestyle="-",
+        color="orange",
+        linestyle="--",
         linewidth=2,
     )
     ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
@@ -69,7 +182,7 @@ def plot_function(m, n_time_points, output_stem):
     handles = handle2 + handle1
     labels = label2 + label1
     leg1 = ax_price.legend(
-        handles, labels, loc="lower left", framealpha=1.0, ncol=1, fontsize=11
+        handles, labels, loc="lower left", framealpha=1.0, ncol=2, fontsize=10
     )
     leg1.set_zorder(1000)
     leg1.get_frame().set_facecolor("white")
@@ -193,8 +306,8 @@ def _restrict_flexible_trains(m, num_flexible_trains):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_2_day.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_2_day.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week_low_RTP.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -231,6 +344,7 @@ def main(season, flex_type, num_flexible_trains=4):
     price_data["Demand_Response_Price"] = price_data["electric_demand_response_price"]
 
     price_data["Emissions Intensity"] = 0
+    peak_hours = price_data["Var Demand Rate"].to_numpy() != 0
 
     # Load PV data
     pv_kW = price_data["solar_output_kW"]
@@ -500,6 +614,7 @@ def main(season, flex_type, num_flexible_trains=4):
         m,
         n_time_points=len(price_data),
         output_stem=script_dir / f"wrd_pricetaker_{output_suffix}",
+        peak_hours=peak_hours,
     )
 
     # # Plot operational variables
@@ -517,9 +632,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
-    flex_types = ["both"]
-    num_flex_skids = [2]
+    seasons = ["summer", "winter"]
+    flex_types = ["no_flex"]
+    num_flex_skids = [0]
 
     results_rows = []
 
