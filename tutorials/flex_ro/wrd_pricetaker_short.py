@@ -366,7 +366,7 @@ def main(season, flex_type, num_flexible_trains=4):
         end_date=end_date,
         annual_production_AF=12000,
         timestep_hours=timestep_hours,
-        include_onsite_solar=True,
+        include_onsite_solar=False,
         onsite_capacity=pv_capacity,
         nonworking_hours=list(range(0, 8))
         + list(
@@ -456,10 +456,13 @@ def main(season, flex_type, num_flexible_trains=4):
             "variable_demand_rate": price_data["Var Demand Rate"],
             "emissions_intensity": price_data["Emissions Intensity"],
             "customer_cost": price_data["Customer Cost"],
-            "power_generation.capacity_factor": pv_capacity_factors,
             "demand_response_price": price_data["Demand_Response_Price"],
         }
     )
+    if m.params.include_onsite_solar:
+        m.update_operation_params(
+            {"power_generation.capacity_factor": pv_capacity_factors}
+        )
 
     # Add demand cost and fixed cost calculation constraints
     fs.add_demand_and_fixed_costs(m)
