@@ -7,6 +7,7 @@
 
 import warnings
 import logging
+from datetime import datetime
 
 warnings.filterwarnings("ignore", message=".*implicit domain of 'Any'.*")
 logging.getLogger("pyomo").setLevel(logging.ERROR)
@@ -47,7 +48,6 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
                     i + 1,
                     color="grey",
                     alpha=0.2,
-                    edgecolor="none",
                     linewidth=0,
                     zorder=-1,
                     label=span_label,
@@ -57,7 +57,6 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
                     i + 1,
                     color="grey",
                     alpha=0.2,
-                    edgecolor="none",
                     linewidth=0,
                     zorder=-1,
                     label=span_label,
@@ -553,13 +552,13 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    solver = get_solver()
+    # solver = get_solver()
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    # mip_gap = 0.005
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap  # 2.0 %
+    mip_gap = 0.005
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -635,9 +634,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer", "winter"]
+    seasons = ["winter"]
     flex_types = ["no_flex"]
-    num_flex_skids = [0]
+    num_flex_skids = [0, 4]
 
     results_rows = []
 
@@ -673,6 +672,7 @@ if __name__ == "__main__":
 
     results_df = pd.DataFrame(results_rows)
     script_dir = Path(__file__).parent
-    results_csv = script_dir / f"wrd_pricetaker_summary_results.csv"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    results_csv = script_dir / f"wrd_pricetaker_summary_results_{timestamp}.csv"
     results_df.to_csv(results_csv, index=False)
     print(f"Saved summary results to: {results_csv}")
