@@ -528,7 +528,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # fs.add_rain_shutdowns(m)
 
-    # This does not include the replacement costs atm because they don't drive the optimization
+    # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
         expr=1e-4
         * (
@@ -634,7 +634,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["no_flex"]
+    flex_types = ["both"]
     num_flex_skids = [4]
 
     results_rows = []
