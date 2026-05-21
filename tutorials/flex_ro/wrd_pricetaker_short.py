@@ -305,8 +305,8 @@ def _restrict_flexible_trains(m, num_flexible_trains):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week_low_RTP.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -555,7 +555,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.01
+    mip_gap = 0.006
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
