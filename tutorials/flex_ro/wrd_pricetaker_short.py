@@ -534,7 +534,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
-        expr=1e-4 * m.total_op_costs,
+        expr=1e-4 * m.total_op_cost,
         sense=pyo.minimize,
     )
 

@@ -896,6 +896,23 @@ def add_working_hours_constraint(m):
             return Constraint.Skip
 
 
+def repeat_weekdays(m):
+    """Ensures operations during first four days are repeated"""
+
+    detla_time = (
+        24 / m.params.timestep_hours
+    )  # Assuming time index is in hours and starts at 1
+
+    @m.Constraint(m.set_time)
+    def repeat_weekday_operations(blk, t):
+        if t >= detla_time + 1 and t <= 4 * detla_time:  # Compare day 2-4 to day 1
+
+            return (
+                blk.period[1, t].intake.feed_flowrate
+                == blk.period[1, t].intake.feed_flowrate
+            )
+
+
 def add_rain_shutdowns(m):
     """Forces shutdown to occur for a rainy day."""
     hours = 24 * m.params.rainy_days
