@@ -2,7 +2,7 @@
 #SBATCH --job-name=PT_week
 #SBATCH --account=nawianalysis
 #SBATCH --time=00:30:00
-#SBATCH --nodes=4
+#SBATCH --nodes=2
 #SBATCH --partition=short
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
