@@ -374,7 +374,7 @@ def main(season, flex_type, num_flexible_trains=4):
         # rainy_days=1,  # This will reduce the maxumim value for annual_production AF
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
         include_demand_response=True,
-        maximum_num_shutdowns=7,  # I'd like to change to one a day
+        max_daily_shutdowns=1,  # I'd like to change to one a day
     )
 
     m.params.intake.update(

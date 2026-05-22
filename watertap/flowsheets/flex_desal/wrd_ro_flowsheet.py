@@ -775,17 +775,21 @@ def add_flow_changes_penalty_binary(m):
 
 
 def add_maximum_shutdowns(m):
-    """Adds constraints to limit the number of shutdowns over the period. Only applies to first RO skid, which only shuts down if the whole plant shuts down."""
+    """Adds rolling 24-hour shutdown limits over the full period index."""
     params: um_params.FlexDesalParams = m.params
 
-    @m.Constraint(m.set_days, m.set_time)
-    def max_shutdowns_per_day(blk, d, t):
+    window_steps = max(1, int(round(24 / params.timestep_hours)))
+    period_points = list(m.period.index_set())
+    num_windows = max(0, len(period_points) - window_steps + 1)
+
+    @m.Constraint(range(num_windows))
+    def max_shutdowns_per_24h_window(blk, w):
         return (
             sum(
-                blk.period[d, t].reverse_osmosis.ro_skid[1].shutdown
-                for t in blk.set_time
+                blk.period[period_points[k]].reverse_osmosis.ro_skid[1].shutdown
+                for k in range(w, w + window_steps)
             )
-            <= params.maximum_num_shutdowns  # Adjust this value as needed based on realistic operational constraints
+            <= params.max_daily_shutdowns
         )
 
 
