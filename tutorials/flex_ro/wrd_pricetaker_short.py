@@ -534,16 +534,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
-        expr=1e-4
-        * (
-            m.total_energy_cost
-            + m.total_demand_cost
-            + m.total_customer_cost
-            - m.total_demand_response_revenue
-            + m.total_feed_cost
-            + m.total_brine_cost
-            + m.total_chemical_cost
-        ),
+        expr=1e-4 * m.total_op_costs,
         sense=pyo.minimize,
     )
 
@@ -559,7 +550,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.006
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
@@ -637,7 +628,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
+    seasons = ["winter"]
     flex_types = ["both"]
     num_flex_skids = [4]
 
