@@ -470,6 +470,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
     # fs.add_delayed_shutdown_constraints(m)
+    fs.repeat_weekdays(m)
 
     m.total_water_production = pyo.Expression(
         expr=m.params.timestep_hours
@@ -534,7 +535,16 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
-        expr=1e-4 * m.total_op_cost,
+        expr=1e-4
+        * (
+            m.total_energy_cost
+            + m.total_demand_cost
+            + m.total_customer_cost
+            - m.total_demand_response_revenue
+            + m.total_feed_cost
+            + m.total_brine_cost
+            + m.total_chemical_cost
+        ),
         sense=pyo.minimize,
     )
 

@@ -7,7 +7,7 @@
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=PT_rep_costs_no_flow_penalty.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=PT_no_flow_rep_weekdays.%j.out  # %j will be replaced with the job ID
 
 module load gurobi
 module load anaconda3

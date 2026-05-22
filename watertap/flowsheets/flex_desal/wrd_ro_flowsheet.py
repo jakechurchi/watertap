@@ -903,14 +903,25 @@ def repeat_weekdays(m):
         24 / m.params.timestep_hours
     )  # Assuming time index is in hours and starts at 1
 
-    @m.Constraint(m.set_time)
-    def repeat_weekday_operations(blk, t):
+    @m.Constraint(m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    def repeat_weekday_flowrates(blk, t, i):
         if t >= detla_time + 1 and t <= 4 * detla_time:  # Compare day 2-4 to day 1
-
             return (
-                blk.period[1, t].intake.feed_flowrate
-                == blk.period[1, t].intake.feed_flowrate
+                blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
+                == blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
             )
+        else:
+            return Constraint.Skip
+
+    @m.Constraint(m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    def repeat_weekday_recovery(blk, t, i):
+        if t >= detla_time + 1 and t <= 4 * detla_time:  # Compare day 2-4 to day 1
+            return (
+                blk.period[1, t].reverse_osmosis.ro_skid[i].recovery
+                == blk.period[1, t].reverse_osmosis.ro_skid[i].recovery
+            )
+        else:
+            return Constraint.Skip
 
 
 def add_rain_shutdowns(m):
