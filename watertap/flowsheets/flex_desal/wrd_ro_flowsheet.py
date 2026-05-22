@@ -746,6 +746,49 @@ def add_flow_changes_penalty_binary(m):
         )
     )
 
+    # Prevent back-to-back flow-change events unless shutdown is occurring.
+    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    def no_consecutive_ro_flow_changes(m_blk, d, t, i):
+        if d == 1 and t <= 2:
+            return Constraint.Skip
+
+        shutdown_now = m_blk.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+        shutdown_prev = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].shutdown
+
+        return (
+            m_blk.flow_changed[d, t, i] + m_blk.flow_changed[d, t - 1, i]
+            <= 1 + shutdown_now + shutdown_prev
+        )
+
+    @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
+    def no_consecutive_uf_flow_changes(m_blk, d, t, i):
+        if d == 1 and t <= 2:
+            return Constraint.Skip
+
+        shutdown_now = m_blk.period[d, t].pretreatment.uf_pumps[i].shutdown
+        shutdown_prev = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].shutdown
+
+        return (
+            m_blk.uf_flow_changed[d, t, i] + m_blk.uf_flow_changed[d, t - 1, i]
+            <= 1 + shutdown_now + shutdown_prev
+        )
+
+
+def add_maximum_shutdowns_per_day(m):
+    """Adds constraints to limit the number of shutdowns per day"""
+    params: um_params.FlexDesalParams = m.params
+
+    @m.Constraint(m.set_days, range(1, params.num_days + 1))
+    def max_shutdowns_per_day(blk, d):
+        return (
+            sum(
+                blk.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+                for t in blk.set_time
+                for i in range(1, params.wrd_ro.num_ro_skids + 1)
+            )
+            <= 2  # Adjust this value as needed based on realistic operational constraints
+        )
+
 
 def add_flow_changes_penalty_continuous(m):
     # variables to track flowrate changes between consecutive periods
