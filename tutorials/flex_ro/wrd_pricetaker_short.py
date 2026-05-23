@@ -585,7 +585,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
-    # solver.options["MIPFocus"] = 1
+    # solver.options["MIPFocus"] = 3
     results = solver.solve(m, tee=True)
 
     # print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
