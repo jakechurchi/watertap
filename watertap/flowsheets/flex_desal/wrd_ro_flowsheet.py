@@ -746,20 +746,20 @@ def add_flow_changes_penalty_binary(m):
         )
     )
 
-    # Rolling 12-hour cap: each RO train can change flowrate at most 2 times.
-    ro_window_steps = max(1, int(round(12 / m.params.timestep_hours)))
-    period_points = list(m.period.index_set())
-    ro_num_windows = max(0, len(period_points) - ro_window_steps + 1)
+    # # Rolling 12-hour cap: each RO train can change flowrate at most 2 times.
+    # ro_window_steps = max(1, int(round(12 / m.params.timestep_hours)))
+    # period_points = list(m.period.index_set())
+    # ro_num_windows = max(0, len(period_points) - ro_window_steps + 1)
 
-    @m.Constraint(range(ro_num_windows), range(1, m.params.wrd_ro.num_ro_skids + 1))
-    def max_ro_flow_changes_per_12h_window(m_blk, w, i):
-        return (
-            sum(
-                m_blk.flow_changed[period_points[k][0], period_points[k][1], i]
-                for k in range(w, w + ro_window_steps)
-            )
-            <= 2
-        )
+    # @m.Constraint(range(ro_num_windows), range(1, m.params.wrd_ro.num_ro_skids + 1))
+    # def max_ro_flow_changes_per_12h_window(m_blk, w, i):
+    #     return (
+    #         sum(
+    #             m_blk.flow_changed[period_points[k][0], period_points[k][1], i]
+    #             for k in range(w, w + ro_window_steps)
+    #         )
+    #         <= 2
+    #     )
 
     # # Prevent back-to-back flow-change events unless shutdown is occurring.
     # @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
@@ -922,6 +922,16 @@ def repeat_weekdays(m):
             )
         else:
             return Constraint.Skip
+
+    # @m.Constraint(m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    # def repeat_weekend_flowrate(blk, t, i):
+    #     if t >= 5 * detla_time + 1 and t <= 6 * detla_time:  # Compare day 6 to day 7
+    #         return (
+    #             blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
+    #             == blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
+    #         )
+    #     else:
+    #         return Constraint.Skip
 
 
 def add_rain_shutdowns(m):

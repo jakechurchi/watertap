@@ -303,6 +303,23 @@ def _restrict_flexible_trains(m, num_flexible_trains):
             ro_skid.shutdown.fix(0)
 
 
+def _begin_and_end_constraint(m):
+    """Force RO train 1 op_mode to match between first and last timesteps."""
+    period_points = list(m.period.index_set())
+    if not period_points:
+        return
+
+    first_point = period_points[0]
+    last_point = period_points[-1]
+
+    @m.Constraint()
+    def match_train_1_at_start_and_end(blk):
+        return (
+            blk.period[first_point].reverse_osmosis.ro_skid[1].op_mode
+            == blk.period[last_point].reverse_osmosis.ro_skid[1].op_mode
+        )
+
+
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
         "summer": "price_signals/wrd_pricesignal_summer_week.csv",
@@ -447,6 +464,8 @@ def main(season, flex_type, num_flexible_trains=4):
     )
 
     _restrict_flexible_trains(m, num_flexible_trains=num_flexible_trains)
+
+    _begin_and_end_constraint(m)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
