@@ -923,15 +923,25 @@ def repeat_weekdays(m):
         else:
             return Constraint.Skip
 
-    # @m.Constraint(m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
-    # def repeat_weekend_flowrate(blk, t, i):
-    #     if t >= 5 * detla_time + 1 and t <= 6 * detla_time:  # Compare day 6 to day 7
-    #         return (
-    #             blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
-    #             == blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
-    #         )
-    #     else:
-    #         return Constraint.Skip
+    @m.Constraint(m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    def repeat_weekend_flowrate(blk, t, i):
+        if t >= 5 * detla_time + 1 and t <= 6 * detla_time:  # Compare day 6 to day 7
+            return (
+                blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
+                == blk.period[1, t].reverse_osmosis.ro_skid[i].feed_flowrate
+            )
+        else:
+            return Constraint.Skip
+
+    @m.Constraint(m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
+    def repeat_weekend_recovery(blk, t, i):
+        if t >= 5 * detla_time + 1 and t <= 6 * detla_time:  # Compare day 6 to day 7
+            return (
+                blk.period[1, t].reverse_osmosis.ro_skid[i].recovery
+                == blk.period[1, t].reverse_osmosis.ro_skid[i].recovery
+            )
+        else:
+            return Constraint.Skip
 
 
 def add_rain_shutdowns(m):

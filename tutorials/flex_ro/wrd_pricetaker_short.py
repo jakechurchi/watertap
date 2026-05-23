@@ -489,7 +489,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
     # fs.add_delayed_shutdown_constraints(m)
-    fs.repeat_weekdays(m)
+    # fs.repeat_weekdays(m)
 
     m.total_water_production = pyo.Expression(
         expr=m.params.timestep_hours
@@ -579,13 +579,13 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["max_iter"] = 500
     # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.01
+    # mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 2.0 %
+    # solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
-    # solver.options["MIPFocus"] = 3
+    # solver.options["MIPFocus"] = 1
     results = solver.solve(m, tee=True)
 
     # print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
@@ -657,7 +657,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter"]
+    seasons = ["winter", "summer"]
     flex_types = ["both"]
     num_flex_skids = [4]
 
