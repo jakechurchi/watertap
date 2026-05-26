@@ -303,6 +303,24 @@ def _restrict_flexible_trains(m, num_flexible_trains):
             ro_skid.shutdown.fix(0)
 
 
+def _fix_operations_for_first_four_days(m, peak_hours=None):
+    """Fix all RO trains to expected behavior for first four days"""
+    for p in m.period:
+        if p <= 4 * 24:  # Assuming hourly time steps
+            for skid in m.period[p].reverse_osmosis.set_ro_skids:
+                ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
+                if peak_hours is not None and peak_hours[p]:
+                    ro_skid.op_mode.fix(
+                        0
+                    )  # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
+                else:
+                    ro_skid.op_mode.fix(1)  # Operation during non-peak hours
+                    ro_skid.product_flowrate.fix(
+                        m.params.wrd_ro.nominal_flowrate
+                    )  # This might not really be the flowrate to fix this to...
+                    ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
+
+
 def _begin_and_end_constraint(m):
     """Force RO train 1 op_mode to match between first and last timesteps."""
     period_points = list(m.period.index_set())
@@ -322,8 +340,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_2_day.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_2_day.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -450,7 +468,7 @@ def main(season, flex_type, num_flexible_trains=4):
         {
             "energy_intensity": 0.101,
             "chemical_cost": 0.0310,
-        }  # This number is not confirmed at all
+        }
     )  # kWh/m3 #$/m3
 
     m.params.brinedischarge.update({"brine_cost": 0.43, "energy_intensity": 0})
@@ -658,9 +676,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter"]
+    seasons = ["summer"]
     flex_types = ["both"]
-    num_flex_skids = [2]
+    num_flex_skids = [4]
 
     results_rows = []
 
