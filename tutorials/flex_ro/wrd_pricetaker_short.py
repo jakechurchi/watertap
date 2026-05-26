@@ -305,20 +305,13 @@ def _restrict_flexible_trains(m, num_flexible_trains):
 
 def _fix_operations_for_first_four_days(m, peak_hours=None):
     """Fix all RO trains to expected behavior for first four days"""
-    for p in m.period:
+    for d, p in m.period:
         if p <= 4 * 24:  # Assuming hourly time steps
-            for skid in m.period[p].reverse_osmosis.set_ro_skids:
-                ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
-                if peak_hours is not None and peak_hours[p]:
-                    ro_skid.op_mode.fix(
-                        0
-                    )  # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
-                else:
-                    ro_skid.op_mode.fix(1)  # Operation during non-peak hours
-                    ro_skid.product_flowrate.fix(
-                        m.params.wrd_ro.nominal_flowrate
-                    )  # This might not really be the flowrate to fix this to...
-                    ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
+            if peak_hours is not None and peak_hours[p]:
+                # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
+                m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
+            else:
+                m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(1)  # Operation
 
 
 def _begin_and_end_constraint(m):
@@ -340,7 +333,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_2_day_hot_RTP.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week_low_RTP.csv",
     }
     season_key = season.lower()
@@ -484,6 +477,9 @@ def main(season, flex_type, num_flexible_trains=4):
     _restrict_flexible_trains(m, num_flexible_trains=num_flexible_trains)
 
     _begin_and_end_constraint(m)
+
+    if season_key == "summer":
+        _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
