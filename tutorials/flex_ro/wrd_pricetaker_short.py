@@ -439,7 +439,7 @@ def main(season, flex_type, num_flexible_trains=4):
             "maximum_flowrate": 635,
             "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
             "surrogate_type": "PySMO_polyfit",
-            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_2.json",
+            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
             "minimum_recovery": 0.88,
             "nominal_recovery": 0.925,
             "maximum_recovery": 0.925,
