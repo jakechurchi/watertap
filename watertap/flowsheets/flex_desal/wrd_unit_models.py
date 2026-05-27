@@ -64,9 +64,9 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
         )
 
         blk.flow_limit_from_RR = Constraint(
-            expr=blk.feed_flowrate
-            >= blk.op_mode * (3 * pyunits.m**3 / pyunits.hr * 15 / (1 - blk.recovery)),
-            doc="Lower flow constraint based on recovery",
+            expr=blk.feed_flowrate * (1 - blk.recovery)
+            >= blk.op_mode * (3 * pyunits.m**3 / pyunits.hr * 15),
+            doc="Lower flow constraint based on recovery (reciprocal eliminated)",
         )
 
     else:

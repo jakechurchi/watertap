@@ -522,7 +522,7 @@ def main(season, flex_type, num_flexible_trains=4):
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    fs.add_replacement_costs_piecewise(m)
+    #    fs.add_replacement_costs_piecewise(m)
     fs.add_useful_expressions(m)
     # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
@@ -534,7 +534,7 @@ def main(season, flex_type, num_flexible_trains=4):
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
-        + m.total_replacement_cost
+        #        + m.total_replacement_cost
     )
     # add CAPEX as a fixed cost to calculate LCOW
     m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months / 12)
@@ -603,9 +603,9 @@ def main(season, flex_type, num_flexible_trains=4):
     # glpk never works because there are so many nonlinear constraints.
     # solver = SolverFactory("glpk")
 
-    # mip_gap = 0.01
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap  # 2.0 %
+    mip_gap = 0.01
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -707,7 +707,7 @@ if __name__ == "__main__":
                     "Total Feed Cost": m.total_feed_cost(),
                     "Total Brine Cost": m.total_brine_cost(),
                     "Total Chemical Cost": m.total_chemical_cost(),
-                    "Total Replacement Cost": m.total_replacement_cost(),
+                    # "Total Replacement Cost": m.total_replacement_cost(),
                     "Total Demand Response Revenue": m.total_demand_response_revenue(),
                     "Total Cost": m.total_cost(),
                     "Maximum Power": m.maximum_power(),
