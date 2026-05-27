@@ -601,7 +601,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # glpk never works because there are so many nonlinear constraints.
     # solver = SolverFactory("glpk")
 
-    mip_gap = 0.01
+    mip_gap = 0.005
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
@@ -681,7 +681,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
+    seasons = ["winter", "summer"]
     flex_types = ["both"]
     num_flex_skids = [4]
 
