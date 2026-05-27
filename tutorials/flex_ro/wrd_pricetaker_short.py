@@ -7,6 +7,7 @@
 
 import warnings
 import logging
+import os
 from datetime import datetime
 
 warnings.filterwarnings("ignore", message=".*implicit domain of 'Any'.*")
@@ -17,6 +18,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pyomo.environ as pyo
 from pyomo.util.infeasible import log_infeasible_constraints
+from pyomo.environ import SolverFactory
 from pathlib import Path
 
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
@@ -592,10 +594,17 @@ def main(season, flex_type, num_flexible_trains=4):
     # dt.report_structural_issues()
     # solver = get_solver()
     # solver.options["max_iter"] = 500
-    # results = solver.solve(m, tee=True)
 
-    mip_gap = 0.01
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # os.environ["PATH"] = (
+    #     r"C:\Users\rchurchi\AppData\Local\anaconda3\pkgs\glpk-4.65-h17947e8_4\Library\bin"
+    #     + os.pathsep
+    #     + os.environ.get("PATH", "")
+    # )
+    # glpk never works because there are so many nonlinear constraints.
+    # solver = SolverFactory("glpk")
+
+    # mip_gap = 0.01
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
     # solver.options["MIPGap"] = mip_gap  # 2.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
