@@ -12,4 +12,4 @@
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-python notbook_as_script.py
+python notebook_as_script.py
