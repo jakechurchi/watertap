@@ -306,14 +306,25 @@ def _restrict_flexible_trains(m, num_flexible_trains):
 
 
 def _fix_operations_for_first_four_days(m, peak_hours=None):
-    """Fix all RO trains to expected behavior for first four days"""
+    """Fix all RO trains to expected behavior for first four days. This could be some part of an initialization strat. to improve solve times."""
     for d, p in m.period:
         if p <= 4 * 24:  # Assuming hourly time steps
-            if peak_hours is not None and peak_hours[p]:
+            if p <= 2:
+                # Avoiding constraint that plant has to be on at first (and therefore last) time step.
+                pass
+            elif peak_hours is not None and peak_hours[p]:
                 # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
-                m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
+                # This is too strong to impose on model. Turning off during peak hours should be an output of the opt., not prescribed.
+                # m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
+                m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(
+                    0
+                )  # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
+                pass
             else:
-                m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(1)  # Operation
+                # Just ensure plant is on during the non-peak hours
+                m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(
+                    1
+                )  # Plant must be on
 
 
 def _begin_and_end_constraint(m):
@@ -336,7 +347,7 @@ def _begin_and_end_constraint(m):
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
         "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week_low_RTP.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -352,9 +363,12 @@ def main(season, flex_type, num_flexible_trains=4):
             f"'{flex_type}'. Valid options are: {sorted(valid_flex_types)}"
         )
 
+    selected_price_signal_stem = Path(season_map[season_key]).stem
     output_suffix = (
         f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
     )
+    if selected_price_signal_stem.upper().endswith("RTP"):
+        output_suffix = f"{output_suffix}_RTP"
 
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
@@ -480,8 +494,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
     _begin_and_end_constraint(m)
 
-    # if season_key == "summer":
-    #     _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
+    if season_key == "summer":
+        _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
@@ -590,16 +604,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    # solver = get_solver()
-    # solver.options["max_iter"] = 500
 
-    # os.environ["PATH"] = (
-    #     r"C:\Users\rchurchi\AppData\Local\anaconda3\pkgs\glpk-4.65-h17947e8_4\Library\bin"
-    #     + os.pathsep
-    #     + os.environ.get("PATH", "")
-    # )
-    # glpk never works because there are so many nonlinear constraints.
-    # solver = SolverFactory("glpk")
+    # IPOPT
+    # solver = get_solver()
 
     mip_gap = 0.005
     solver = pyo.SolverFactory("gurobi_direct_minlp")
@@ -610,25 +617,8 @@ def main(season, flex_type, num_flexible_trains=4):
     # solver.options["MIPFocus"] = 1
     results = solver.solve(m, tee=True)
 
-    # print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
+    print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
-
-    # termination_condition = results.solver.termination_condition
-    # print(f"Solver termination condition: {termination_condition}")
-
-    # if termination_condition in (
-    #     pyo.TerminationCondition.infeasible,
-    #     pyo.TerminationCondition.infeasibleOrUnbounded,
-    # ):
-    #     print("\nModel is infeasible. Logging infeasible constraints...")
-    #     logging.getLogger("pyomo.util.infeasible").setLevel(logging.INFO)
-    #     log_infeasible_constraints(
-    #         m,
-    #         tol=1e-7,
-    #         log_expression=True,
-    #         log_variables=True,
-    #     )
-    #     raise RuntimeError("Model infeasible. See logs above for violated constraints.")
 
     pyo.assert_optimal_termination(results)
 
@@ -681,7 +671,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
+    seasons = ["summer"]
     flex_types = ["both"]
     num_flex_skids = [4]
 
@@ -704,6 +694,8 @@ if __name__ == "__main__":
                     "Total Energy Cost": m.total_energy_cost(),
                     "Fixed Demand Cost": m.fixed_demand_cost(),
                     "Variable Demand Cost": m.variable_demand_cost(),
+                    "Total Electricity Cost": m.total_energy_cost()
+                    + m.total_demand_cost(),
                     "Total Feed Cost": m.total_feed_cost(),
                     "Total Brine Cost": m.total_brine_cost(),
                     "Total Chemical Cost": m.total_chemical_cost(),
