@@ -176,7 +176,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
         linewidth=2,
     )
     ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
-    ax_price.set_ylim(0, 0.17)
+    ax_price.set_ylim(0, max(elec_price) + 0.03)
 
     handle1, label1 = ax_energy.get_legend_handles_labels()
     handle2, label2 = ax_price.get_legend_handles_labels()
@@ -346,7 +346,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
@@ -608,9 +608,9 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.005
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 2.0 %
+    solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -671,9 +671,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
+    seasons = ["winter", "summer"]
     flex_types = ["both"]
-    num_flex_skids = [4]
+    num_flex_skids = [0, 1, 2, 4]
 
     results_rows = []
 
