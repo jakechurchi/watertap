@@ -480,8 +480,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
     _begin_and_end_constraint(m)
 
-    if season_key == "summer":
-        _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
+    # if season_key == "summer":
+    #     _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
@@ -522,7 +522,6 @@ def main(season, flex_type, num_flexible_trains=4):
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    #    fs.add_replacement_costs_piecewise(m)
     fs.add_useful_expressions(m)
     # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
@@ -534,7 +533,6 @@ def main(season, flex_type, num_flexible_trains=4):
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
-        #        + m.total_replacement_cost
     )
     # add CAPEX as a fixed cost to calculate LCOW
     m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months / 12)
@@ -639,6 +637,8 @@ def main(season, flex_type, num_flexible_trains=4):
         baseline_electricity_cost = 25005  # $
     else:
         baseline_electricity_cost = 50843  # $/kWh
+
+    fs.calculate_replacement_costs(m)
     fs.calculate_flexibility_metrics(
         m,
         baseline_power=1080,
@@ -707,7 +707,7 @@ if __name__ == "__main__":
                     "Total Feed Cost": m.total_feed_cost(),
                     "Total Brine Cost": m.total_brine_cost(),
                     "Total Chemical Cost": m.total_chemical_cost(),
-                    # "Total Replacement Cost": m.total_replacement_cost(),
+                    "Total Replacement Cost": m.total_replacement_cost(),
                     "Total Demand Response Revenue": m.total_demand_response_revenue(),
                     "Total Cost": m.total_cost(),
                     "Maximum Power": m.maximum_power(),

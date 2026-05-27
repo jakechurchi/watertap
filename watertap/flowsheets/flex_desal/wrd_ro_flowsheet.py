@@ -570,6 +570,56 @@ def add_replacement_costs_piecewise(m):
         )
 
 
+def calculate_replacement_costs(m):
+    """Adds expression for the replacement cost"""
+    params: um_params.WRD_ROParams = m.params.wrd_ro
+
+    m.degree_of_flex = Expression(
+        expr=sum(
+            m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+            for d in m.set_days
+            for t in m.set_time
+            for i in range(1, params.num_ro_skids + 1)
+        )
+        / (
+            2 * m.params.num_days * params.num_ro_skids
+        ),  # 2 is arbitrary. Means that 2 shutdowns per day per skid would yield a raw_degree_of_flex of 1
+        doc="Constraint to compute raw flexibility metric",
+    )
+
+    if params.replacement_types:
+        for i, replacement_type in enumerate(params.replacement_types):
+            # Create a variable for that replacement type
+            setattr(
+                m,
+                f"replacement_cost_{replacement_type}",
+                Param(
+                    within=NonNegativeReals,
+                    initialize=params.replacement_costs[i],
+                    doc=f"Replacement cost for {replacement_type}",
+                ),
+            )
+
+        m.total_replacement_cost = Expression(
+            expr=(
+                sum(
+                    getattr(m, f"replacement_cost_{replacement_type}")
+                    / (
+                        params.replacement_lifetimes[i]
+                        * (
+                            1
+                            - params.replacement_max_flex_penalty[i] * m.degree_of_flex
+                        )
+                    )
+                    * m.params.num_months
+                    / 12
+                    for i, replacement_type in enumerate(params.replacement_types)
+                )
+            ),
+            doc="Total replacement costs annualized over the time horizon",
+        )
+
+
 def add_flow_costs(m):
     """Adds expressions for feed and brine costs"""
 
