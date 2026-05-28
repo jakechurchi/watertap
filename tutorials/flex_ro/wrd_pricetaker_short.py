@@ -558,11 +558,15 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
-        utils.wrd_fix_recovery(
+        utils.wrd_fix_ro_recovery(
             m,
             ro_recovery=m.params.wrd_ro.nominal_recovery,
-            uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
+    # Always want to fix the UF recovery
+    utils.wrd_fix_uf_recovery(
+        m,
+        uf_recovery=m.params.wrd_uf.nominal_recovery,
+    )
 
     if flex_type_key == "rr":
         _fix_nominal_flowrates(m)
@@ -672,7 +676,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["no_flex", "flow", "rr", "both"]
+    flex_types = ["rr", "flow", "no_flex", "both"]
     num_flex_skids = [0]
 
     results_rows = []
@@ -683,31 +687,31 @@ if __name__ == "__main__":
                 m = main(
                     season=season, flex_type=flex_type, num_flexible_trains=num_skids
                 )
-            results_rows.append(
-                {
-                    "Season": season,
-                    "Flexibility Type": flex_type,
-                    "Num Flexible Trains": num_skids,
-                    "Total Operational Cost": m.total_op_cost(),
-                    "Total Water Production (m3)": m.total_water_production(),
-                    "LCOW ($/m3)": m.LCOW(),
-                    "Total Energy Cost": m.total_energy_cost(),
-                    "Fixed Demand Cost": m.fixed_demand_cost(),
-                    "Variable Demand Cost": m.variable_demand_cost(),
-                    "Total Electricity Cost": m.total_energy_cost()
-                    + m.total_demand_cost(),
-                    "Total Feed Cost": m.total_feed_cost(),
-                    "Total Brine Cost": m.total_brine_cost(),
-                    "Total Chemical Cost": m.total_chemical_cost(),
-                    "Total Replacement Cost": m.total_replacement_cost(),
-                    "Total Demand Response Revenue": m.total_demand_response_revenue(),
-                    "Total Cost": m.total_cost(),
-                    "Maximum Power": m.maximum_power(),
-                    "Energy Capacity": m.energy_capacity(),
-                    "Power Capacity": m.power_capacity(),
-                    "LVOF": m.LVOF(),
-                }
-            )
+                results_rows.append(
+                    {
+                        "Season": season,
+                        "Flexibility Type": flex_type,
+                        "Num Flexible Trains": num_skids,
+                        "Total Operational Cost": m.total_op_cost(),
+                        "Total Water Production (m3)": m.total_water_production(),
+                        "LCOW ($/m3)": m.LCOW(),
+                        "Total Energy Cost": m.total_energy_cost(),
+                        "Fixed Demand Cost": m.fixed_demand_cost(),
+                        "Variable Demand Cost": m.variable_demand_cost(),
+                        "Total Electricity Cost": m.total_energy_cost()
+                        + m.total_demand_cost(),
+                        "Total Feed Cost": m.total_feed_cost(),
+                        "Total Brine Cost": m.total_brine_cost(),
+                        "Total Chemical Cost": m.total_chemical_cost(),
+                        "Total Replacement Cost": m.total_replacement_cost(),
+                        "Total Demand Response Revenue": m.total_demand_response_revenue(),
+                        "Total Cost": m.total_cost(),
+                        "Maximum Power": m.maximum_power(),
+                        "Energy Capacity": m.energy_capacity(),
+                        "Power Capacity": m.power_capacity(),
+                        "LVOF": m.LVOF(),
+                    }
+                )
 
     results_df = pd.DataFrame(results_rows)
     script_dir = Path(__file__).parent

@@ -97,7 +97,7 @@ def fix_recovery(m, recovery):
             ro_skid.calculate_energy_intensity.deactivate()
 
 
-def wrd_fix_recovery(m, ro_recovery, uf_recovery):
+def wrd_fix_ro_recovery(m, ro_recovery):
     """Modifies the model for the fixed recovery case"""
     # For WRD model, energy intensity depends on flowrate (not recovery),
     # so we only fix recovery and leave energy_intensity as a variable
@@ -110,6 +110,9 @@ def wrd_fix_recovery(m, ro_recovery, uf_recovery):
             # Do NOT fix energy_intensity - it varies with flowrate
             # Do NOT deactivate calculate_energy_intensity - it's needed to compute energy_intensity from flowrate
 
+
+def wrd_fix_uf_recovery(m, uf_recovery):
+    for p in m.period:
         for pump in m.period[p].pretreatment.set_uf_pumps:
             uf_pump = m.period[p].pretreatment.uf_pumps[pump]
             uf_pump.recovery.fix(uf_recovery)
