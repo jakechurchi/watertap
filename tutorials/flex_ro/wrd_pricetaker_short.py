@@ -354,7 +354,13 @@ def _begin_and_end_constraint(m):
         )
 
 
-def main(season, flex_type, num_flexible_trains=4):
+def main(
+    season,
+    flex_type,
+    num_flexible_trains=4,
+    debug_force_nominal_recovery=False,
+    debug_force_nominal_flow=False,
+):
     season_map = {
         "summer": "price_signals/wrd_pricesignal_summer_week.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week.csv",
@@ -581,6 +587,15 @@ def main(season, flex_type, num_flexible_trains=4):
     if flex_type_key in {"rr", "no_flex"}:
         _fix_nominal_flowrates(m)
 
+    # Optional containment debug: force both to include no_flex-style operation.
+    if debug_force_nominal_recovery:
+        utils.wrd_fix_ro_recovery(
+            m,
+            ro_recovery=m.params.wrd_ro.nominal_recovery,
+        )
+    if debug_force_nominal_flow:
+        _fix_nominal_flowrates(m)
+
     # Could cause feasibility issues b/c this is a slack variable essentially.
     # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
 
@@ -630,6 +645,17 @@ def main(season, flex_type, num_flexible_trains=4):
     # )
     # solver.options["MIPFocus"] = 1
     results = solver.solve(m, tee=True)
+
+    problem_stats = None
+    if hasattr(results, "problem") and results.problem:
+        problem_stats = results.problem[0]
+
+    if problem_stats is not None:
+        lower_bound = getattr(problem_stats, "lower_bound", None)
+        upper_bound = getattr(problem_stats, "upper_bound", None)
+        print(f"solver_lower_bound: {lower_bound}")
+        print(f"solver_upper_bound: {upper_bound}")
+    print(f"objective_value: {pyo.value(m.obj)}")
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
@@ -685,8 +711,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer", "winter"]
-    flex_types = ["flow", "both"]
+    seasons = ["summer"]
+    flex_types = ["both"]
     num_flex_skids = [2]
 
     results_rows = []
@@ -695,7 +721,11 @@ if __name__ == "__main__":
         for flex_type in flex_types:
             for num_skids in num_flex_skids:
                 m = main(
-                    season=season, flex_type=flex_type, num_flexible_trains=num_skids
+                    season=season,
+                    flex_type=flex_type,
+                    num_flexible_trains=num_skids,
+                    debug_force_nominal_recovery=True,
+                    debug_force_nominal_flow=True,
                 )
                 results_rows.append(
                     {
