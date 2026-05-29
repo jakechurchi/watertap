@@ -615,11 +615,11 @@ def main(season, flex_type, num_flexible_trains=4):
     # dt.report_structural_issues()
 
     # IPOPT
-    solver = get_solver()
+    # solver = get_solver()
 
-    # mip_gap = 0.005
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap  # 1.0 %
+    mip_gap = 0.005
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
