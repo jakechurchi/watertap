@@ -568,7 +568,7 @@ def main(season, flex_type, num_flexible_trains=4):
         uf_recovery=m.params.wrd_uf.nominal_recovery,
     )
 
-    if flex_type_key == "rr":
+    if flex_type_key in {"rr", "no_flex"}:
         _fix_nominal_flowrates(m)
 
     # Could cause feasibility issues b/c this is a slack variable essentially.
@@ -603,11 +603,6 @@ def main(season, flex_type, num_flexible_trains=4):
     # Only to find the baseline power for this water production
     if flex_type_key == "no_flex" and num_flexible_trains == 0:
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
-
-    # If I know that there is going to be some flexibility, I could give a minimum bound on the flow_chaonge_penalty
-    # This would prevent the model from finding baseline. However, that is sometimes optimal...
-    if flex_type_key == "rr":
-        m.prevent_steady_state = pyo.Constraint(expr=m.flow_changes_penalty >= 100)
 
     print(degrees_of_freedom(m))
 
@@ -681,7 +676,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["summer"]
-    flex_types = ["rr"]
+    flex_types = ["no_flex"]
     num_flex_skids = [2]
 
     results_rows = []
