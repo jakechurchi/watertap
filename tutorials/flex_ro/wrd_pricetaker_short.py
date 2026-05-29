@@ -282,8 +282,14 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
 
 
 def _fix_nominal_flowrates(m):
-    m.params.wrd_ro.minimum_flowrate = m.params.wrd_ro.nominal_flowrate
-    m.params.wrd_ro.maximum_flowrate = m.params.wrd_ro.nominal_flowrate
+    nominal_ro_flow = m.params.wrd_ro.nominal_flowrate
+    ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
+
+    @m.Constraint(m.set_days, m.set_time, ro_skids)
+    def ro_nominal_flow_when_on(blk, d, t, skid):
+        ro_skid = blk.period[d, t].reverse_osmosis.ro_skid[skid]
+        # Keep trains free to turn on/off while forcing nominal feed flow when on.
+        return ro_skid.feed_flowrate == nominal_ro_flow * ro_skid.op_mode
 
 
 def _restrict_flexible_trains(m, num_flexible_trains):
@@ -676,7 +682,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["summer"]
-    flex_types = ["no_flex"]
+    flex_types = ["no_flex", "rr"]
     num_flex_skids = [2]
 
     results_rows = []
