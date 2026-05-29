@@ -63,10 +63,14 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
             output_vars=[blk.energy_intensity],
         )
 
+        # reject_flowrate = feed - product = feed*(1-recovery), already a linear
+        # variable via mass_balance.  Using it here avoids the bilinear product
+        # feed*(1-recovery) that causes Gurobi's non-convex relaxation to
+        # produce artificially high lower bounds.
         blk.flow_limit_from_RR = Constraint(
-            expr=blk.feed_flowrate * (1 - blk.recovery)
+            expr=blk.reject_flowrate
             >= blk.op_mode * (3 * pyunits.m**3 / pyunits.hr * 15),
-            doc="Lower flow constraint based on recovery (reciprocal eliminated)",
+            doc="Minimum reject flowrate when operating (linearised via reject_flowrate variable)",
         )
 
     else:
