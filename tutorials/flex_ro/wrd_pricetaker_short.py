@@ -689,10 +689,38 @@ def main(
 
         phase1_results = solver.solve(m, tee=True)
         pyo.assert_optimal_termination(phase1_results)
+        print(f"Phase 1 objective: {pyo.value(m.obj):.6f}")
+
+        # --- Feasibility diagnostic ---
+        # Fix every non-permanently-fixed variable at the phase-1 solution,
+        # then release the temp constraints to check which full-model constraints
+        # are violated at the phase-1 operating point.
+        phase1_snapshot = []
+        for var in m.component_data_objects(pyo.Var, active=True, descend_into=True):
+            if not var.fixed:
+                phase1_snapshot.append(var)
+                var.fix(pyo.value(var))
 
         phase1_nominal_flow_con.deactivate()
         for recovery_var in phase1_fixed_recovery_vars:
             recovery_var.unfix()
+
+        print("\n--- Constraints violated at phase-1 point in full 'both' model ---")
+        log_infeasible_constraints(m, tol=1e-4, log_expression=True)
+        print("--- End of constraint violation report ---\n")
+
+        # Restore: re-fix recovery, reactivate temp flow con, unfix snapshot vars
+        phase1_nominal_flow_con.activate()
+        for recovery_var in phase1_fixed_recovery_vars:
+            recovery_var.fix(m.params.wrd_ro.nominal_recovery)
+        for var in phase1_snapshot:
+            var.unfix()
+
+        # Now properly release temp constraints for phase 2
+        phase1_nominal_flow_con.deactivate()
+        for recovery_var in phase1_fixed_recovery_vars:
+            recovery_var.unfix()
+        # --- End diagnostic ---
 
         print("Running phase 2 solve for full 'both' model.")
 
