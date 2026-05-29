@@ -604,6 +604,9 @@ def main(season, flex_type, num_flexible_trains=4):
     if flex_type_key == "no_flex" and num_flexible_trains == 0:
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
+    # If I know that there is going to be some flexibility, I could give a minimum bound on the flow_chaonge_penalty
+    # This would prevent the model from finding baseline. However, that is sometimes optimal...
+
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
@@ -612,7 +615,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.005
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -675,7 +678,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
+    seasons = ["summer"]
     flex_types = ["no_flex", "both"]
     num_flex_skids = [2]
 
