@@ -679,7 +679,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["summer"]
-    flex_types = ["no_flex", "both"]
+    flex_types = ["rr", "flow"]
     num_flex_skids = [2]
 
     results_rows = []
