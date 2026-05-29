@@ -318,7 +318,11 @@ def _fix_operations_for_first_four_days(m, peak_hours=None):
             if p <= 2:
                 # Avoiding constraint that plant has to be on at first (and therefore last) time step.
                 pass
-            elif peak_hours is not None and peak_hours[p]:
+            elif (
+                peak_hours is not None
+                and 1 <= p <= len(peak_hours)
+                and peak_hours[p - 1]
+            ):
                 # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
                 # This is too strong to impose on model. Turning off during peak hours should be an output of the opt., not prescribed.
                 # m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
