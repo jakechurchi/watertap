@@ -697,9 +697,9 @@ def main(
         # are violated at the phase-1 operating point.
         phase1_snapshot = []
         for var in m.component_data_objects(pyo.Var, active=True, descend_into=True):
-            if not var.fixed:
+            if not var.fixed and var.value is not None:
                 phase1_snapshot.append(var)
-                var.fix(pyo.value(var))
+                var.fix(var.value)
 
         phase1_nominal_flow_con.deactivate()
         for recovery_var in phase1_fixed_recovery_vars:
