@@ -292,6 +292,37 @@ def _fix_nominal_flowrates(m):
         return ro_skid.feed_flowrate == nominal_ro_flow * ro_skid.op_mode
 
 
+def _temporarily_fix_ro_recovery(m, ro_recovery):
+    fixed_recovery_vars = []
+    for p in m.period:
+        for skid in m.period[p].reverse_osmosis.set_ro_skids:
+            recovery_var = m.period[p].reverse_osmosis.ro_skid[skid].recovery
+            if not recovery_var.fixed:
+                fixed_recovery_vars.append(recovery_var)
+            recovery_var.fix(ro_recovery)
+
+    return fixed_recovery_vars
+
+
+def _add_temporary_nominal_ro_flow_constraints(
+    m, component_name="phase1_nominal_ro_flow_when_on"
+):
+    nominal_ro_flow = m.params.wrd_ro.nominal_flowrate
+    ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
+
+    def _rule(blk, d, t, skid):
+        ro_skid = blk.period[d, t].reverse_osmosis.ro_skid[skid]
+        return ro_skid.feed_flowrate == nominal_ro_flow * ro_skid.op_mode
+
+    setattr(
+        m,
+        component_name,
+        pyo.Constraint(m.set_days, m.set_time, ro_skids, rule=_rule),
+    )
+
+    return getattr(m, component_name)
+
+
 def _restrict_flexible_trains(m, num_flexible_trains):
     ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
     n_ro_skids = len(ro_skids)
@@ -360,6 +391,7 @@ def main(
     num_flexible_trains=4,
     debug_force_nominal_recovery=False,
     debug_force_nominal_flow=False,
+    use_two_phase_both=False,
 ):
     season_map = {
         "summer": "price_signals/wrd_pricesignal_summer_week.csv",
@@ -644,6 +676,26 @@ def main(
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
     # solver.options["MIPFocus"] = 1
+    if flex_type_key == "both" and use_two_phase_both:
+        print(
+            "Running phase 1 warm start for 'both' with temporary nominal "
+            "recovery and nominal RO flow constraints."
+        )
+        phase1_fixed_recovery_vars = _temporarily_fix_ro_recovery(
+            m,
+            ro_recovery=m.params.wrd_ro.nominal_recovery,
+        )
+        phase1_nominal_flow_con = _add_temporary_nominal_ro_flow_constraints(m)
+
+        phase1_results = solver.solve(m, tee=True)
+        pyo.assert_optimal_termination(phase1_results)
+
+        phase1_nominal_flow_con.deactivate()
+        for recovery_var in phase1_fixed_recovery_vars:
+            recovery_var.unfix()
+
+        print("Running phase 2 solve for full 'both' model.")
+
     results = solver.solve(m, tee=True)
 
     problem_stats = None
@@ -724,8 +776,9 @@ if __name__ == "__main__":
                     season=season,
                     flex_type=flex_type,
                     num_flexible_trains=num_skids,
-                    debug_force_nominal_recovery=True,
-                    debug_force_nominal_flow=True,
+                    debug_force_nominal_recovery=False,
+                    debug_force_nominal_flow=False,
+                    use_two_phase_both=True,
                 )
                 results_rows.append(
                     {
