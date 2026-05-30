@@ -69,7 +69,7 @@ def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):
         # produce artificially high lower bounds.
         blk.flow_limit_from_RR = Constraint(
             expr=blk.reject_flowrate
-            >= blk.op_mode * (2 * pyunits.m**3 / pyunits.hr * 15),
+            >= blk.op_mode * (3 * pyunits.m**3 / pyunits.hr * 15),
             doc="Minimum reject flowrate when operating (linearised via reject_flowrate variable)",
         )
 

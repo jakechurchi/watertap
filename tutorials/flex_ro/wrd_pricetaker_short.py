@@ -503,7 +503,7 @@ def main(
             "maximum_flowrate": 635,
             "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
             "surrogate_type": "PySMO_polyfit",
-            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_2.json",
+            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
             "minimum_recovery": 0.88,
             "nominal_recovery": 0.925,
             "maximum_recovery": 0.925,
@@ -791,9 +791,9 @@ def main(
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
-    flex_types = ["both"]
-    num_flex_skids = [2]
+    seasons = ["summer", "winter"]
+    flex_types = ["no_flex", "both"]
+    num_flex_skids = [1, 2]
 
     results_rows = []
 
@@ -806,7 +806,7 @@ if __name__ == "__main__":
                     num_flexible_trains=num_skids,
                     debug_force_nominal_recovery=False,
                     debug_force_nominal_flow=False,
-                    use_two_phase_both=True,
+                    use_two_phase_both=False,
                 )
                 results_rows.append(
                     {
