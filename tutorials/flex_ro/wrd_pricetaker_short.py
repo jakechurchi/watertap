@@ -790,9 +790,9 @@ def main(
 
 
 if __name__ == "__main__":
-    seasons = ["winter"]
-    flex_types = ["both"]
-    num_flex_skids = [4]
+    seasons = ["winter", "summer"]
+    flex_types = ["no_flex"]
+    num_flex_skids = [0]
 
     results_rows = []
 
