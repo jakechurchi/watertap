@@ -357,10 +357,9 @@ def _fix_operations_for_first_four_days(m, peak_hours=None):
                 # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
                 # This is too strong to impose on model. Turning off during peak hours should be an output of the opt., not prescribed.
                 # m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
-                m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(
-                    0
-                )  # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
-                pass
+                m.period[d, p].reverse_osmosis.ro_skid[3].op_mode.fix(0)
+                # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
+                m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(0)
             else:
                 # Just ensure plant is on during the non-peak hours
                 m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(
@@ -504,7 +503,7 @@ def main(
             "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
             "surrogate_type": "PySMO_polyfit",
             "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
-            "minimum_recovery": 0.88,
+            "minimum_recovery": 0.89,
             "nominal_recovery": 0.925,
             "maximum_recovery": 0.925,
             "num_ro_skids": 4,
@@ -542,8 +541,8 @@ def main(
 
     _begin_and_end_constraint(m)
 
-    if season_key == "summer":
-        _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
+    # if season_key == "summer":
+    #     _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
