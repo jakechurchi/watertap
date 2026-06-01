@@ -668,7 +668,7 @@ def main(
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.005
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
