@@ -791,7 +791,7 @@ def main(
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["no_flex"]
+    flex_types = ["both"]
     num_flex_skids = [0]
 
     results_rows = []
