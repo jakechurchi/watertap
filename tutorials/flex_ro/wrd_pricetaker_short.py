@@ -393,8 +393,8 @@ def main(
     use_two_phase_both=False,
 ):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week_low_RTP.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -541,8 +541,8 @@ def main(
 
     _begin_and_end_constraint(m)
 
-    # if season_key == "summer":
-    #     _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
+    if season_key == "summer":
+        _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
@@ -792,7 +792,7 @@ def main(
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
     flex_types = ["both"]
-    num_flex_skids = [0]
+    num_flex_skids = [4]
 
     results_rows = []
 
