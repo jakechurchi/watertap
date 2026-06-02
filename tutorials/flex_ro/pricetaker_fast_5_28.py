@@ -369,7 +369,8 @@ def main(season, flex_type, num_flexible_trains=4):
     )
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
-
+    if selected_price_signal_stem.upper().endswith("TOU_8"):
+        output_suffix = f"{output_suffix}_TOU_8"
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
 
