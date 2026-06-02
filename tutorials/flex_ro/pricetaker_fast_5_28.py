@@ -346,8 +346,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_TOU_8.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week_TOU_8.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -675,9 +675,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
+    seasons = ["winter", "summer"]
     flex_types = ["both"]
-    num_flex_skids = [4]
+    num_flex_skids = [2, 4]
 
     results_rows = []
 
