@@ -282,45 +282,8 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
 
 
 def _fix_nominal_flowrates(m):
-    nominal_ro_flow = m.params.wrd_ro.nominal_flowrate
-    ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
-
-    @m.Constraint(m.set_days, m.set_time, ro_skids)
-    def ro_nominal_flow_when_on(blk, d, t, skid):
-        ro_skid = blk.period[d, t].reverse_osmosis.ro_skid[skid]
-        # Keep trains free to turn on/off while forcing nominal feed flow when on.
-        return ro_skid.feed_flowrate == nominal_ro_flow * ro_skid.op_mode
-
-
-def _temporarily_fix_ro_recovery(m, ro_recovery):
-    fixed_recovery_vars = []
-    for p in m.period:
-        for skid in m.period[p].reverse_osmosis.set_ro_skids:
-            recovery_var = m.period[p].reverse_osmosis.ro_skid[skid].recovery
-            if not recovery_var.fixed:
-                fixed_recovery_vars.append(recovery_var)
-            recovery_var.fix(ro_recovery)
-
-    return fixed_recovery_vars
-
-
-def _add_temporary_nominal_ro_flow_constraints(
-    m, component_name="phase1_nominal_ro_flow_when_on"
-):
-    nominal_ro_flow = m.params.wrd_ro.nominal_flowrate
-    ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
-
-    def _rule(blk, d, t, skid):
-        ro_skid = blk.period[d, t].reverse_osmosis.ro_skid[skid]
-        return ro_skid.feed_flowrate == nominal_ro_flow * ro_skid.op_mode
-
-    setattr(
-        m,
-        component_name,
-        pyo.Constraint(m.set_days, m.set_time, ro_skids, rule=_rule),
-    )
-
-    return getattr(m, component_name)
+    m.params.wrd_ro.minimum_flowrate = m.params.wrd_ro.nominal_flowrate
+    m.params.wrd_ro.maximum_flowrate = m.params.wrd_ro.nominal_flowrate
 
 
 def _restrict_flexible_trains(m, num_flexible_trains):
@@ -349,17 +312,14 @@ def _fix_operations_for_first_four_days(m, peak_hours=None):
             if p <= 2:
                 # Avoiding constraint that plant has to be on at first (and therefore last) time step.
                 pass
-            elif (
-                peak_hours is not None
-                and 1 <= p <= len(peak_hours)
-                and peak_hours[p - 1]
-            ):
+            elif peak_hours is not None and peak_hours[p]:
                 # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
                 # This is too strong to impose on model. Turning off during peak hours should be an output of the opt., not prescribed.
                 # m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
-                m.period[d, p].reverse_osmosis.ro_skid[3].op_mode.fix(0)
-                # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
-                m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(0)
+                m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(
+                    0
+                )  # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
+                pass
             else:
                 # Just ensure plant is on during the non-peak hours
                 m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(
@@ -384,24 +344,7 @@ def _begin_and_end_constraint(m):
         )
 
 
-def _baseline_three_trains(m):
-    """Fix 3 RO trains to be on"""
-    for d, p in m.period:
-        m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(1)
-        m.period[d, p].reverse_osmosis.ro_skid[2].op_mode.fix(1)
-        m.period[d, p].reverse_osmosis.ro_skid[3].op_mode.fix(1)
-        m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(0)
-    # Also, the bounds on the flowrates can be tightened if it doesn't solve fast enough
-
-
-def main(
-    season,
-    flex_type,
-    num_flexible_trains=4,
-    debug_force_nominal_recovery=False,
-    debug_force_nominal_flow=False,
-    use_two_phase_both=False,
-):
+def main(season, flex_type, num_flexible_trains=4):
     season_map = {
         "summer": "price_signals/wrd_pricesignal_summer_week.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week.csv",
@@ -413,7 +356,7 @@ def main(
         )
 
     flex_type_key = flex_type.lower()
-    valid_flex_types = {"rr", "flow", "both", "no_flex", "baseline"}
+    valid_flex_types = {"rr", "flow", "both", "no_flex"}
     if flex_type_key not in valid_flex_types:
         raise ValueError(
             "Invalid flex_type "
@@ -510,11 +453,10 @@ def main(
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
-            "allow_variable_recovery": flex_type_key
-            not in {"flow", "no_flex", "baseline"},
+            "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
             "surrogate_type": "PySMO_polyfit",
             "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
-            "minimum_recovery": 0.89,
+            "minimum_recovery": 0.88,
             "nominal_recovery": 0.925,
             "maximum_recovery": 0.925,
             "num_ro_skids": 4,
@@ -616,26 +558,13 @@ def main(
 
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
-        utils.wrd_fix_ro_recovery(
+        utils.wrd_fix_recovery(
             m,
             ro_recovery=m.params.wrd_ro.nominal_recovery,
+            uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
-    # Always want to fix the UF recovery
-    utils.wrd_fix_uf_recovery(
-        m,
-        uf_recovery=m.params.wrd_uf.nominal_recovery,
-    )
 
-    if flex_type_key in {"rr", "no_flex"}:
-        _fix_nominal_flowrates(m)
-
-    # Optional containment debug: force both to include no_flex-style operation.
-    if debug_force_nominal_recovery:
-        utils.wrd_fix_ro_recovery(
-            m,
-            ro_recovery=m.params.wrd_ro.nominal_recovery,
-        )
-    if debug_force_nominal_flow:
+    if flex_type_key == "rr":
         _fix_nominal_flowrates(m)
 
     # Could cause feasibility issues b/c this is a slack variable essentially.
@@ -650,10 +579,6 @@ def main(
     # fs.add_working_hours_constraint(m)
 
     # fs.add_rain_shutdowns(m)
-
-    if flex_type_key == "baseline":
-        _baseline_three_trains(m)
-        m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
@@ -690,66 +615,7 @@ def main(
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
     # solver.options["MIPFocus"] = 1
-    if flex_type_key == "both" and use_two_phase_both:
-        print(
-            "Running phase 1 warm start for 'both' with temporary nominal "
-            "recovery and nominal RO flow constraints."
-        )
-        phase1_fixed_recovery_vars = _temporarily_fix_ro_recovery(
-            m,
-            ro_recovery=m.params.wrd_ro.nominal_recovery,
-        )
-        phase1_nominal_flow_con = _add_temporary_nominal_ro_flow_constraints(m)
-
-        phase1_results = solver.solve(m, tee=True)
-        pyo.assert_optimal_termination(phase1_results)
-        print(f"Phase 1 objective: {pyo.value(m.obj):.6f}")
-
-        # --- Feasibility diagnostic ---
-        # Fix every non-permanently-fixed variable at the phase-1 solution,
-        # then release the temp constraints to check which full-model constraints
-        # are violated at the phase-1 operating point.
-        phase1_snapshot = []
-        for var in m.component_data_objects(pyo.Var, active=True, descend_into=True):
-            if not var.fixed and var.value is not None:
-                phase1_snapshot.append(var)
-                var.fix(var.value)
-
-        phase1_nominal_flow_con.deactivate()
-        for recovery_var in phase1_fixed_recovery_vars:
-            recovery_var.unfix()
-
-        print("\n--- Constraints violated at phase-1 point in full 'both' model ---")
-        log_infeasible_constraints(m, tol=1e-4, log_expression=True)
-        print("--- End of constraint violation report ---\n")
-
-        # Restore: re-fix recovery, reactivate temp flow con, unfix snapshot vars
-        phase1_nominal_flow_con.activate()
-        for recovery_var in phase1_fixed_recovery_vars:
-            recovery_var.fix(m.params.wrd_ro.nominal_recovery)
-        for var in phase1_snapshot:
-            var.unfix()
-
-        # Now properly release temp constraints for phase 2
-        phase1_nominal_flow_con.deactivate()
-        for recovery_var in phase1_fixed_recovery_vars:
-            recovery_var.unfix()
-        # --- End diagnostic ---
-
-        print("Running phase 2 solve for full 'both' model.")
-
     results = solver.solve(m, tee=True)
-
-    problem_stats = None
-    if hasattr(results, "problem") and results.problem:
-        problem_stats = results.problem[0]
-
-    if problem_stats is not None:
-        lower_bound = getattr(problem_stats, "lower_bound", None)
-        upper_bound = getattr(problem_stats, "upper_bound", None)
-        print(f"solver_lower_bound: {lower_bound}")
-        print(f"solver_upper_bound: {upper_bound}")
-    print(f"objective_value: {pyo.value(m.obj)}")
 
     print(f"m.flow_changes_penalty(): {m.flow_changes_penalty()}")
     print(f"Total operational cost: {m.total_op_cost():.2f}")
@@ -805,7 +671,7 @@ def main(
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
+    seasons = ["summer"]
     flex_types = ["both"]
     num_flex_skids = [4]
 
@@ -815,12 +681,7 @@ if __name__ == "__main__":
         for flex_type in flex_types:
             for num_skids in num_flex_skids:
                 m = main(
-                    season=season,
-                    flex_type=flex_type,
-                    num_flexible_trains=num_skids,
-                    debug_force_nominal_recovery=False,
-                    debug_force_nominal_flow=False,
-                    use_two_phase_both=False,
+                    season=season, flex_type=flex_type, num_flexible_trains=num_skids
                 )
                 results_rows.append(
                     {
