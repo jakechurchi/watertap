@@ -346,7 +346,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
@@ -558,11 +558,15 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
-        utils.wrd_fix_recovery(
+        utils.wrd_fix_ro_recovery(
             m,
             ro_recovery=m.params.wrd_ro.nominal_recovery,
-            uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
+    # Always want to fix the UF recovery
+    utils.wrd_fix_uf_recovery(
+        m,
+        uf_recovery=m.params.wrd_uf.nominal_recovery,
+    )
 
     if flex_type_key == "rr":
         _fix_nominal_flowrates(m)
@@ -608,7 +612,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.02
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
