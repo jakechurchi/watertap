@@ -403,7 +403,7 @@ def main(
     use_two_phase_both=False,
 ):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_simple_DR.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
@@ -424,8 +424,9 @@ def main(
     output_suffix = (
         f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
     )
-    if selected_price_signal_stem.upper().endswith("RTP"):
-        output_suffix = f"{output_suffix}_RTP"
+    signal_suffix = selected_price_signal_stem.upper().split("_")[-1]
+    if signal_suffix in {"RTP", "DR"}:
+        output_suffix = f"{output_suffix}_{signal_suffix}"
 
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
@@ -683,7 +684,7 @@ def main(
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.03
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -805,9 +806,9 @@ def main(
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
-    flex_types = ["both"]
-    num_flex_skids = [4]
+    seasons = ["summer"]
+    flex_types = ["flow"]
+    num_flex_skids = [2]
 
     results_rows = []
 
