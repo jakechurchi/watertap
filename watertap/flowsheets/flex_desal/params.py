@@ -15,7 +15,7 @@ This module contains the default values of all the required
 parameters.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -90,6 +90,8 @@ class IntakeParams(UnitParams):
     minimum_flowrate: float = 1063.5
     nominal_flowrate: float = 1063.5
     maximum_flowrate: float = 1063.5
+    feed_cost: float = None  # in $/m3
+    chemical_cost: float = None  # in $/m3
 
 
 @dataclass
@@ -221,6 +223,7 @@ class PosttreatmentParams(UnitParams):
 
     energy_intensity: float = 0.41
     leakage_fraction: float = 0
+    chemical_cost: float = None  # in $/m3
 
 
 @dataclass
@@ -229,6 +232,7 @@ class BrineDischargeParams(UnitParams):
 
     energy_intensity: float = 0.1
     leakage_fraction: float = 0
+    brine_cost: float = None  # in $/m3
 
 
 @dataclass
@@ -265,6 +269,11 @@ class FlexDesalParams:
     include_battery: bool = False
     include_onsite_solar: bool = False
     onsite_capacity: float = 0
+    # Other parameters not used in tutorial, but have related functions in wrd_flowsheet.py
+    nonworking_hours: list[int] = field(default_factory=list)
+    rainy_days: int = None
+    CAPEX_yr: float = None
+    max_daily_shutdowns: Optional[int] = None
 
     def __post_init__(self):
         self.intake = IntakeParams()
@@ -273,6 +282,9 @@ class FlexDesalParams:
         self.posttreatment = PosttreatmentParams()
         self.brinedischarge = BrineDischargeParams()
         self.battery = Battery()
+        # Only used for second tutorial
+        self.wrd_uf = WRD_UFParams()
+        self.wrd_ro = WRD_ROParams()
 
         # datetime array
         t = np.arange(
