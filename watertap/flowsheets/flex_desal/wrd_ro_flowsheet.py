@@ -656,6 +656,45 @@ def constrain_water_production(m, baseline_production: float = None):
         raise ValueError("Water production targets not specified in params")
 
 
+def begin_and_end_constraint(m):
+    """Force RO train 1 op_mode to match between first and last timesteps."""
+    period_points = list(m.period.index_set())
+    if not period_points:
+        return
+
+    first_point = period_points[0]
+    last_point = period_points[-1]
+
+    @m.Constraint()
+    def match_train_1_at_start_and_end(blk):
+        return (
+            blk.period[first_point].reverse_osmosis.ro_skid[1].op_mode
+            == blk.period[last_point].reverse_osmosis.ro_skid[1].op_mode
+        )
+
+
+def fix_operations_for_first_four_days(m, peak_hours=None):
+    """Fix all RO trains to expected behavior for first four days. This could be some part of an initialization strat. to improve solve times."""
+    for d, p in m.period:
+        if p <= 4 * 24:  # Assuming hourly time steps
+            if p <= 2:
+                # Avoiding constraint that plant has to be on at first (and therefore last) time step.
+                pass
+            elif peak_hours is not None and peak_hours[p]:
+                # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
+                # This is too strong to impose on model. Turning off during peak hours should be an output of the opt., not prescribed.
+                # m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
+                m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(
+                    0
+                )  # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
+                pass
+            else:
+                # Just ensure plant is on during the non-peak hours
+                m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(
+                    1
+                )  # Plant must be on
+
+
 ### NOT USED IN THE TUTORIAL EXAMPLE - That might mean they aren't being tested? ###
 def add_delayed_shutdown_constraints(m):
     # Consider implmenting with the add_ramping_limits from IDAES price_taker_model
@@ -710,16 +749,6 @@ def add_working_hours_constraint(m):
             return Constraint.Skip
 
 
-def add_rain_shutdowns(m):
-    """Forces shutdown to occur for a rainy day."""
-    hours = 24 * m.params.rainy_days
-
-    # Currently applying to the first hours
-    @m.Constraint(m.set_days, range(1, hours + 1))
-    def rainy_day_shutdown(blk, d, t):
-        return blk.period[d, t].intake.feed_flowrate == 0
-
-
 def add_maximum_shutdowns(m):
     """Adds rolling 24-hour shutdown limits over the full period index."""
     params: um_params.FlexDesalParams = m.params
@@ -737,6 +766,25 @@ def add_maximum_shutdowns(m):
             )
             <= params.max_daily_shutdowns
         )
+
+
+def restrict_flexible_trains(m, num_flexible_trains):
+    ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
+    n_ro_skids = len(ro_skids)
+
+    if num_flexible_trains < 0 or num_flexible_trains > n_ro_skids:
+        raise ValueError(
+            "Invalid num_flexible_trains "
+            f"'{num_flexible_trains}'. Valid range is [0, {n_ro_skids}]."
+        )
+
+    non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
+
+    for p in m.period:
+        for skid in non_flexible_skids:
+            ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
+            ro_skid.startup.fix(0)
+            ro_skid.shutdown.fix(0)
 
 
 # These ones might not need to be included at all

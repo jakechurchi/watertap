@@ -1,0 +1,4 @@
+jupyter nbconvert --to notebook --execute C:\Users\rchurchi\watertap\tutorials\flex_ro\wrd_model.ipynb
+
+I don't think these are being tested by the github actions b/c it only searches for 
+notebooks in the tutorials folder and not the subfolders
