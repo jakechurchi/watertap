@@ -12,4 +12,4 @@
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-sweep_water_target_week.py
+python sweep_water_target_week.py

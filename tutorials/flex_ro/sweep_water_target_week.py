@@ -1,16 +1,18 @@
 import warnings
 import logging
-from datetime import datetime
 
 warnings.filterwarnings("ignore", message=".*implicit domain of 'Any'.*")
 logging.getLogger("pyomo").setLevel(logging.ERROR)
-from idaes.apps.grid_integration import PriceTakerModel
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
+from datetime import datetime
+
 import pyomo.environ as pyo
 from pyomo.util.infeasible import log_infeasible_constraints
-from pathlib import Path
+
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
@@ -18,6 +20,7 @@ from watertap.core.solvers import get_solver
 
 from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 from idaes.core.util.model_statistics import degrees_of_freedom
+from idaes.apps.grid_integration import PriceTakerModel
 
 
 def plot_function(m, n_time_points, output_stem, peak_hours=None):
