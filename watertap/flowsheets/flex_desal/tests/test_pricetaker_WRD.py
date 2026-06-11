@@ -357,6 +357,6 @@ class TestPriceTakerWorkflow:
     def test_gurobi_solve(self, system_frame):
         m, price_data, peak_hours = system_frame
 
-        solver = pyo.SolverFactory("gurobi")
+        solver = pyo.SolverFactory("gurobi_direct_minlp")
         solver.options["MIPGap"] = 0.03
         solver.solve(m)

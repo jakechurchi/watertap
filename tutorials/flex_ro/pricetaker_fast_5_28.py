@@ -254,7 +254,7 @@ def main(season, flex_type, num_flexible_trains=4):
     )
 
     if flex_type_key == "rr":
-        _fix_nominal_flowrates(m)
+        utils.fix_nominal_flowrates(m)
 
     # Could cause feasibility issues b/c this is a slack variable essentially.
     # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
@@ -338,7 +338,7 @@ def main(season, flex_type, num_flexible_trains=4):
     m.get_operation_var_values().to_csv(output_csv)
     print(f"Saved operation variable results to: {output_csv}")
 
-    plot_function(
+    utils.plot_function(
         m,
         n_time_points=len(price_data),
         output_stem=script_dir / f"wrd_pricetaker_{output_suffix}",
