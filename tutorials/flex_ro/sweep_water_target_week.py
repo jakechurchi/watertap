@@ -1,5 +1,6 @@
 import warnings
 import logging
+from datetime import datetime
 
 warnings.filterwarnings("ignore", message=".*implicit domain of 'Any'.*")
 logging.getLogger("pyomo").setLevel(logging.ERROR)
@@ -19,17 +20,133 @@ from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 from idaes.core.util.model_statistics import degrees_of_freedom
 
 
-def plot_function(m, n_time_points):
+def plot_function(m, n_time_points, output_stem, peak_hours=None):
     time = np.linspace(0, n_time_points - 1, n_time_points)
-    fig, (ax_energy, ax_demand, ax_trains) = plt.subplots(3, 1, figsize=(12, 12))
+    fig = plt.figure(figsize=(12, 12))
+    gs = fig.add_gridspec(2, 1, height_ratios=[1, 1])
+    ax_energy = fig.add_subplot(gs[0])
+    ax_trains = fig.add_subplot(gs[1], sharex=ax_energy)
+    ax_energy.set_facecolor("#f5f5f5")
+    ax_trains.set_facecolor("#f5f5f5")
 
-    # First subplot: Energy consumption and electricity price
-    energy = [
+    if peak_hours is not None:
+        peak_legend_added = False
+        for i, is_peak in enumerate(peak_hours):
+            if is_peak:
+                # Shade full hourly intervals where variable demand charges apply.
+                span_label = "Peak Hours" if not peak_legend_added else None
+                ax_energy.axvspan(
+                    i,
+                    i + 1,
+                    color="grey",
+                    alpha=0.2,
+                    linewidth=0,
+                    zorder=-1,
+                    label=span_label,
+                )
+                ax_trains.axvspan(
+                    i,
+                    i + 1,
+                    color="grey",
+                    alpha=0.2,
+                    linewidth=0,
+                    zorder=-1,
+                    label=span_label,
+                )
+                peak_legend_added = True
+
+    # First subplot: Stacked energy consumption by major equipment
+    total_energy = [
         pyo.value(v[None])
         for v in m.period[:, :].net_power_consumption.extract_values()
     ]
+
+    ro1_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[1]
+        .power_consumption.extract_values()
+    ]
+    ro2_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[2]
+        .power_consumption.extract_values()
+    ]
+    ro3_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[3]
+        .power_consumption.extract_values()
+    ]
+    ro4_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .reverse_osmosis.ro_skid[4]
+        .power_consumption.extract_values()
+    ]
+
+    uf1_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .pretreatment.uf_pumps[1]
+        .power_consumption.extract_values()
+    ]
+    uf2_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .pretreatment.uf_pumps[2]
+        .power_consumption.extract_values()
+    ]
+    uf3_energy = [
+        v[None]
+        for v in m.period[:, :]
+        .pretreatment.uf_pumps[3]
+        .power_consumption.extract_values()
+    ]
+
+    other_energy = np.array(total_energy) - (
+        np.array(ro1_energy)
+        + np.array(ro2_energy)
+        + np.array(ro3_energy)
+        + np.array(ro4_energy)
+        + np.array(uf1_energy)
+        + np.array(uf2_energy)
+        + np.array(uf3_energy)
+    )
+    # Clip tiny negatives from solver tolerances so stackplot remains well-defined.
+    other_energy = np.maximum(other_energy, 0.0)
+
+    ax_energy.stackplot(
+        time + 0.5,
+        ro1_energy,
+        ro2_energy,
+        ro3_energy,
+        ro4_energy,
+        uf1_energy,
+        uf2_energy,
+        uf3_energy,
+        other_energy,
+        labels=[
+            "RO Train 1",
+            "RO Train 2",
+            "RO Train 3",
+            "RO Train 4",
+            "UF Pump 1",
+            "UF Pump 2",
+            "UF Pump 3",
+            "Post-Treatment",
+        ],
+        alpha=0.5,
+    )
+
     ax_energy.plot(
-        time + 0.5, energy, label="Energy Consumption (kWh)", color="orange", marker="o"
+        time + 0.5,
+        total_energy,
+        label="Total Energy Consumption",
+        color="black",
+        linestyle="--",
+        linewidth=2,
     )
     ax_energy.set_ylim(0, 2500)
     ax_energy.set_ylabel("Energy Consumption (kWh)", fontsize=12)
@@ -44,129 +161,48 @@ def plot_function(m, n_time_points):
         time + 0.5,
         elec_price,
         label="Electricity Cost ($/kWh)",
-        color="black",
-        linestyle="-",
+        color="orange",
+        linestyle="--",
         linewidth=2,
     )
     ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
-    ax_price.set_ylim(0, 0.17)
-
-    # Add working hours shading
-    for i in range(int(n_time_points / 24)):
-        ax_energy.axvspan(
-            24 * i,
-            24 * i + 8,
-            facecolor="grey",
-            alpha=0.1,
-            label="Nonworking Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_energy.axvspan(
-            24 * i + 8,
-            24 * i + 18,
-            facecolor="gold",
-            alpha=0.3,
-            label="Working Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_energy.axvspan(
-            24 * i + 18,
-            24 * i + 24,
-            facecolor="grey",
-            alpha=0.1,
-            label="_nolegend_",
-            zorder=0,
-        )
+    ax_price.set_ylim(0, max(elec_price) + 0.03)
 
     handle1, label1 = ax_energy.get_legend_handles_labels()
     handle2, label2 = ax_price.get_legend_handles_labels()
     handles = handle2 + handle1
     labels = label2 + label1
     leg1 = ax_price.legend(
-        handles, labels, loc="lower left", framealpha=1.0, ncol=2, fontsize=11
+        handles, labels, loc="lower left", framealpha=1.0, ncol=2, fontsize=10
     )
     leg1.set_zorder(1000)
     leg1.get_frame().set_facecolor("white")
     ax_energy.xaxis.set_major_locator(plt.MaxNLocator(24))
 
-    # Second subplot: Demand charges
-    fixed_demand_profile = [
-        v[None] for v in m.period[:, :].fixed_demand_rate.extract_values()
-    ]
-    fixed_line = ax_demand.plot(
-        time + 0.5,
-        fixed_demand_profile,
-        label="Fixed Demand Charge",
-        color="red",
-        linestyle="-",
-        linewidth=2,
-    )
-    on_peak_demand_profile = [
-        v[None] for v in m.period[:, :].variable_demand_rate.extract_values()
-    ]
-    on_peak_line = ax_demand.plot(
-        time + 0.5,
-        on_peak_demand_profile,
-        label="On-Peak Demand Charge",
-        color="purple",
-        linestyle="-",
-        linewidth=2,
-    )
-
-    for i in range(int(n_time_points)):
-        ax_demand.axvspan(
-            24 * i,
-            24 * i + 8,
-            facecolor="grey",
-            alpha=0.1,
-            label="Nonworking Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_demand.axvspan(
-            24 * i + 8,
-            24 * i + 18,
-            facecolor="gold",
-            alpha=0.3,
-            label="Working Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_demand.axvspan(
-            24 * i + 18,
-            24 * i + 24,
-            facecolor="grey",
-            alpha=0.1,
-            label="_nolegend_",
-            zorder=0,
-        )
-
-    ax_demand.legend(
-        handles=[fixed_line[0], on_peak_line[0]],
-        loc="lower left",
-        fontsize=11,
-        framealpha=1.0,
-    )
-    ax_demand.xaxis.set_major_locator(plt.MaxNLocator(24))
-    ax_demand.set_ylabel("Demand Charge ($/kW)", fontsize=12)
-    ax_demand.set_title("Demand Charges", fontsize=14, fontweight="bold")
-
-    # Third subplot: Water production and RO train flow rates
+    # Second subplot: Water production and RO train flow rates
     prod = [
         v[None] for v in m.period[:, :].posttreatment.product_flowrate.extract_values()
     ]
     ax_trains.plot(
-        time + 0.5, prod, label="Water Production (m3/hr)", color="blue", marker="o"
+        time + 0.5,
+        prod,
+        label="Water Production (m$^3$/h)",
+        color="black",
+        linestyle="--",
+        linewidth=2,
+        alpha=0.75,
     )
     ax_trains.set_ylim(0, 2500)
     ax_trains.axhline(
-        y=53150 / 24,
+        y=602 * 4,
         color="blue",
         linestyle="--",
         linewidth=2,
-        alpha=0.5,
-        label="Maximum Production Capacity (m3/h)",
+        alpha=0.75,
+        label="Nominal Plant Capacity (m$^3$/h)",
         zorder=0,
     )
-    ax_trains.set_ylabel("Water Production (m3/h)", fontsize=12)
+    ax_trains.set_ylabel("Water Production (m$^3$/h)", fontsize=12)
     ax_trains.set_xlabel("Hours", fontsize=12)
     ax_trains.set_title(
         "Water Production & RO Train Flow Rates", fontsize=14, fontweight="bold"
@@ -174,114 +210,108 @@ def plot_function(m, n_time_points):
     ax_trains.xaxis.set_major_locator(plt.MaxNLocator(24))
     ax_trains.grid(False)
 
-    # Extract RO train flow rates and convert to % of max flow
-    max_train_flow = 53150 / 24 / 4  # m3/hr
+    # Extract RO train flow rates (m3/hr) for stacked plotting
     train_1_flows = [
-        v[None] / max_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[1]
         .product_flowrate.extract_values()
     ]
     train_2_flows = [
-        v[None] / max_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[2]
         .product_flowrate.extract_values()
     ]
     train_3_flows = [
-        v[None] / max_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[3]
         .product_flowrate.extract_values()
     ]
     train_4_flows = [
-        v[None] / max_train_flow * 100
+        v[None]
         for v in m.period[:, :]
         .reverse_osmosis.ro_skid[4]
         .product_flowrate.extract_values()
     ]
 
-    ax_trains_pct = ax_trains.twinx()
-    ax_trains_pct.plot(
-        time + 0.5, train_1_flows, label="RO Train 1", marker="o", linewidth=2
-    )
-    ax_trains_pct.plot(
-        time + 0.5, train_2_flows, label="RO Train 2", marker="s", linewidth=2
-    )
-    ax_trains_pct.plot(
-        time + 0.5, train_3_flows, label="RO Train 3", marker="^", linewidth=2
-    )
-    ax_trains_pct.plot(
-        time + 0.5, train_4_flows, label="RO Train 4", marker="d", linewidth=2
-    )
-    ax_trains_pct.axhline(
-        y=100,
-        color="red",
-        linestyle="--",
-        linewidth=2,
+    ax_trains.stackplot(
+        time + 0.5,
+        train_1_flows,
+        train_2_flows,
+        train_3_flows,
+        train_4_flows,
+        labels=["RO Train 1", "RO Train 2", "RO Train 3", "RO Train 4"],
         alpha=0.5,
-        label="Max Capacity",
-        zorder=0,
     )
-    ax_trains_pct.set_ylim(0, 125)
-    ax_trains_pct.set_ylabel("Flow Rate (% of Max)", fontsize=12)
-
-    for i in range(int(n_time_points / 24)):
-        ax_trains_pct.axvspan(
-            24 * i,
-            24 * i + 8,
-            facecolor="grey",
-            alpha=0.1,
-            label="Nonworking Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_trains_pct.axvspan(
-            24 * i + 8,
-            24 * i + 18,
-            facecolor="gold",
-            alpha=0.3,
-            label="Working Hours" if i == 0 else "_nolegend_",
-            zorder=0,
-        )
-        ax_trains_pct.axvspan(
-            24 * i + 18,
-            24 * i + 24,
-            facecolor="grey",
-            alpha=0.1,
-            label="_nolegend_",
-            zorder=0,
-        )
 
     handle_t, label_t = ax_trains.get_legend_handles_labels()
-    handle_t2, label_t2 = ax_trains_pct.get_legend_handles_labels()
-    leg3 = ax_trains_pct.legend(
-        handle_t + handle_t2,
-        label_t + label_t2,
+    leg3 = ax_trains.legend(
+        handle_t,
+        label_t,
         loc="lower left",
         fontsize=11,
         framealpha=1.0,
-        ncol=3,
+        ncol=2,
     )
     leg3.get_frame().set_facecolor("white")
 
     # Set consistent x-axis limits and formatting
-    for a in (ax_energy, ax_demand, ax_trains):
+    for a in (ax_energy, ax_trains):
         a.set_xlim(0, n_time_points)
         a.xaxis.set_major_locator(plt.MaxNLocator(24))
 
     # Tick labels for all axes
-    for a in (ax_energy, ax_price, ax_demand, ax_trains, ax_trains_pct):
+    for a in (ax_energy, ax_price, ax_trains):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig(f"plots/wrd_{m.params.annual_production_AF}_week.png", dpi=600)
+    fig.savefig(f"{output_stem}.png", dpi=600)
     plt.show()
 
 
-def one_week(annual_production_AF=13000, season="summer"):
+def _begin_and_end_constraint(m):
+    """Force RO train 1 op_mode to match between first and last timesteps."""
+    period_points = list(m.period.index_set())
+    if not period_points:
+        return
+
+    first_point = period_points[0]
+    last_point = period_points[-1]
+
+    @m.Constraint()
+    def match_train_1_at_start_and_end(blk):
+        return (
+            blk.period[first_point].reverse_osmosis.ro_skid[1].op_mode
+            == blk.period[last_point].reverse_osmosis.ro_skid[1].op_mode
+        )
+
+
+def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
+
+    season_map = {
+        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
+    }
+
+    season_key = season.lower()
+    if season_key not in season_map:
+        raise ValueError(
+            f"Invalid season '{season}'. Valid options are: {sorted(season_map)}"
+        )
+
+    flex_type_key = flex_type.lower()
+    valid_flex_types = {"both", "no_flex"}
+    if flex_type_key not in valid_flex_types:
+        raise ValueError(
+            "Invalid flex_type "
+            f"'{flex_type}'. Valid options are: {sorted(valid_flex_types)}"
+        )
+
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / f"wrd_pricesignal_{season}_week.csv")
+    price_data = pd.read_csv(script_dir / season_map[season_key])
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
@@ -291,24 +321,18 @@ def one_week(annual_production_AF=13000, season="summer"):
     price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed"]
     price_data["Var Demand Rate"] = price_data["electric_demand_peak"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
-
-    # price_data["Energy Rate"] = (
-    #     price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_2_2022-07-05_2022-07-14_0"]
-    #     + price_data["electric_energy_3_2022-07-05_2022-07-14_0"]
-    # )
-    # price_data["Fixed Demand Rate"] = price_data[
-    #     "electric_demand_maximum_2022-07-05_2022-07-14_0"
-    # ]
-    # price_data["Var Demand Rate"] = price_data[
-    #     "electric_demand_peak-summer_2022-07-05_2022-07-14_0"
-    # ]
-    # price_data["Customer Cost"] = price_data[
-    #     "electric_customer_0_2022-07-05_2022-07-14_0"
-    # ]
-
     price_data["Emissions Intensity"] = 0
+
+    peak_hours = price_data["Var Demand Rate"].to_numpy() != 0
+
+    # Define peak hours
+    selected_price_signal_stem = Path(season_map[season_key]).stem
+    output_suffix = f"{season_key}_{annual_production_AF}AF"
+    if selected_price_signal_stem.upper().endswith("RTP"):
+        output_suffix = f"{output_suffix}_RTP"
+    if selected_price_signal_stem.upper().endswith("TOU_8"):
+        output_suffix = f"{output_suffix}_TOU_8"
+
     m = PriceTakerModel()
     # Find start and end datetimes and time step  from the price data
     price_datetimes = pd.to_datetime(price_data["DateTime"])
@@ -344,9 +368,9 @@ def one_week(annual_production_AF=13000, season="summer"):
             "nominal_flowrate": 900,
             "maximum_flowrate": 989,
             "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 2.83e-1,
-            "surrogate_b": -3.44e-4,
-            "surrogate_c": 2.46e-7,
+            "surrogate_a": 2.71e-1,
+            "surrogate_b": -3.32e-4,
+            "surrogate_c": 2.39e-7,
             "nominal_recovery": 0.96,
             "num_uf_pumps": 3,
         }
@@ -359,11 +383,12 @@ def one_week(annual_production_AF=13000, season="summer"):
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
-            "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 5.411e-1,
-            "surrogate_b": -9.826e-4,
-            "surrogate_c": 1.100e-6,
-            "nominal_recovery": 0.92,
+            "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
+            "surrogate_type": "PySMO_polyfit",
+            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
+            "minimum_recovery": 0.88,
+            "nominal_recovery": 0.925,
+            "maximum_recovery": 0.925,
             "num_ro_skids": 4,
             "replacement_types": ["membranes", "motors"],
             "replacement_costs": [
@@ -382,7 +407,7 @@ def one_week(annual_production_AF=13000, season="summer"):
         {
             "energy_intensity": 0.101,
             "chemical_cost": 0.0310,
-        }  # This number is not confirmed at all
+        }
     )  # kWh/m3 #$/m3
 
     m.params.brinedischarge.update({"brine_cost": 0.43, "energy_intensity": 0})
@@ -413,6 +438,8 @@ def one_week(annual_production_AF=13000, season="summer"):
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
 
+    _begin_and_end_constraint(m)
+
     m.total_water_production = pyo.Expression(
         expr=m.params.timestep_hours
         * sum(m.period[:, :].posttreatment.product_flowrate)
@@ -428,33 +455,37 @@ def one_week(annual_production_AF=13000, season="summer"):
     )
 
     fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
-    fs.add_replacement_costs_piecewise(m)
+    fs.add_useful_expressions(m)
+    # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
-    m.total_cost = pyo.Expression(
+    m.total_op_cost = pyo.Expression(
         expr=m.total_energy_cost
         + m.total_demand_cost
         + m.total_customer_cost
+        - m.total_demand_response_revenue
         + m.total_feed_cost
         + m.total_brine_cost
         + m.total_chemical_cost
-        + m.total_replacement_cost
-    )  # function of degree of flexibility
-
+    )
     # add CAPEX as a fixed cost to calculate LCOW
-    m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months * 12)
-    m.LCOW = pyo.Expression(
-        expr=(m.total_cost + m.fixed_cost) / (m.total_water_production)
-    )  # $/m3
+    m.fixed_cost = pyo.Expression(expr=m.params.CAPEX_yr * m.params.num_months / 12)
+    m.total_cost = pyo.Expression(expr=m.total_op_cost + m.fixed_cost)
+
+    m.LCOW = pyo.Expression(expr=m.total_cost / m.total_water_production)  # $/m3
 
     fs.constrain_water_production(m)
 
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
-        utils.wrd_fix_recovery(
+        utils.wrd_fix_ro_recovery(
             m,
             ro_recovery=m.params.wrd_ro.nominal_recovery,
-            uf_recovery=m.params.wrd_uf.nominal_recovery,
         )
+    # Always want to fix the UF recovery
+    utils.wrd_fix_uf_recovery(
+        m,
+        uf_recovery=m.params.wrd_uf.nominal_recovery,
+    )
 
     # Could cause feasibility issues b/c this is a slakc varable essentially.
     # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
@@ -465,18 +496,34 @@ def one_week(annual_production_AF=13000, season="summer"):
     # fs.add_working_hours_constraint(m)
 
     # fs.add_rain_shutdowns(m)
+    fs.calculate_replacement_costs(m)
 
+    # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
-        expr=1e-4 * (m.total_cost + m.flow_changes_penalty),
+        expr=1e-4
+        * (
+            m.total_energy_cost
+            + m.total_demand_cost
+            + m.total_customer_cost
+            - m.total_demand_response_revenue
+            + m.total_feed_cost
+            + m.total_brine_cost
+            + m.total_chemical_cost
+            + m.flow_changes_penalty
+        ),
         sense=pyo.minimize,
     )
+
+    # Only to find the baseline power for this water production
+    if flex_type_key == "no_flex":
+        m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
+
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
     # solver = get_solver()
     # solver.options["max_iter"] = 500
-    # results = solver.solve(m, tee=True)
 
     mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
@@ -498,7 +545,12 @@ def one_week(annual_production_AF=13000, season="summer"):
     # m.get_operation_var_values().to_csv(output_csv)
     # print(f"Saved operation variable results to: {output_csv}")
 
-    plot_function(m, n_time_points=len(price_data))
+    plot_function(
+        m,
+        n_time_points=len(price_data),
+        output_stem=script_dir / f"wrd_pricetaker_{output_suffix}",
+        peak_hours=peak_hours,
+    )
 
     # Plot operational variables
     # fig, axs = m.plot_operation_profile(
@@ -521,7 +573,12 @@ def one_week(annual_production_AF=13000, season="summer"):
 
 
 if __name__ == "__main__":
-    water_prod_targs = [6000, 10500, 15000]
+    # Inputs
+    water_prod_targs = [8000, 10000, 12000, 14000, 16000]
+    season = "summer"
+    flex_type = "no_flex"
+
+    # Outputs
     water = []
     cost = []
     energy_cost = []
@@ -537,7 +594,9 @@ if __name__ == "__main__":
         print(
             f"\n\nRunning optimization for annual production of {annual_production} AF..."
         )
-        design_vars = one_week(annual_production_AF=annual_production, season="summer")
+        design_vars = one_week(
+            annual_production_AF=annual_production, flex_type=flex_type, season=season
+        )
         water.append(design_vars["total_water_production"])
         cost.append(design_vars["total_cost"])
         energy_cost.append(design_vars["total_energy_cost"])
@@ -561,6 +620,10 @@ if __name__ == "__main__":
             "Total Chemical Cost ($)": chemical_cost,
             "Total Replacement Cost ($)": replacement_cost,
             "Degree of Flexibility": deg_of_flex,
+            "Levelized Cost of Water ($/m3)": LCOW,
         }
     )
-    df.to_csv("wrd_water_target_sweep_week.csv", index=False)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    df.to_csv(
+        f"water_targ_sweep_week_{season}_{flex_type}_{timestamp}.csv", index=False
+    )
