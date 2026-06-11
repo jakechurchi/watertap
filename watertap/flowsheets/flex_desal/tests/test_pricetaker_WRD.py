@@ -10,6 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 import os
+import importlib.metadata
 
 import pyomo.environ as pyo
 import pytest
@@ -24,6 +25,37 @@ from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import degrees_of_freedom
 
 solver = get_solver()
+
+
+@pytest.mark.unit
+def test_installed_idaes_pse_version_minimum():
+    # This is probably not the best way to go about this check, but you do need
+    # idaes-pse version 2.10.0 or higher to run the model. I think this is true for the other price taker test as well?
+    installed_version = importlib.metadata.version("idaes-pse")
+
+    def _version_tuple(version_string):
+        numbers = []
+        for part in version_string.split("."):
+            leading_digits = ""
+            for ch in part:
+                if ch.isdigit():
+                    leading_digits += ch
+                else:
+                    break
+            if not leading_digits:
+                break
+            numbers.append(int(leading_digits))
+            if len(numbers) == 3:
+                break
+        while len(numbers) < 3:
+            numbers.append(0)
+        return tuple(numbers)
+
+    assert _version_tuple(installed_version) >= (
+        2,
+        10,
+        0,
+    ), f"idaes-pse version must be >= 2.10.0, found {installed_version}"
 
 
 # Checking that a complex version with extra functions builds. But have not solved it.
@@ -110,7 +142,10 @@ class TestPriceTakerWorkflow:
                 "maximum_flowrate": 635,
                 "allow_variable_recovery": True,
                 "surrogate_type": "PySMO_polyfit",
-                "surrogate_file": "ro_SEC_poly_fit_order_2.json",
+                "surrogate_file": os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "ro_SEC_poly_fit_order_2.json",
+                ),
                 "minimum_recovery": 0.88,
                 "nominal_recovery": 0.925,
                 "maximum_recovery": 0.925,
@@ -124,7 +159,7 @@ class TestPriceTakerWorkflow:
                 "replacement_max_flex_penalty": [
                     0.1,
                     0.1,
-                ],  # Reduction in lifetime if shutdowns occur every day (?)
+                ],  # Reduction in lifetime if shutdowns occur every day
             }
         )
 
@@ -136,6 +171,8 @@ class TestPriceTakerWorkflow:
         )  # kWh/m3 #$/m3
 
         m.params.brinedischarge.update({"brine_cost": 0.43, "energy_intensity": 0})
+
+        m.append_lmp_data(lmp_data=price_data["Energy Rate"])
 
         m.build_multiperiod_model(
             flowsheet_func=fs.build_desal_flowsheet,
@@ -151,15 +188,45 @@ class TestPriceTakerWorkflow:
                 "demand_response_price": price_data["Demand_Response_Price"],
             }
         )
+
         m.update_operation_params(
             {"power_generation.capacity_factor": pv_capacity_factors}
         )
 
-        return m, price_data
+        return m, price_data, peak_hours
+
+    @pytest.mark.unit
+    def test_build(self, system_frame):
+        m, price_data, peak_hours = system_frame
+
+        # Mostly skipping tests that would go here because they are tested in the other workflow
+        # Check Deand Response
+        assert "Demand_Response_Price" in price_data.columns
+
+        # Check params added
+        assert hasattr(m.params.wrd_ro, "surrogate_file")
+        assert hasattr(m.params.wrd_ro, "replacement_types")
+        assert hasattr(m.params.wrd_ro, "replacement_costs")
+        assert hasattr(m.params.wrd_ro, "replacement_lifetimes")
+        assert hasattr(m.params.wrd_ro, "replacement_max_flex_penalty")
+        assert hasattr(m.params.wrd_uf, "surrogate_a")
+        assert hasattr(m.params.wrd_uf, "surrogate_b")
+        assert hasattr(m.params.wrd_uf, "surrogate_c")
+        assert hasattr(m.params.wrd_uf, "num_uf_pumps")
+        assert hasattr(m.params.posttreatment, "chemical_cost")
+        assert hasattr(m.params.brinedischarge, "brine_cost")
+        assert hasattr(m.params.intake, "chemical_cost")
+        assert hasattr(m.params.intake, "feed_cost")
+
+        for blk in m.period.values():
+            # Check PV is added
+            assert hasattr(blk, "power_generation")
+            # Check Demand Response price added
+            assert hasattr(blk, "demand_response_price")
 
     @pytest.mark.unit
     def test_add_constraints(self, system_frame):
-        m, price_data = system_frame
+        m, price_data, peak_hours = system_frame
 
         # Add demand cost and fixed cost calculation constraints
         fs.add_demand_and_fixed_costs(m)
@@ -176,30 +243,38 @@ class TestPriceTakerWorkflow:
         assert isinstance(m.posttreatment_unit_commitment, pyo.Constraint)
         assert isinstance(m.brine_pump_unit_commitment, pyo.Constraint)
 
-        # Add the slow shutdown constraint
-        fs.add_delayed_shutdown_constraints(m)
-        # TODO: Add assertions here once the constraints are added
+        # Ensure consistent ending and starting states of the plant
+        fs.begin_and_end_constraint(m)
+        assert isinstance(m.match_train_1_at_start_and_end, pyo.Constraint)
 
-        # Limit the number of shutdowns per day
+        # Add the slow shutdown constraint
         fs.add_maximum_shutdowns(m)
-        # TODO: Add assertions here once the constraints are added
+        # Limit the number of shutdowns per day
+        fs.add_delayed_shutdown_constraints(m)
+
+        assert hasattr(m, "max_shutdowns_per_24h_window")
+        assert hasattr(m, "posttreatment_unit_commitment_shutdown")
 
         # Limit the hours of operation to reflect labor times
+        # Don't have a check for this one b/c it's only applied to some hours
         fs.add_working_hours_constraint(m)
 
         # Limit number of trains that can turn on and off
-        fs.restrict_flexible_trains(
-            m, num_flexible_trains=2
-        )  # THIS WOULD CONTRADICT THE RAIN SHUTDOWN IF SOLVE WAS ATTEMPTED
-
-        # Ensure consistent ending and starting states of the plant
-        fs.begin_and_end_constraint(m)
+        fs.restrict_flexible_trains(m, num_flexible_trains=2)
+        for p in m.period:
+            for skid in [1, 2]:
+                ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
+                assert ro_skid.startup.fixed
+                assert ro_skid.startup() == 0
+                assert ro_skid.shutdown.fixed
+                assert ro_skid.shutdown() == 0
 
     @pytest.mark.unit
     def test_add_expressions(self, system_frame):
-        m, price_data = system_frame
+        m, price_data, peak_hours = system_frame
 
         fs.add_useful_expressions(m)
+        fs.add_flow_costs(m)
 
         m.total_water_production = pyo.Expression(
             expr=m.params.timestep_hours
@@ -241,7 +316,7 @@ class TestPriceTakerWorkflow:
 
     @pytest.mark.unit
     def test_fixing_operations(self, system_frame):
-        m, price_data = system_frame
+        m, price_data, peak_hours = system_frame
         fs.fix_operations_for_first_four_days(m, peak_hours=peak_hours)
         fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
         utils.wrd_fix_ro_recovery(
@@ -258,7 +333,7 @@ class TestPriceTakerWorkflow:
 
     @pytest.mark.unit
     def test_flow_changes_penalty(self, system_frame):
-        m, price_data = system_frame
+        m, price_data, peak_hours = system_frame
         fs.add_flow_changes_penalty_binary(m)
 
         m.obj = pyo.Objective(
@@ -275,3 +350,13 @@ class TestPriceTakerWorkflow:
             ),
             sense=pyo.minimize,
         )
+
+    @pytest.mark.component
+    @pytest.mark.xfail
+    # This test will fail if the user does not have a Gurobi license
+    def test_gurobi_solve(self, system_frame):
+        m, price_data, peak_hours = system_frame
+
+        solver = pyo.SolverFactory("gurobi")
+        solver.options["MIPGap"] = 0.03
+        solver.solve(m)

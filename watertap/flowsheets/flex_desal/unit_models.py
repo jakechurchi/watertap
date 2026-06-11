@@ -311,11 +311,12 @@ def brine_discharge_operation_model(blk, params: um_params.FlexDesalParams):
     # Declare essential variables
     blk.feed_flowrate = Var(within=NonNegativeReals, units=pyunits.m**3 / pyunits.hr)
     blk.power_consumption = Var(within=NonNegativeReals, units=pyunits.kW)
-    blk.brine_cost = Var(within=NonNegativeReals, doc="Cost of brine discharge")
-    blk.calculate_brine_cost = Constraint(
-        expr=blk.brine_cost == params.brinedischarge.brine_cost * blk.feed_flowrate,
-        doc="Calculates the brine cost based on flowrate and unit cost ($/hr)",
-    )
+    if params.brinedischarge.brine_cost is not None:
+        blk.brine_cost = Var(within=NonNegativeReals, doc="Cost of brine discharge")
+        blk.calculate_brine_cost = Constraint(
+            expr=blk.brine_cost == params.brinedischarge.brine_cost * blk.feed_flowrate,
+            doc="Calculates the brine cost based on flowrate and unit cost ($/hr)",
+        )
 
     # The brine pump only consumes power if the RO is off,
     # otherwise brine is pushed out by the leftover RO pressure
