@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=PT
+#SBATCH --job-name=PT_sweep
 #SBATCH --account=nawianalysis
 #SBATCH --time=24:00:00
 #SBATCH --nodes=2
@@ -7,7 +7,7 @@
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=water_sweep_flex.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=water_sweep_winter.%j.out  # %j will be replaced with the job ID
 
 module load gurobi
 module load anaconda3

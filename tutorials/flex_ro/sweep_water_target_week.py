@@ -578,7 +578,7 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [8000, 10000, 12000, 14000, 16000]
-    season = "summer"
+    season = "winter"
     flex_type = "both"
 
     # Outputs
