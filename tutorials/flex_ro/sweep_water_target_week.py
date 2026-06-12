@@ -528,7 +528,7 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
     # solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.01
+    mip_gap = 0.025
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
@@ -579,7 +579,7 @@ if __name__ == "__main__":
     # Inputs
     water_prod_targs = [8000, 10000, 12000, 14000, 16000]
     season = "summer"
-    flex_type = "no_flex"
+    flex_type = "both"
 
     # Outputs
     water = []
