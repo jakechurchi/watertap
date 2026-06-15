@@ -305,7 +305,7 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
         )
 
     flex_type_key = flex_type.lower()
-    valid_flex_types = {"both", "no_flex"}
+    valid_flex_types = {"both", "no_flex", "one_shutdown"}
     if flex_type_key not in valid_flex_types:
         raise ValueError(
             "Invalid flex_type "
@@ -330,7 +330,7 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
 
     # Define peak hours
     selected_price_signal_stem = Path(season_map[season_key]).stem
-    output_suffix = f"{season_key}_{annual_production_AF}AF"
+    output_suffix = f"{flex_type_key}_{season_key}_{annual_production_AF}AF"
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
     if selected_price_signal_stem.upper().endswith("TOU_8"):
@@ -521,16 +521,29 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
     if flex_type_key == "no_flex":
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
+    if flex_type_key == "one_shutdown":
+        # Add constraint to allow for exactly one shutdown during the period for each RO train.
+        @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
+        def one_shutdown_constraint(m_blk, i):
+            return (
+                sum(
+                    m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+                    for d in m.set_days
+                    for t in m.set_time
+                )
+                <= 1
+            )
+
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    # solver = get_solver()
+    solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.025
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap
+    # mip_gap = 0.025
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
@@ -578,8 +591,8 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [8000, 10000, 12000, 14000, 16000]
-    season = "winter"
-    flex_type = "both"
+    season = "summer"
+    flex_type = "one_shutdown"
 
     # Outputs
     water = []
