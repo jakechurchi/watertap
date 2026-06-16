@@ -590,9 +590,9 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
 
 if __name__ == "__main__":
     # Inputs
-    water_prod_targs = [8000, 10000, 12000, 14000, 16000]
+    water_prod_targs = [9000, 11000, 13000]
     season = "summer"
-    flex_type = "one_shutdown"
+    flex_type = "both"
 
     # Outputs
     water = []
@@ -604,6 +604,7 @@ if __name__ == "__main__":
     chemical_cost = []
     replacement_cost = []
     deg_of_flex = []
+    electricity_cost = []
     LCOW = []
 
     for annual_production in water_prod_targs:
@@ -622,6 +623,9 @@ if __name__ == "__main__":
         chemical_cost.append(design_vars["total_chemical_cost"])
         replacement_cost.append(design_vars["total_replacement_cost"])
         deg_of_flex.append(design_vars["degree_of_flex"])
+        electricity_cost.append(
+            design_vars["total_demand_cost"] + design_vars["total_energy_cost"]
+        )
         LCOW.append(design_vars["LCOW"])
 
     df = pd.DataFrame(
@@ -634,6 +638,7 @@ if __name__ == "__main__":
             "Total Feed Cost ($)": feed_cost,
             "Total Brine Cost ($)": brine_cost,
             "Total Chemical Cost ($)": chemical_cost,
+            "Total Electricity Cost ($)": electricity_cost,
             "Total Replacement Cost ($)": replacement_cost,
             "Degree of Flexibility": deg_of_flex,
             "Levelized Cost of Water ($/m3)": LCOW,
