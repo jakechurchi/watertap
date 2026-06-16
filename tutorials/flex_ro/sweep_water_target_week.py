@@ -534,6 +534,18 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
                 <= 1
             )
 
+        # Add constraint to allow for exactly one startup during the period for each RO train.
+        @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
+        def one_startup_constraint(m_blk, i):
+            return (
+                sum(
+                    m.period[d, t].reverse_osmosis.ro_skid[i].startup
+                    for d in m.set_days
+                    for t in m.set_time
+                )
+                <= 1
+            )
+
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
@@ -590,9 +602,9 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
 
 if __name__ == "__main__":
     # Inputs
-    water_prod_targs = [9000, 11000, 13000]
+    water_prod_targs = [9000, 10000, 11000, 13000, 15000]
     season = "summer"
-    flex_type = "both"
+    flex_type = "one_shutdown"
 
     # Outputs
     water = []
