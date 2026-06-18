@@ -24,8 +24,6 @@ from watertap.flowsheets.flex_desal.params import FlexDesalParams
 from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import degrees_of_freedom
 
-solver = get_solver()
-
 
 @pytest.mark.unit
 def test_installed_idaes_pse_version_minimum():
@@ -94,7 +92,7 @@ class TestPriceTakerWorkflow:
         m.params = FlexDesalParams(
             start_date="2022-07-05 00:00:00",
             end_date="2022-07-15 00:00:00",
-            annual_production_AF=12000,
+            annual_production_AF=2000,  # Super low water production so problem is feasible with all the extra constraints
             timestep_hours=1,
             include_onsite_solar=True,
             onsite_capacity=pv_capacity,
@@ -274,7 +272,7 @@ class TestPriceTakerWorkflow:
         m, price_data, peak_hours = system_frame
 
         fs.add_useful_expressions(m)
-        fs.add_flow_costs(m)
+        fs.add_flow_costs(m)  #  Flow costs = Feed, Brine, and Chemicals
 
         m.total_water_production = pyo.Expression(
             expr=m.params.timestep_hours
@@ -318,7 +316,7 @@ class TestPriceTakerWorkflow:
     def test_fixing_operations(self, system_frame):
         m, price_data, peak_hours = system_frame
         fs.fix_operations_for_first_four_days(m, peak_hours=peak_hours)
-        fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
+
         utils.wrd_fix_ro_recovery(
             m,
             ro_recovery=m.params.wrd_ro.nominal_recovery,
@@ -359,4 +357,55 @@ class TestPriceTakerWorkflow:
 
         solver = pyo.SolverFactory("gurobi_direct_minlp")
         solver.options["MIPGap"] = 0.03
-        solver.solve(m)
+        results = solver.solve(m)
+
+        pyo.assert_optimal_termination(results)
+
+    @pytest.mark.component
+    # @pytest.mark.xfail
+    # This test uses ipopt to solve the model, but it will give a nonsense solution
+    # with binary variable between 0 and 1. However, the solution allows the following tests
+    # to be performed
+    def test_ipopt_solve(self, system_frame):
+        m, price_data, peak_hours = system_frame
+        # Problem formulation above is infeable due to testing all the differrent types of constraints.
+
+        solver = get_solver()
+        results = solver.solve(m)
+
+        pyo.assert_optimal_termination(results)
+
+    @pytest.mark.component
+    # This test will fail if the model is not solved aready
+    def test_post_solve_calculations(self, system_frame):
+        m, price_data, peak_hours = system_frame
+
+        fs.calculate_replacement_costs(m)
+        assert hasattr(m, "degree_of_flex")
+        assert isinstance(m.total_replacement_cost, pyo.Expression)
+
+        # TODO: Update these baseline values so the flex metrics make some amount of sense.
+        fs.calculate_flexibility_metrics(
+            m,
+            baseline_power=1080,
+            baseline_electricity_cost=50843,  # $/kWh
+            baseline_replacement_cost=992,
+        )
+        assert isinstance(m.maximum_power, pyo.Var)
+        assert isinstance(m.energy_capacity, pyo.Var)
+        assert isinstance(m.power_capacity, pyo.Var)
+        assert isinstance(
+            m.round_trip_efficiency, pyo.Var
+        )  # consider deleting this one b/c IDK if it is working right
+        assert isinstance(m.LVOF, pyo.Var)
+
+        design_var_values = m.get_design_var_values()
+        filtered_design_var_values = {
+            k: v
+            for k, v in design_var_values.items()
+            if "flow_change" not in k
+            and "flow_changed" not in k
+            and "reduction" not in k
+        }
+
+        assert filtered_design_var_values

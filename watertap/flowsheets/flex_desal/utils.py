@@ -14,7 +14,7 @@
 This module contains some utility functions
 """
 
-from pyomo.environ import SolverFactory
+from pyomo.environ import SolverFactory, value
 from pyomo.common.dependencies import attempt_import
 import numpy as np
 import matplotlib.pyplot as plt
@@ -199,8 +199,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
 
     # First subplot: Stacked energy consumption by major equipment
     total_energy = [
-        pyo.value(v[None])
-        for v in m.period[:, :].net_power_consumption.extract_values()
+        value(v[None]) for v in m.period[:, :].net_power_consumption.extract_values()
     ]
 
     ro1_energy = [
