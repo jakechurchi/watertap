@@ -27,7 +27,6 @@ from pyomo.environ import (
 )
 from watertap.flowsheets.flex_desal import params as um_params
 
-
 # NOTE: OperationModel class automatically adds startup, shutdown,
 # and op_mode binary variables. So, no need to define these variables
 # explicitly.
