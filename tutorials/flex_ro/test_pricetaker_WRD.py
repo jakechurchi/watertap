@@ -9,6 +9,9 @@
 # information, respectively. These files are also available online at the URL
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
+
+## THIS SHOULD BE REMOVED FROM THIS FOLDER TO JUST THE TESTING FOLDER ##
+
 import os
 import importlib.metadata
 
