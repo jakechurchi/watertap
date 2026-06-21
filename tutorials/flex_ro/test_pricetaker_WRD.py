@@ -28,6 +28,11 @@ from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import degrees_of_freedom
 
 
+def pytest_configure(config):
+    # This dynamically adds the marker to the system in-memory during initialization
+    config.addinivalue_line("markers", "unit: mark test as a unit test")
+
+
 @pytest.mark.unit
 def test_installed_idaes_pse_version_minimum():
     # This is probably not the best way to go about this check, but you do need
