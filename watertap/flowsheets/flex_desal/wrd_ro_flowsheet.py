@@ -20,14 +20,12 @@ from pyomo.environ import (
     Expression,
     NonNegativeReals,
     Param,
-    Reals,
     Var,
     Binary,
     units as pyunits,
-    Piecewise,
     value,
 )
-from idaes.core.util.math import smooth_min
+
 from watertap.flowsheets.flex_desal import params as um_params
 from watertap.flowsheets.flex_desal import unit_models as um
 from watertap.flowsheets.flex_desal.wrd_unit_models import (
@@ -687,7 +685,6 @@ def fix_operations_for_first_four_days(m, peak_hours=None):
                 m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(
                     0
                 )  # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
-                pass
             else:
                 # Just ensure plant is on during the non-peak hours
                 m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(

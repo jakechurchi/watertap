@@ -22,7 +22,6 @@ from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
 from watertap.core.solvers import get_solver
-from idaes.core.util.model_statistics import degrees_of_freedom
 
 
 @pytest.mark.unit
