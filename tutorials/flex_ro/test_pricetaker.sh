@@ -12,4 +12,9 @@
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-pytest test_pricetaker_WRD.py
+
+# Run from this script's directory so relative paths are stable.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${SCRIPT_DIR}"
+
+python -m pytest test_pricetaker_WRD.py

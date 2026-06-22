@@ -14,6 +14,7 @@
 
 import os
 import importlib.metadata
+from pathlib import Path
 
 import pyomo.environ as pyo
 import pytest
@@ -69,10 +70,10 @@ def test_installed_idaes_pse_version_minimum():
 class TestPriceTakerWorkflow:
     @pytest.fixture(scope="class")
     def system_frame(self):
-        price_data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "..",
-            "wrd_pricesignal_summer_week_DR.csv",
+        price_data_path = (
+            Path(__file__).resolve().parent
+            / "price_signals"
+            / "wrd_pricesignal_summer_week_DR.csv"
         )
         price_data = pd.read_csv(price_data_path)
         price_data["Energy Rate"] = (
