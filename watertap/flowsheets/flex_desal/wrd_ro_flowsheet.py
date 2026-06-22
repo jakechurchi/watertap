@@ -573,10 +573,6 @@ def calculate_flexibility_metrics(
     else:
         charge_power_capacity = float("nan")
 
-    # Not implementing this because it doesn't make much sense:
-    # Also, currently giving values above 1 which doesn't make sense. I think charging capacity is too low? At 10,000.
-    round_trip_efficiency = 0
-
     if discharge_energy_capacity == 0:
         LVOF = float("nan")
     else:
@@ -598,7 +594,6 @@ def calculate_flexibility_metrics(
     m.maximum_power = Var(initialize=maximum_power)
     m.energy_capacity = Var(initialize=discharge_energy_capacity)
     m.power_capacity = Var(initialize=discharge_power_capacity)
-    m.round_trip_efficiency = Var(initialize=round_trip_efficiency)
     m.LVOF = Var(initialize=LVOF)
 
 
