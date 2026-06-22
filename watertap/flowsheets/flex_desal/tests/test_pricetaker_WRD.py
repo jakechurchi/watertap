@@ -60,7 +60,8 @@ def test_installed_idaes_pse_version_minimum():
 @pytest.mark.requires_idaes_solver
 class TestPriceTakerWorkflow:
     @pytest.fixture(scope="class")
-    def system_frame(self):
+    @classmethod
+    def system_frame(cls):
         price_data_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "..",
@@ -350,13 +351,11 @@ class TestPriceTakerWorkflow:
         )
 
     @pytest.mark.component
-    # @pytest.mark.xfail
     # This test uses ipopt to solve the model, but it will give a nonsense solution
-    # with binary variable between 0 and 1. However, the solution allows the following tests
+    # with binary variable between 0 and 1. However, the solution allows the post_solve test
     # to be performed
     def test_ipopt_solve(self, system_frame):
         m, price_data, peak_hours = system_frame
-        # Problem formulation above is infeasible due to testing all the different types of constraints.
 
         solver = get_solver()
         results = solver.solve(m)
