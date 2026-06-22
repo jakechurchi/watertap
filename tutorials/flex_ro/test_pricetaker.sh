@@ -13,8 +13,11 @@ module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
 
-# Run from this script's directory so relative paths are stable.
+# Run from repo root so pytest.ini testpaths discovery works
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "${SCRIPT_DIR}"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+cd "${REPO_ROOT}"
 
-python -m pytest test_pricetaker_WRD.py
+# Run the tutorial test with explicit path
+# Disable cache provider to avoid permission denied errors on shared filesystems
+python -m pytest "tutorials/flex_ro/test_pricetaker_WRD.py" --no-cov -p no:cacheprovider
