@@ -25,7 +25,7 @@ from watertap.core.solvers import get_solver
 
 
 # Will want to change these back to mark.unit after Kestrel test
-@pytest.mark.component
+@pytest.mark.unit
 def test_installed_idaes_pse_version_minimum():
     # This is probably not needed, but I would like to emphasize that users need to have
     # idaes-pse version 2.10.0 or higher to run the model.
@@ -221,7 +221,7 @@ class TestPriceTakerWorkflow:
             # Check Demand Response price added
             assert hasattr(blk, "demand_response_price")
 
-    @pytest.mark.component
+    @pytest.mark.unit
     def test_add_constraints(self, system_frame):
         m, price_data, peak_hours = system_frame
 
