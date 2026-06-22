@@ -134,22 +134,26 @@ def ro_skid_operation_model(blk, params: um_params.ROParams):
     )
 
     if params.surrogate_type == "exponential_quadratic":
-        expr = blk.energy_intensity == (
-            blk.coeffs["a"] * exp(-blk.coeffs["b"] * blk.recovery)
-            + blk.coeffs["c"] * blk.recovery**2
-            + blk.coeffs["d"]
+        blk.calculate_energy_intensity = Constraint(
+            expr=blk.energy_intensity
+            == (
+                blk.coeffs["a"] * exp(-blk.coeffs["b"] * blk.recovery)
+                + blk.coeffs["c"] * blk.recovery**2
+                + blk.coeffs["d"]
+            ),
+            doc="Calculates the specific energy requirement",
         )
 
     elif params.surrogate_type == "quadratic_surrogate":
-        expr = blk.energy_intensity == (
-            blk.coeffs["a"] * blk.recovery**2
-            + blk.coeffs["b"] * blk.recovery
-            + blk.coeffs["c"]
+        blk.calculate_energy_intensity = Constraint(
+            expr=blk.energy_intensity
+            == (
+                blk.coeffs["a"] * blk.recovery**2
+                + blk.coeffs["b"] * blk.recovery
+                + blk.coeffs["c"]
+            ),
+            doc="Calculates the specific energy requirement",
         )
-
-    blk.calculate_energy_intensity = Constraint(
-        expr=expr, doc="Calculates the specific energy requirement"
-    )
 
 
 def reverse_osmosis_operation_model(blk, params: um_params.ROParams):

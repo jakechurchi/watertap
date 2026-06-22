@@ -5,7 +5,6 @@ from pyomo.environ import (
     Param,
     RangeSet,
     Var,
-    exp,
     units as pyunits,
 )
 from watertap.flowsheets.flex_desal import params as um_params
@@ -139,14 +138,14 @@ def wrd_reverse_osmosis_operation_model(blk, params: um_params.WRD_ROParams):
 
     # symmetry breaking for >1 skid. Skids can only operate if the previous skid is on
     @blk.Constraint(blk.set_ro_skids)
-    def symmetry_breaking_cuts(b, index):
+    def symmetry_breaking_cuts_ro(b, index):
         if index == 1:
             return Constraint.Skip
         return b.ro_skid[index].op_mode <= b.ro_skid[index - 1].op_mode
 
     # Also add one for the flowrate itself
     @blk.Constraint(blk.set_ro_skids)
-    def symmetry_breaking_cuts(b, index):
+    def symmetry_breaking_cuts_ro_flowrate(b, index):
         if index == 1:
             return Constraint.Skip
         return b.ro_skid[index].feed_flowrate <= b.ro_skid[index - 1].feed_flowrate
@@ -282,14 +281,14 @@ def wrd_uf_operation_model(blk, params: um_params.WRD_UFParams):
 
     # symmetry breaking for >1 skid. Skids can only operate if the previous skid is on
     @blk.Constraint(blk.set_uf_pumps)
-    def symmetry_breaking_cuts(b, index):
+    def symmetry_breaking_cuts_uf(b, index):
         if index == 1:
             return Constraint.Skip
         return b.uf_pumps[index].op_mode <= b.uf_pumps[index - 1].op_mode
 
     # Also add one for the flowrate itself
     @blk.Constraint(blk.set_uf_pumps)
-    def symmetry_breaking_cuts(b, index):
+    def symmetry_breaking_cuts_uf_flowrate(b, index):
         if index == 1:
             return Constraint.Skip
         return b.uf_pumps[index].feed_flowrate <= b.uf_pumps[index - 1].feed_flowrate
