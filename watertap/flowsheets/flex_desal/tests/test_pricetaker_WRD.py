@@ -357,7 +357,17 @@ class TestPriceTakerWorkflow:
     def test_ipopt_solve(self, system_frame):
         m, price_data, peak_hours = system_frame
 
-        solver = get_solver()
+        solver = get_solver(
+            options={
+                "bound_push": 1e-8,
+                "bound_frac": 1e-8,
+                "tol": 1e-6,
+                "max_iter": 5000,
+            }
+        )
+        results = solver.solve(m, tee=True)
+
+        # This is line that is causing the failure on Linux. But I don't know why.
         # results = solver.solve(m)
 
         # pyo.assert_optimal_termination(results)
