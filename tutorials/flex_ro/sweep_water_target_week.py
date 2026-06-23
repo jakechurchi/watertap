@@ -552,12 +552,12 @@ def one_week(
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    solver = get_solver()
+    # solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    # mip_gap = 0.025
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap
+    mip_gap = 0.025
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
