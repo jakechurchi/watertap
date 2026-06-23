@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=PT_sweep
 #SBATCH --account=nawianalysis
-#SBATCH --time=02:00:00
+#SBATCH --time=02:30:00
 #SBATCH --nodes=2
 #SBATCH --partition=standard
 #SBATCH -L gurobi:1

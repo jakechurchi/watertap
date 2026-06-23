@@ -621,6 +621,8 @@ if __name__ == "__main__":
     deg_of_flex = []
     electricity_cost = []
     LCOW = []
+    annual_production_values = []
+    allowed_shutdown_values = []
 
     for annual_production in water_prod_targs:
         for i in number_of_shutdowns:
@@ -646,25 +648,27 @@ if __name__ == "__main__":
                 design_vars["total_demand_cost"] + design_vars["total_energy_cost"]
             )
             LCOW.append(design_vars["LCOW"])
+            annual_production_values.append(annual_production)
+            allowed_shutdown_values.append(i)
 
-        df = pd.DataFrame(
-            {
-                "Annual Production (AF)": water_prod_targs,
-                "Number of Allowed Shutdowns": i,
-                "Total Water Production (m3)": water,
-                "Total Cost ($)": cost,
-                "Total Energy Cost ($)": energy_cost,
-                "Total Demand Cost ($)": demand_cost,
-                "Total Feed Cost ($)": feed_cost,
-                "Total Brine Cost ($)": brine_cost,
-                "Total Chemical Cost ($)": chemical_cost,
-                "Total Electricity Cost ($)": electricity_cost,
-                "Total Replacement Cost ($)": replacement_cost,
-                "Degree of Flexibility": deg_of_flex,
-                "Levelized Cost of Water ($/m3)": LCOW,
-            }
-        )
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        df.to_csv(
-            f"water_targ_sweep_week_{season}_{flex_type}_{timestamp}.csv", index=False
-        )
+    df = pd.DataFrame(
+        {
+            "Annual Production (AF)": annual_production_values,
+            "Number of Allowed Shutdowns": allowed_shutdown_values,
+            "Total Water Production (m3)": water,
+            "Total Cost ($)": cost,
+            "Total Energy Cost ($)": energy_cost,
+            "Total Demand Cost ($)": demand_cost,
+            "Total Feed Cost ($)": feed_cost,
+            "Total Brine Cost ($)": brine_cost,
+            "Total Chemical Cost ($)": chemical_cost,
+            "Total Electricity Cost ($)": electricity_cost,
+            "Total Replacement Cost ($)": replacement_cost,
+            "Degree of Flexibility": deg_of_flex,
+            "Levelized Cost of Water ($/m3)": LCOW,
+        }
+    )
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    df.to_csv(
+        f"water_targ_sweep_week_{season}_{flex_type}_{timestamp}.csv", index=False
+    )
