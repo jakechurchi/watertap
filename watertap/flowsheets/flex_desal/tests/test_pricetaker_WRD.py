@@ -24,7 +24,6 @@ from watertap.flowsheets.flex_desal.params import FlexDesalParams
 from watertap.core.solvers import get_solver
 
 
-# Will want to change these back to mark.unit after Kestrel test
 @pytest.mark.unit
 def test_installed_idaes_pse_version_minimum():
     # This is probably not needed, but I would like to emphasize that users need to have
@@ -266,7 +265,7 @@ class TestPriceTakerWorkflow:
                 assert ro_skid.shutdown.fixed
                 assert ro_skid.shutdown() == 0
 
-    @pytest.mark.component
+    @pytest.mark.unit
     def test_add_expressions(self, system_frame):
         m, price_data, peak_hours = system_frame
 
@@ -313,7 +312,7 @@ class TestPriceTakerWorkflow:
         assert isinstance(m.total_cost, pyo.Expression)
         assert isinstance(m.LCOW, pyo.Expression)
 
-    @pytest.mark.component
+    @pytest.mark.unit
     def test_fixing_operations(self, system_frame):
         m, price_data, peak_hours = system_frame
         fs.fix_operations_for_first_four_days(m, peak_hours=peak_hours)
@@ -331,7 +330,7 @@ class TestPriceTakerWorkflow:
         # Set the water production target over the entire time period
         fs.constrain_water_production(m)
 
-    @pytest.mark.component
+    @pytest.mark.unit
     def test_flow_changes_penalty(self, system_frame):
         m, price_data, peak_hours = system_frame
         fs.add_flow_changes_penalty_binary(m)
@@ -385,7 +384,7 @@ class TestPriceTakerWorkflow:
 
         # pyo.assert_optimal_termination(results)
 
-    @pytest.mark.component
+    @pytest.mark.unit
     @pytest.mark.xfail
     # This test will fail if the model is not solved aready
     def test_post_solve_calculations(self, system_frame):
