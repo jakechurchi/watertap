@@ -162,7 +162,7 @@ def get_baseline_model(m):
     return bm
 
 
-def plot_function(m, n_time_points, output_stem, peak_hours=None):
+def plot_function(m, n_time_points, output_stem=None, peak_hours=None):
     time = np.linspace(0, n_time_points - 1, n_time_points)
     fig = plt.figure(figsize=(12, 12))
     gs = fig.add_gridspec(2, 1, height_ratios=[1, 1])
@@ -408,5 +408,6 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    fig.savefig(f"{output_stem}.png", dpi=600)
+    if output_stem is not None:
+        fig.savefig(f"{output_stem}.png", dpi=600)
     plt.show()
