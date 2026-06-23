@@ -291,7 +291,9 @@ def _begin_and_end_constraint(m):
         )
 
 
-def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
+def one_week(
+    annual_production_AF=13000, flex_type=None, season="summer", num_shutdowns=None
+):
 
     season_map = {
         "summer": "price_signals/wrd_pricesignal_summer_week.csv",
@@ -305,7 +307,7 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
         )
 
     flex_type_key = flex_type.lower()
-    valid_flex_types = {"both", "no_flex", "one_shutdown"}
+    valid_flex_types = {"both", "no_flex", "num_shutdowns"}
     if flex_type_key not in valid_flex_types:
         raise ValueError(
             "Invalid flex_type "
@@ -521,41 +523,41 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
     if flex_type_key == "no_flex":
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
-    if flex_type_key == "one_shutdown":
-        # Add constraint to allow for exactly one shutdown during the period for each RO train.
+    if flex_type_key == "num_shutdowns":
+        # Add constraint to allow for exactly num_shutdowns during the period for each RO train.
         @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
-        def one_shutdown_constraint(m_blk, i):
+        def num_shutdowns_constraint(m_blk, i):
             return (
                 sum(
                     m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
                     for d in m.set_days
                     for t in m.set_time
                 )
-                <= 1
+                <= num_shutdowns
             )
 
-        # Add constraint to allow for exactly one startup during the period for each RO train.
+        # Add constraint to allow for exactly num_startups during the period for each RO train.
         @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
-        def one_startup_constraint(m_blk, i):
+        def num_startups_constraint(m_blk, i):
             return (
                 sum(
                     m.period[d, t].reverse_osmosis.ro_skid[i].startup
                     for d in m.set_days
                     for t in m.set_time
                 )
-                <= 1
+                <= num_shutdowns
             )
 
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
-    # solver = get_solver()
+    solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.025
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap
+    # mip_gap = 0.025
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap
     # solver.options["MIPFocus"] = 2
     # solver.options["StartNodeLimit"] = (
     #     50000  # I think this will allow it to complete the partial solution I'm initializing above.
@@ -602,9 +604,10 @@ def one_week(annual_production_AF=13000, flex_type=None, season="summer"):
 
 if __name__ == "__main__":
     # Inputs
-    water_prod_targs = [15000]
+    water_prod_targs = [11000, 13000]
     season = "summer"
-    flex_type = "both"
+    flex_type = "num_shutdowns"
+    number_of_shutdowns = [0, 1, 2, 3, 4, 5]
 
     # Outputs
     water = []
@@ -620,43 +623,48 @@ if __name__ == "__main__":
     LCOW = []
 
     for annual_production in water_prod_targs:
-        print(
-            f"\n\nRunning optimization for annual production of {annual_production} AF..."
-        )
-        design_vars = one_week(
-            annual_production_AF=annual_production, flex_type=flex_type, season=season
-        )
-        water.append(design_vars["total_water_production"])
-        cost.append(design_vars["total_cost"])
-        energy_cost.append(design_vars["total_energy_cost"])
-        demand_cost.append(design_vars["total_demand_cost"])
-        feed_cost.append(design_vars["total_feed_cost"])
-        brine_cost.append(design_vars["total_brine_cost"])
-        chemical_cost.append(design_vars["total_chemical_cost"])
-        replacement_cost.append(design_vars["total_replacement_cost"])
-        deg_of_flex.append(design_vars["degree_of_flex"])
-        electricity_cost.append(
-            design_vars["total_demand_cost"] + design_vars["total_energy_cost"]
-        )
-        LCOW.append(design_vars["LCOW"])
+        for i in number_of_shutdowns:
+            print(
+                f"\n\nRunning optimization for annual production of {annual_production} AF..."
+            )
+            design_vars = one_week(
+                annual_production_AF=annual_production,
+                flex_type=flex_type,
+                season=season,
+                num_shutdowns=i,
+            )
+            water.append(design_vars["total_water_production"])
+            cost.append(design_vars["total_cost"])
+            energy_cost.append(design_vars["total_energy_cost"])
+            demand_cost.append(design_vars["total_demand_cost"])
+            feed_cost.append(design_vars["total_feed_cost"])
+            brine_cost.append(design_vars["total_brine_cost"])
+            chemical_cost.append(design_vars["total_chemical_cost"])
+            replacement_cost.append(design_vars["total_replacement_cost"])
+            deg_of_flex.append(design_vars["degree_of_flex"])
+            electricity_cost.append(
+                design_vars["total_demand_cost"] + design_vars["total_energy_cost"]
+            )
+            LCOW.append(design_vars["LCOW"])
 
-    df = pd.DataFrame(
-        {
-            "Annual Production (AF)": water_prod_targs,
-            "Total Water Production (m3)": water,
-            "Total Cost ($)": cost,
-            "Total Energy Cost ($)": energy_cost,
-            "Total Demand Cost ($)": demand_cost,
-            "Total Feed Cost ($)": feed_cost,
-            "Total Brine Cost ($)": brine_cost,
-            "Total Chemical Cost ($)": chemical_cost,
-            "Total Electricity Cost ($)": electricity_cost,
-            "Total Replacement Cost ($)": replacement_cost,
-            "Degree of Flexibility": deg_of_flex,
-            "Levelized Cost of Water ($/m3)": LCOW,
-        }
-    )
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    df.to_csv(
-        f"water_targ_sweep_week_{season}_{flex_type}_{timestamp}.csv", index=False
-    )
+        df = pd.DataFrame(
+            {
+                "Annual Production (AF)": water_prod_targs,
+                "Number of Allowed Shutdowns": i,
+                "Total Water Production (m3)": water,
+                "Total Cost ($)": cost,
+                "Total Energy Cost ($)": energy_cost,
+                "Total Demand Cost ($)": demand_cost,
+                "Total Feed Cost ($)": feed_cost,
+                "Total Brine Cost ($)": brine_cost,
+                "Total Chemical Cost ($)": chemical_cost,
+                "Total Electricity Cost ($)": electricity_cost,
+                "Total Replacement Cost ($)": replacement_cost,
+                "Degree of Flexibility": deg_of_flex,
+                "Levelized Cost of Water ($/m3)": LCOW,
+            }
+        )
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        df.to_csv(
+            f"water_targ_sweep_week_{season}_{flex_type}_{timestamp}.csv", index=False
+        )
