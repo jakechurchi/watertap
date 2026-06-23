@@ -315,9 +315,9 @@ class WRD_ROParams(UnitParams):
     minimum_recovery: float = 0.88
     nominal_recovery: float = 0.92
     maximum_recovery: float = 0.925
-    minimum_uptime: int = 1
-    minimum_downtime: int = 4
-    startup_delay: int = 8
+    minimum_uptime: int = 2
+    minimum_downtime: int = 2
+    startup_delay: int = 1
     allow_variable_recovery: bool = False
     replacement_types: list[str] = field(default_factory=list)
     replacement_costs: list[float] = field(default_factory=list)
@@ -341,15 +341,6 @@ class WRD_ROParams(UnitParams):
             "c": self.surrogate_c,
         }
 
-    def get_energy_intensity(self, flowrate):
-        """Returns the energy intensity for a given flowrate"""
-        # Placeholder implementation
-        coeffs = self.surrogate_coeffs
-        if self.surrogate_type == "quadratic_energy_intensity":
-            return coeffs["a"] + coeffs["b"] * flowrate + coeffs["c"] * flowrate**2
-
-        return None
-
 
 @dataclass
 class WRD_UFParams(UnitParams):
@@ -362,9 +353,9 @@ class WRD_UFParams(UnitParams):
     nominal_flowrate: float = 900
     maximum_flowrate: float = 989
     nominal_recovery: float = 1
-    minimum_uptime: int = 1
-    minimum_downtime: int = 4
-    startup_delay: int = 8
+    minimum_uptime: int = 2
+    minimum_downtime: int = 2
+    startup_delay: int = 1
     allow_variable_recovery: bool = False
 
     def __post_init__(self):
@@ -382,12 +373,3 @@ class WRD_UFParams(UnitParams):
             "b": self.surrogate_b,
             "c": self.surrogate_c,
         }
-
-    def get_energy_intensity(self, flowrate):
-        """Returns the energy intensity for a given flowrate"""
-        # Placeholder implementation
-        coeffs = self.surrogate_coeffs
-        if self.surrogate_type == "quadratic_energy_intensity":
-            return coeffs["a"] + coeffs["b"] * flowrate + coeffs["c"] * flowrate**2
-
-        return None

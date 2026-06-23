@@ -111,8 +111,6 @@ def wrd_fix_uf_recovery(m, uf_recovery):
         for pump in m.period[p].pretreatment.set_uf_pumps:
             uf_pump = m.period[p].pretreatment.uf_pumps[pump]
             uf_pump.recovery.fix(uf_recovery)
-            # Do NOT fix energy_intensity - it varies with flowrate
-            # Do NOT deactivate calculate_energy_intensity - it's needed to compute energy_intensity from flowrate
 
 
 def wrd_fix_ro_recovery(m, ro_recovery):
@@ -123,8 +121,6 @@ def wrd_fix_ro_recovery(m, ro_recovery):
         for skid in m.period[p].reverse_osmosis.set_ro_skids:
             ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
             ro_skid.recovery.fix(ro_recovery)
-            # Do NOT fix energy_intensity - it varies with flowrate
-            # Do NOT deactivate calculate_energy_intensity - it's needed to compute energy_intensity from flowrate
 
 
 def update_recovery_bounds(m, lb, ub):
@@ -162,7 +158,7 @@ def get_baseline_model(m):
     return bm
 
 
-def plot_function(m, n_time_points, output_stem=None, peak_hours=None):
+def wrd_plot_function(m, n_time_points, output_stem=None, peak_hours=None):
     time = np.linspace(0, n_time_points - 1, n_time_points)
     fig = plt.figure(figsize=(12, 12))
     gs = fig.add_gridspec(2, 1, height_ratios=[1, 1])

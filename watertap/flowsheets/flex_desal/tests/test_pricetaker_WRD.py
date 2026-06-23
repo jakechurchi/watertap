@@ -21,7 +21,7 @@ from idaes.apps.grid_integration import PriceTakerModel
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
-from watertap.core.solvers import get_solver
+from idaes.core.solvers import get_solver
 
 
 @pytest.mark.unit
@@ -91,7 +91,7 @@ class TestPriceTakerWorkflow:
         m.params = FlexDesalParams(
             start_date="2022-07-05 00:00:00",
             end_date="2022-07-15 00:00:00",
-            annual_production_AF=4000,  # Very low water production to ensure feasible with the extra constraints
+            annual_production_AF=4000,  # Very low water production to ensure feasiblity. The additional constraints force longer periods of downtime
             timestep_hours=1,
             include_onsite_solar=True,
             onsite_capacity=pv_capacity,
@@ -99,7 +99,6 @@ class TestPriceTakerWorkflow:
             + list(
                 range(18, 24)
             ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
-            rainy_days=1,  # This will reduce the maximum value for annual_production AF
             CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
             include_demand_response=True,
             max_daily_shutdowns=1,
@@ -192,7 +191,7 @@ class TestPriceTakerWorkflow:
 
         return m, price_data, peak_hours
 
-    @pytest.mark.component
+    @pytest.mark.unit
     def test_build(self, system_frame):
         m, price_data, peak_hours = system_frame
 
@@ -245,11 +244,10 @@ class TestPriceTakerWorkflow:
 
         # Limit the number of shutdowns per day
         fs.add_maximum_shutdowns(m)
+        assert hasattr(m, "max_shutdowns_per_24h_window")
 
         # Add the slow shutdown constraint
         fs.add_delayed_shutdown_constraints(m)
-
-        assert hasattr(m, "max_shutdowns_per_24h_window")
         assert hasattr(m, "posttreatment_unit_commitment_shutdown")
 
         # Limit hours when start-ups and shutdowns can occur to reflect when operators are on-site
@@ -333,7 +331,9 @@ class TestPriceTakerWorkflow:
     @pytest.mark.unit
     def test_flow_changes_penalty(self, system_frame):
         m, price_data, peak_hours = system_frame
+
         fs.add_flow_changes_penalty_binary(m)
+        assert isinstance(m.flow_changes_penalty, pyo.Expression)
 
         m.obj = pyo.Objective(
             expr=1e-4
@@ -370,7 +370,7 @@ class TestPriceTakerWorkflow:
         # This is line that is causing the failure on Linux. But I don't know why.
         # results = solver.solve(m)
 
-        # pyo.assert_optimal_termination(results)
+        pyo.assert_optimal_termination(results)
 
     @pytest.mark.component
     @pytest.mark.xfail
@@ -382,7 +382,7 @@ class TestPriceTakerWorkflow:
         solver.options["MIPGap"] = 0.03
         results = solver.solve(m)
 
-        # pyo.assert_optimal_termination(results)
+        pyo.assert_optimal_termination(results)
 
     @pytest.mark.unit
     @pytest.mark.xfail
