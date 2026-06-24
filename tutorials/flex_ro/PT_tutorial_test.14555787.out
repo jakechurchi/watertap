@@ -1,0 +1,15 @@
+ERROR: file or directory not found: test_pricetaker_WRD.py
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.2, pluggy-1.6.0
+rootdir: /var/spool/slurmd/job14555787
+plugins: idaes-flowsheet-processor-0.2, anyio-4.12.1, cov-7.0.0, nbmake-1.5.5
+collected 0 items
+
+=============================== warnings summary ===============================
+../../../../home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/_pytest/cacheprovider.py:475
+  /home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/_pytest/cacheprovider.py:475: PytestCacheWarning: could not create cache path /var/spool/slurmd/job14555787/.pytest_cache/v/cache/nodeids: [Errno 13] Permission denied: '/var/spool/slurmd/job14555787/pytest-cache-files-8thx2j8g'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================== 1 warning in 0.01s ==============================
