@@ -171,7 +171,7 @@ class TestPriceTakerWorkflow:
         m.append_lmp_data(lmp_data=price_data["Energy Rate"])
 
         m.build_multiperiod_model(
-            flowsheet_func=fs.build_desal_flowsheet,
+            flowsheet_func=fs.build_wrd_desal_flowsheet,
             flowsheet_options={"params": m.params},
         )
 
@@ -332,7 +332,7 @@ class TestPriceTakerWorkflow:
     def test_flow_changes_penalty(self, system_frame):
         m, price_data, peak_hours = system_frame
 
-        fs.add_flow_changes_penalty_binary(m)
+        fs.add_flow_changes_penalty(m)
         assert isinstance(m.flow_changes_penalty, pyo.Expression)
 
         m.obj = pyo.Objective(

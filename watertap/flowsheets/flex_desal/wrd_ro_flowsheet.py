@@ -109,7 +109,7 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
     )
 
 
-def build_desal_flowsheet(blk, params: um_params.FlexDesalParams):
+def build_wrd_desal_flowsheet(blk, params: um_params.FlexDesalParams):
     """
     Builds a flowsheet instance of the entire desalination process
 
@@ -200,7 +200,6 @@ def build_desal_flowsheet(blk, params: um_params.FlexDesalParams):
         )
         blk.net_power_consumption += -blk.power_generation.power_utilized
 
-        # IF BATTERY is included, NOT SURE THIS VARIABLE IS NEEDED!
         blk.excess_solar_power = Var(
             within=NonNegativeReals,
             units=pyunits.kW,
@@ -290,6 +289,48 @@ def add_demand_and_fixed_costs(m):
     )
 
 
+def constrain_water_production(m, baseline_production: float = None):
+    """Constrains the total water production rate"""
+
+    params: um_params.FlexDesalParams = m.params
+    if baseline_production is not None:
+        m.curtailment_fraction = Param(
+            initialize=params.curtailment_fraction,
+            mutable=True,
+            units=pyunits.dimensionless,
+            doc="Fraction of water production that is curtailed",
+        )
+
+        m.baseline_production = Param(
+            initialize=baseline_production,
+            mutable=True,
+            units=pyunits.m**3,
+            doc="Baseline water production",
+        )
+
+        m.water_production_target = Constraint(
+            expr=m.total_water_production
+            >= m.baseline_production * (1 - m.curtailment_fraction)
+        )
+
+    elif params.annual_production_AF is not None:
+        # Convert production rate from acre-ft/year to m^3/year
+        annual_production_m3 = params.annual_production_AF * 1233.48
+        m.production_target_abs = Param(
+            initialize=annual_production_m3 / 365 * params.num_days,
+            mutable=True,
+            units=pyunits.m**3,
+            doc="Absolute water production target",
+        )
+
+        m.water_production_target = Constraint(
+            expr=m.total_water_production >= m.production_target_abs
+        )
+
+    else:
+        raise ValueError("Water production targets not specified in params")
+
+
 def add_flow_costs(m):
     """Adds expressions for feed and brine costs"""
 
@@ -320,76 +361,52 @@ def add_flow_costs(m):
     )
 
 
-def add_flow_changes_penalty_binary(m):
-    # Add binary variables to track flowrate changes between consecutive periods
+def add_flow_changes_penalty(m):
+    # Add binary variables to track flowrate changes between consecutive time steps
     m.flow_changed = Var(
         m.set_days,
         m.set_time,
         range(1, m.params.wrd_ro.num_ro_skids + 1),
         within=Binary,
-        doc="Binary variable: 1 if RO skid flowrate changes from previous period, 0 otherwise",
+        doc="Binary variable: 1 if RO skid flowrate changes from previous time step, 0 otherwise",
     )
 
-    # Add binary variables to track UF pump flowrate changes between consecutive periods
+    # Add binary variables to track UF pump flowrate changes between consecutive time steps
     m.uf_flow_changed = Var(
         m.set_days,
         m.set_time,
         range(1, m.params.wrd_uf.num_uf_pumps + 1),
         within=Binary,
-        doc="Binary variable: 1 if UF pump flowrate changes from previous period, 0 otherwise",
+        doc="Binary variable: 1 if UF pump flowrate changes from previous time step, 0 otherwise",
     )
 
     # Add constraints to detect flowrate changes
-    # We need a big-M value for the constraint (use maximum flowrate as big-M)
-    big_M = m.params.wrd_ro.maximum_flowrate * 2
+    # Big-M value used for the constraint, based on max flowrate
+    big_M = 2 * m.params.wrd_ro.maximum_flowrate
+    big_M_uf = 2 * m.params.wrd_uf.maximum_flowrate
 
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
     def track_flow_changes(m_blk, d, t, i):
-        # Skip first time period of first day (no previous period to compare)
-        if d == 1 and t == 1:
+        # Skip first time step (no previous time step to compare)
+        if t == 1:
             return Constraint.Skip
 
         # Get current and previous period flowrates
         current_flow = m_blk.period[d, t].reverse_osmosis.ro_skid[i].feed_flowrate
+        prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
 
-        if t == 1:
-            # First hour of a day (not first day), compare to last hour of previous day
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .reverse_osmosis.ro_skid[i]
-                .feed_flowrate
-            )
-        else:
-            # Compare to previous hour in same day
-            prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
-
-        # If flows are different, flow_changed must be 1
-        # This constraint allows flow_changed to be 1 when |current - prev| > 0
-        # Using a tolerance-based approach: if difference > small threshold, binary = 1
         flow_diff = current_flow - prev_flow
 
-        # Note: This is a simplified constraint that encourages flow_changed = 1 when flow differs
-        # but doesn't strictly enforce it. For strict enforcement, you'd need indicator constraints
-        # or absolute value formulation which is more complex.
-        # Since we're minimizing, the solver will naturally set flow_changed = 0 when possible
         return m_blk.flow_changed[d, t, i] * big_M >= flow_diff
 
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_ro.num_ro_skids + 1))
     def track_flow_changes_neg(m_blk, d, t, i):
-        # Skip first time period of first day
-        if d == 1 and t == 1:
+        # Skip first time step
+        if t == 1:
             return Constraint.Skip
 
         current_flow = m_blk.period[d, t].reverse_osmosis.ro_skid[i].feed_flowrate
-
-        if t == 1:
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .reverse_osmosis.ro_skid[i]
-                .feed_flowrate
-            )
-        else:
-            prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
+        prev_flow = m_blk.period[d, t - 1].reverse_osmosis.ro_skid[i].feed_flowrate
 
         flow_diff = prev_flow - current_flow
 
@@ -400,48 +417,28 @@ def add_flow_changes_penalty_binary(m):
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
     def track_uf_flow_changes(m_blk, d, t, i):
         # Skip first time period of first day (no previous period to compare)
-        if d == 1 and t == 1:
+        if t == 1:
             return Constraint.Skip
 
         # Get current and previous period flowrates
         current_flow = m_blk.period[d, t].pretreatment.uf_pumps[i].feed_flowrate
-
-        if t == 1:
-            # First hour of a day (not first day), compare to last hour of previous day
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .pretreatment.uf_pumps[i]
-                .feed_flowrate
-            )
-        else:
-            # Compare to previous hour in same day
-            prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
+        prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
 
         # If flows are different, uf_flow_changed must be 1
         flow_diff = current_flow - prev_flow
-        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
 
         return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
 
     @m.Constraint(m.set_days, m.set_time, range(1, m.params.wrd_uf.num_uf_pumps + 1))
     def track_uf_flow_changes_neg(m_blk, d, t, i):
         # Skip first time period of first day
-        if d == 1 and t == 1:
+        if t == 1:
             return Constraint.Skip
 
         current_flow = m_blk.period[d, t].pretreatment.uf_pumps[i].feed_flowrate
-
-        if t == 1:
-            prev_flow = (
-                m_blk.period[d - 1, m_blk.set_time.last()]
-                .pretreatment.uf_pumps[i]
-                .feed_flowrate
-            )
-        else:
-            prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
+        prev_flow = m_blk.period[d, t - 1].pretreatment.uf_pumps[i].feed_flowrate
 
         flow_diff = prev_flow - current_flow
-        big_M_uf = m.params.wrd_uf.maximum_flowrate * 2
 
         # Capture negative direction of flow change
         return m_blk.uf_flow_changed[d, t, i] * big_M_uf >= flow_diff
@@ -523,8 +520,6 @@ def calculate_flexibility_metrics(
     baseline_electricity_cost=100000,
     baseline_replacement_cost=993,
 ):
-    # Should this really be included in this file?
-    # Don't love having to pass the baseline costs because they would change depending on the time horizon
     """Calculates flexibility metrics based on model results. Should be called after solving the model."""
 
     maximum_power = max(
@@ -607,48 +602,6 @@ def add_useful_expressions(m):
     m.total_emissions_cost = Expression(expr=sum(m.period[:, :].emissions_cost))
 
 
-def constrain_water_production(m, baseline_production: float = None):
-    """Constrains the total water production rate"""
-
-    params: um_params.FlexDesalParams = m.params
-    if baseline_production is not None:
-        m.curtailment_fraction = Param(
-            initialize=params.curtailment_fraction,
-            mutable=True,
-            units=pyunits.dimensionless,
-            doc="Fraction of water production that is curtailed",
-        )
-
-        m.baseline_production = Param(
-            initialize=baseline_production,
-            mutable=True,
-            units=pyunits.m**3,
-            doc="Baseline water production",
-        )
-
-        m.water_production_target = Constraint(
-            expr=m.total_water_production
-            >= m.baseline_production * (1 - m.curtailment_fraction)
-        )
-
-    elif params.annual_production_AF is not None:
-        # Convert production rate from acre-ft/year to m^3/year
-        annual_production_m3 = params.annual_production_AF * 1233.48
-        m.production_target_abs = Param(
-            initialize=annual_production_m3 / 365 * params.num_days,
-            mutable=True,
-            units=pyunits.m**3,
-            doc="Absolute water production target",
-        )
-
-        m.water_production_target = Constraint(
-            expr=m.total_water_production >= m.production_target_abs
-        )
-
-    else:
-        raise ValueError("Water production targets not specified in params")
-
-
 def begin_and_end_constraint(m):
     """Force RO train 1 op_mode to match between first and last timesteps."""
     period_points = list(m.period.index_set())
@@ -666,28 +619,25 @@ def begin_and_end_constraint(m):
         )
 
 
+### NOT USED IN THE TUTORIAL EXAMPLE - That might mean they aren't being tested? ###
 def fix_operations_for_first_four_days(m, peak_hours=None):
-    """Fix all RO trains to expected behavior for first four days. This could be some part of an initialization strat. to improve solve times."""
+    """Fix all RO trains to expected behavior for first four days. This could be some part of an initialization that improve solve times."""
     for d, p in m.period:
         if p <= 4 * 24:  # Assuming hourly time steps
             if p <= 2:
-                # Avoiding constraint that plant has to be on at first (and therefore last) time step.
+                # Avoiding constraint that plant has to be on at first time step.
                 pass
             elif peak_hours is not None and peak_hours[p]:
-                # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
-                # This is too strong to impose on model. Turning off during peak hours should be an output of the opt., not prescribed.
-                # m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
                 m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(
                     0
-                )  # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
+                )  # 4th skid off during peak hours
             else:
-                # Just ensure plant is on during the non-peak hours
+                # Ensure plant is on during non-peak hours
                 m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(
                     1
                 )  # Plant must be on
 
 
-### NOT USED IN THE TUTORIAL EXAMPLE - That might mean they aren't being tested? ###
 def add_delayed_shutdown_constraints(m):
     # Consider implmenting with the add_ramping_limits from IDAES price_taker_model
     """Adds the delayed shutdown constraints to the model"""
