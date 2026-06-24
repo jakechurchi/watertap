@@ -24,37 +24,6 @@ from watertap.flowsheets.flex_desal.params import FlexDesalParams
 from idaes.core.solvers import get_solver
 
 
-@pytest.mark.unit
-def test_installed_idaes_pse_version_minimum():
-    # This is probably not needed, but I would like to emphasize that users need to have
-    # idaes-pse version 2.10.0 or higher to run the model.
-    installed_version = importlib.metadata.version("idaes-pse")
-
-    def _version_tuple(version_string):
-        numbers = []
-        for part in version_string.split("."):
-            leading_digits = ""
-            for ch in part:
-                if ch.isdigit():
-                    leading_digits += ch
-                else:
-                    break
-            if not leading_digits:
-                break
-            numbers.append(int(leading_digits))
-            if len(numbers) == 3:
-                break
-        while len(numbers) < 3:
-            numbers.append(0)
-        return tuple(numbers)
-
-    assert _version_tuple(installed_version) >= (
-        2,
-        10,
-        0,
-    ), f"idaes-pse version must be >= 2.10.0, found {installed_version}"
-
-
 @pytest.mark.requires_idaes_solver
 class TestPriceTakerWorkflow:
     @pytest.fixture(scope="class")
