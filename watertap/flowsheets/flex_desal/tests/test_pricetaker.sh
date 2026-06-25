@@ -1,15 +1,22 @@
 #!/bin/bash
 #SBATCH --job-name=PT_tutorial_test
 #SBATCH --account=nawianalysis
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH --nodes=2
 #SBATCH --partition=short
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=PT_tutorial_test.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=PT_flowsheet_test.%j.out  # %j will be replaced with the job ID
 
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-pytest test_pricetaker_WRD.py
+
+# Run from repo root so pytest.ini testpaths discovery works
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
+
+# Run the flowsheet pricetaker test
+# Disable cache provider to avoid permission denied errors on shared filesystems
+python -m pytest "watertap/flowsheets/flex_desal/tests/test_pricetaker_WRD.py" --no-cov -p no:cacheprovider

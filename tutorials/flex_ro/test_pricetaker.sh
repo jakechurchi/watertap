@@ -14,10 +14,9 @@ module load anaconda3
 conda activate watertap-pricetaker
 
 # Run from repo root so pytest.ini testpaths discovery works
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "${REPO_ROOT}"
 
-# Run the tutorial test with explicit path
+# Run the tutorial pricetaker test
 # Disable cache provider to avoid permission denied errors on shared filesystems
 python -m pytest "tutorials/flex_ro/test_pricetaker_WRD.py" --no-cov -p no:cacheprovider
