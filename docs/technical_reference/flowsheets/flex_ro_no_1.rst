@@ -5,7 +5,8 @@ Flexible RO No 2
 Introduction
 ------------
 
-The Flexible RO (Reverse Osmosis) model is designed to simulate the performance of an RO system subject to variable electricity rates and optimize operations 
+The Flexible RO (Reverse Osmosis) model is designed to simulate the performance of an RO system subject to 
+variable electricity rates and optimize operations 
 Note this is not a stand alone flowsheet, but rather part of the pricetaker formulation in the tutorial.
 
 
