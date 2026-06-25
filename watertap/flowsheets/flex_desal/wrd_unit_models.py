@@ -1,4 +1,16 @@
-from idaes.apps.grid_integration import OperationModel
+#################################################################################
+# WaterTAP Copyright (c) 2020-2026, The Regents of the University of California,
+# through Lawrence Berkeley National Laboratory, Oak Ridge National Laboratory,
+# National Laboratory of the Rockies, and National Energy Technology
+# Laboratory (subject to receipt of any required approvals from the U.S. Dept.
+# of Energy). All rights reserved.
+#
+# Please see the files COPYRIGHT.md and LICENSE.md for full copyright and license
+# information, respectively. These files are also available online at the URL
+# "https://github.com/watertap-org/watertap/"
+#################################################################################
+
+
 from pyomo.environ import (
     Constraint,
     NonNegativeReals,
@@ -7,11 +19,13 @@ from pyomo.environ import (
     Var,
     units as pyunits,
 )
-from watertap.flowsheets.flex_desal import params as um_params
-from watertap.flowsheets.flex_desal.unit_models import _add_required_variables
 
 from idaes.core.surrogate.pysmo_surrogate import PysmoSurrogate
 from idaes.core.surrogate.surrogate_block import SurrogateBlock
+from idaes.apps.grid_integration import OperationModel
+
+from watertap.flowsheets.flex_desal import params as um_params
+from watertap.flowsheets.flex_desal.unit_models import _add_required_variables
 
 
 def ro_skid_operation_model(blk, params: um_params.WRD_ROParams):

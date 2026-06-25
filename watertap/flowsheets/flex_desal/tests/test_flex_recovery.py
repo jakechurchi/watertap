@@ -10,10 +10,9 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 import os
-
-import pyomo.environ as pyo
 import pytest
 import pandas as pd
+import pyomo.environ as pyo
 
 from idaes.apps.grid_integration import PriceTakerModel
 
@@ -28,7 +27,8 @@ solver = get_solver()
 @pytest.mark.requires_idaes_solver
 class TestPriceTakerWorkflow:
     @pytest.fixture(scope="class")
-    def system_frame(self):
+    @classmethod
+    def system_frame(cls):
         price_data_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "..",
