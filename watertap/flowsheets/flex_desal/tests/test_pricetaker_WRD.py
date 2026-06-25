@@ -21,7 +21,9 @@ from idaes.apps.grid_integration import PriceTakerModel
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
-from watertap.core.solvers import get_solver
+
+# from watertap.core.solvers import get_solver
+from idaes.core.solvers import get_solver
 
 
 # Will want to change these back to mark.unit after Kestrel test
@@ -374,7 +376,7 @@ class TestPriceTakerWorkflow:
         # pyo.assert_optimal_termination(results)
 
     @pytest.mark.component
-    @pytest.mark.xfail
+    # @pytest.mark.xfail
     # This test will fail if the user does not have a Gurobi license
     def test_gurobi_solve(self, system_frame):
         m, price_data, peak_hours = system_frame
@@ -386,7 +388,7 @@ class TestPriceTakerWorkflow:
         # pyo.assert_optimal_termination(results)
 
     @pytest.mark.component
-    @pytest.mark.xfail
+    # @pytest.mark.xfail
     # This test will fail if the model is not solved aready
     def test_post_solve_calculations(self, system_frame):
         m, price_data, peak_hours = system_frame
