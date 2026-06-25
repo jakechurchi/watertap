@@ -231,8 +231,9 @@ class TestPriceTakerWorkflow:
         solver.solve(m)
 
     @pytest.mark.component
-    # @pytest.mark.xfail
+    @pytest.mark.xfail
     # This test will fail if the user does not have a Gurobi license
+    # This test should be removed because gurobi can handle general nonlinear problems???
     def test_gurobi_util_solve(self, system_frame):
         m, price_data = system_frame
 

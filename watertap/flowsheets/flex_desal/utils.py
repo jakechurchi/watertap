@@ -52,7 +52,7 @@ def get_gurobi_solver_model(m, mip_gap=0.01, time_limit=3600, tee=True):
             solver.set_instance(m)
             return solver
 
-        if m.params.surrogate_type == "quadratic_surrogate":
+        if m.params.ro.surrogate_type == "quadratic_surrogate":
             # Model is quadratic, so Pyomo's writer can handle it.
             solver.set_instance(m)
             return solver
