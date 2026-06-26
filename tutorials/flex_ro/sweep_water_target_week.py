@@ -607,7 +607,7 @@ if __name__ == "__main__":
     water_prod_targs = [11000, 13000]
     season = "summer"
     flex_type = "num_shutdowns"
-    number_of_shutdowns = [0, 1, 2, 3, 4, 5]
+    number_of_shutdowns = [6, 7]
 
     # Outputs
     water = []
