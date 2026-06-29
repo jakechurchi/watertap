@@ -451,12 +451,16 @@ def main(season, flex_type, num_flexible_trains=4):
         {
             "startup_delay": 2,  # hours
             "minimum_downtime": 2,  # hours
-            "minimum_flowrate": 520,  # m3/hr
+            "minimum_flowrate": 200,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
             "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
-            "surrogate_type": "PySMO_polyfit",
-            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
+            # "surrogate_type": "PySMO_polyfit",
+            # "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
+            "surrogate_type": "quadratic_energy_intensity",
+            "surrogate_a": 0.38,
+            "surrogate_b": 0,
+            "surrogate_c": 0,
             "minimum_recovery": 0.88,
             "nominal_recovery": 0.925,
             "maximum_recovery": 0.925,
@@ -613,7 +617,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.0013
+    mip_gap = 0.02
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -676,9 +680,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
-    flex_types = ["no_flex", "both"]
-    num_flex_skids = [1]
+    seasons = ["winter"]
+    flex_types = ["no_flex"]
+    num_flex_skids = [2]
 
     results_rows = []
 
