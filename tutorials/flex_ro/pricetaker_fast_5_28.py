@@ -613,9 +613,9 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 0.5 %
+    solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -629,17 +629,17 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
     if season_key == "winter":
-        baseline_electricity_cost = 25005  # $
+        baseline_electricity_cost = 25701  # $
     else:
-        baseline_electricity_cost = 50843  # $/kWh
+        baseline_electricity_cost = 34653  # $
 
     fs.calculate_replacement_costs(m)
     fs.calculate_flexibility_metrics(
         m,
-        baseline_power=1127,
+        baseline_power=1101,  # kW, from the baseline with steady production and 12000 AF/yr water production
         baseline_electricity_cost=baseline_electricity_cost,
         baseline_replacement_cost=992,
-    )  # 1080 is for 1200 AF yearly target
+    )
 
     design_var_values = m.get_design_var_values()
     filtered_design_var_values = {
@@ -676,9 +676,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
+    seasons = ["summer"]
     flex_types = ["no_flex"]
-    num_flex_skids = [0]
+    num_flex_skids = [1, 2]
 
     results_rows = []
 
