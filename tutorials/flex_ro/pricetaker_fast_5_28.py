@@ -346,8 +346,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
+        "summer": "price_signals/wrd_pricesignal_test_30.csv",
+        "winter": "price_signals/wrd_pricesignal_test_20.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -439,9 +439,9 @@ def main(season, flex_type, num_flexible_trains=4):
             "nominal_flowrate": 900,
             "maximum_flowrate": 989,
             "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 0.156,
-            "surrogate_b": 0,
-            "surrogate_c": 0,
+            "surrogate_a": 2.71e-1,
+            "surrogate_b": -3.32e-4,
+            "surrogate_c": 2.39e-7,
             "nominal_recovery": 0.96,
             "num_uf_pumps": 3,
         }
@@ -451,16 +451,12 @@ def main(season, flex_type, num_flexible_trains=4):
         {
             "startup_delay": 2,  # hours
             "minimum_downtime": 2,  # hours
-            "minimum_flowrate": 100,  # m3/hr
+            "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
             "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
-            # "surrogate_type": "PySMO_polyfit",
-            # "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
-            "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 0.38,
-            "surrogate_b": 0,
-            "surrogate_c": 0,
+            "surrogate_type": "PySMO_polyfit",
+            "surrogate_file": script_dir / "ro_SEC_poly_fit_order_1.json",
             "minimum_recovery": 0.88,
             "nominal_recovery": 0.925,
             "maximum_recovery": 0.925,
@@ -610,7 +606,7 @@ def main(season, flex_type, num_flexible_trains=4):
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     # ADDING FOR TESTING
-    m.enforce_flexibility = pyo.Constraint(expr=m.flow_changes_penalty >= 500)
+    # m.enforce_flexibility = pyo.Constraint(expr=m.flow_changes_penalty >= 500)
 
     print(degrees_of_freedom(m))
 
@@ -620,7 +616,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.002
+    mip_gap = 0.015
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -683,7 +679,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter"]
+    seasons = ["summer", "winter"]
     flex_types = ["both"]
     num_flex_skids = [2]
 
