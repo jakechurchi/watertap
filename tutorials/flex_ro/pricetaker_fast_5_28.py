@@ -439,9 +439,9 @@ def main(season, flex_type, num_flexible_trains=4):
             "nominal_flowrate": 900,
             "maximum_flowrate": 989,
             "surrogate_type": "quadratic_energy_intensity",
-            "surrogate_a": 2.71e-1,
-            "surrogate_b": -3.32e-4,
-            "surrogate_c": 2.39e-7,
+            "surrogate_a": 0.156,
+            "surrogate_b": 0,
+            "surrogate_c": 0,
             "nominal_recovery": 0.96,
             "num_uf_pumps": 3,
         }
@@ -451,7 +451,7 @@ def main(season, flex_type, num_flexible_trains=4):
         {
             "startup_delay": 2,  # hours
             "minimum_downtime": 2,  # hours
-            "minimum_flowrate": 200,  # m3/hr
+            "minimum_flowrate": 100,  # m3/hr
             "nominal_flowrate": 602,
             "maximum_flowrate": 635,
             "allow_variable_recovery": flex_type_key not in {"flow", "no_flex"},
@@ -609,6 +609,9 @@ def main(season, flex_type, num_flexible_trains=4):
     if flex_type_key == "no_flex" and num_flexible_trains == 0:
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
+    # ADDING FOR TESTING
+    m.enforce_flexibility = pyo.Constraint(expr=m.flow_changes_penalty >= 500)
+
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
@@ -617,7 +620,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.001
+    mip_gap = 0.002
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
