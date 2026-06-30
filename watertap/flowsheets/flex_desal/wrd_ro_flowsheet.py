@@ -331,6 +331,16 @@ def constrain_water_production(m, baseline_production: float = None):
         raise ValueError("Water production targets not specified in params")
 
 
+def add_useful_expressions(m):
+    """Defines useful expressions for custom objective functions"""
+
+    m.total_water_revenue = Expression(expr=sum(m.period[:, :].water_revenue))
+    m.total_demand_response_revenue = Expression(
+        expr=sum(m.period[:, :].demand_response_revenue)
+    )
+    m.total_emissions_cost = Expression(expr=sum(m.period[:, :].emissions_cost))
+
+
 def add_flow_costs(m):
     """Adds expressions for feed and brine costs"""
 
@@ -590,16 +600,6 @@ def calculate_flexibility_metrics(
     m.energy_capacity = Var(initialize=discharge_energy_capacity)
     m.power_capacity = Var(initialize=discharge_power_capacity)
     m.LVOF = Var(initialize=LVOF)
-
-
-def add_useful_expressions(m):
-    """Defines useful expressions for custom objective functions"""
-
-    m.total_water_revenue = Expression(expr=sum(m.period[:, :].water_revenue))
-    m.total_demand_response_revenue = Expression(
-        expr=sum(m.period[:, :].demand_response_revenue)
-    )
-    m.total_emissions_cost = Expression(expr=sum(m.period[:, :].emissions_cost))
 
 
 def begin_and_end_constraint(m):
