@@ -1,0 +1,74 @@
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-06-29 23:24:12 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+3692
+Set parameter TokenServer to value "10.60.1.73"
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.002
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.002
+
+Optimize a model with 16607 rows, 15795 columns and 41787 nonzeros
+Model fingerprint: 0x25c05b21
+Model has 168 quadratic objective terms
+Model has 3024 quadratic constraints
+Variable types: 11259 continuous, 4536 integer (4536 binary)
+Coefficient statistics:
+  Matrix range     [3e-02, 2e+03]
+  QMatrix range    [1e+00, 1e+00]
+  QLMatrix range   [1e+00, 1e+00]
+  Objective range  [7e-06, 5e-03]
+  QObjective range [2e-04, 2e-04]
+  Bounds range     [9e-01, 1e+03]
+  RHS range        [1e+00, 3e+05]
+  QRHS range       [2e-01, 4e-01]
+Presolve removed 9012 rows and 10321 columns
+Presolve time: 0.07s
+Presolved: 10283 rows, 5475 columns, 27832 nonzeros
+Presolved model has 672 bilinear constraint(s)
+
+Solving non-convex MIQCP
+
+Variable types: 2726 continuous, 2749 integer (2749 binary)
+
+Root relaxation: objective 1.109002e+01, 14365 iterations, 1.27 seconds (1.87 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0   11.09002    0  324          -   11.09002      -     -    1s
+H    0     0                      11.0900246   11.09002  0.00%     -    1s
+     0     0   11.09002    0  324   11.09002   11.09002  0.00%     -    1s
+
+Explored 1 nodes (15983 simplex iterations) in 1.61 seconds (2.26 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 1: 11.09 
+
+Optimal solution found (tolerance 2.00e-03)
+Best objective 1.109002461182e+01, best bound 1.109002461182e+01, gap 0.0000%
+m.flow_changes_penalty(): 0.0
+Total operational cost: 110900.25
+Maximum power (kW): 1091.18
+Discharge energy capacity (kWh): 1650.36
+Charge energy capacity (kWh): 0.00
+Levelized Cost of Flexibility ($/kWh): 0.15
+{'fixed_demand_cost': 4805.488247423441, 'variable_demand_cost': 2581.5415967300237, 'fixed_monthly_cost': 171938.17204301074, 'total_water_production': 282179.6712328764, 'total_energy_cost': 18068.70339285301, 'total_demand_cost': 7387.029844153465, 'total_customer_cost': 0.0, 'total_feed_cost': 50843.18400592369, 'total_brine_cost': 15303.79838578301, 'total_chemical_cost': 19297.53048944823, 'total_water_revenue': 0.0, 'total_demand_response_revenue': -0.0, 'total_emissions_cost': 0.0, 'total_op_cost': 110900.2461181614, 'fixed_cost': 121551.98252688172, 'total_cost': 232452.22864504313, 'LCOW': 0.8237738304443825, 'degree_of_flex': 0.0, 'total_replacement_cost': 992.3107078853046, 'maximum_power': 1091.1764410271326, 'energy_capacity': 1650.3579074417694, 'power_capacity': 9.823558972867675, 'round_trip_efficiency': 0, 'LVOF': 0.14880255353791705}
+Saved operation variable results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_result_winter_both_2_flexible_trains.csv
+Saved summary results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_pricetaker_summary_results_20260629_232417.csv

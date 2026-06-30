@@ -1,0 +1,124 @@
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-06-30 09:52:02 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+3692
+Set parameter TokenServer to value "10.60.1.73"
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.002
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.002
+
+Optimize a model with 16608 rows, 15795 columns and 44139 nonzeros
+Model fingerprint: 0x9a51c2a5
+Model has 168 quadratic objective terms
+Model has 3024 quadratic constraints
+Variable types: 11259 continuous, 4536 integer (4536 binary)
+Coefficient statistics:
+  Matrix range     [3e-02, 2e+03]
+  QMatrix range    [1e+00, 1e+00]
+  QLMatrix range   [1e+00, 1e+00]
+  Objective range  [7e-06, 5e-03]
+  QObjective range [2e-04, 2e-04]
+  Bounds range     [9e-01, 1e+03]
+  RHS range        [1e+00, 3e+05]
+  QRHS range       [2e-01, 4e-01]
+Presolve removed 8882 rows and 10588 columns
+Presolve time: 0.13s
+Presolved: 10414 rows, 5208 columns, 30951 nonzeros
+Presolved model has 672 bilinear constraint(s)
+
+Solving non-convex MIQCP
+
+Variable types: 2726 continuous, 2482 integer (2481 binary)
+
+Root relaxation: objective 1.111353e+01, 13114 iterations, 0.96 seconds (1.49 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0   11.11353    0  345          -   11.11353      -     -    1s
+     0     0   11.11353    0  412          -   11.11353      -     -    1s
+     0     0   11.11353    0  409          -   11.11353      -     -    1s
+     0     0   11.11353    0  131          -   11.11353      -     -    2s
+     0     0   11.11353    0  174          -   11.11353      -     -    2s
+     0     0   11.11353    0  146          -   11.11353      -     -    2s
+     0     0   11.11353    0  155          -   11.11353      -     -    2s
+     0     0   11.11353    0  131          -   11.11353      -     -    2s
+     0     0   11.11353    0  131          -   11.11353      -     -    2s
+H    0     0                      11.2796914   11.11353  1.47%     -    4s
+H    0     0                      11.1808567   11.11353  0.60%     -    4s
+H    0     0                      11.1400255   11.11353  0.24%     -    4s
+H    0     0                      11.1400253   11.11353  0.24%     -    5s
+     0     2   11.11353    0  131   11.14003   11.11353  0.24%     -    5s
+H   95   200                      11.1400252   11.11555  0.22%   398    6s
+H   99   200                      11.1400252   11.11555  0.22%   394    6s
+H  258   324                      11.1400252   11.11555  0.22%   246    6s
+H  275   324                      11.1400251   11.11555  0.22%   241    6s
+*  950   957              21      11.1400246   11.11555  0.22%   186    9s
+  1530  1613   11.12461   41  503   11.14002   11.11614  0.21%   161   10s
+  4254  4330   11.13702  110  433   11.14002   11.11654  0.21%   144   15s
+  6784  6767   11.13999  223  275   11.14002   11.11654  0.21%   140   22s
+  8149  8167   11.12112   16  465   11.14002   11.11654  0.21%   142   25s
+  9534  9540   11.12883   64  421   11.14002   11.11654  0.21%   145   30s
+ 11284 11186   11.13742  118  412   11.14002   11.11654  0.21%   150   36s
+ 12351 11684   11.13999  238  104   11.14002   11.11654  0.21%   153   40s
+ 12360 11690   11.13799  207  146   11.14002   11.11654  0.21%   153   46s
+ 12363 11697   11.11654   12  312   11.14002   11.11654  0.21%   155   50s
+ 12423 11764   11.11654   16  450   11.14002   11.11654  0.21%   156   55s
+ 12814 11993   11.12693   22  438   11.14002   11.11654  0.21%   160   61s
+ 13027 12082   11.12803   25  375   11.14002   11.11654  0.21%   166   65s
+ 13371 12276   11.13072   29  382   11.14002   11.11654  0.21%   174   70s
+ 13633 12461   11.12986   34  360   11.14002   11.11654  0.21%   178   75s
+ 14330 12945   11.13476   47  541   11.14002   11.11654  0.21%   186   81s
+ 14966 13345   11.13626   63  453   11.14002   11.11654  0.21%   190   85s
+ 16047 13964   11.13817   85  513   11.14002   11.11654  0.21%   201   91s
+ 16735 14419   11.13894   93  440   11.14002   11.11654  0.21%   204   95s
+ 17651 14981   11.13891  101  442   11.14002   11.11654  0.21%   209  100s
+ 18989 15725   11.13899  103  588   11.14002   11.11654  0.21%   217  106s
+ 19791 16133   11.13945  105  294   11.14002   11.11660  0.21%   228  110s
+ 21227 16938   11.12660   41  119   11.14002   11.11661  0.21%   237  117s
+ 22498 17891   11.12535   56  301   11.14002   11.11667  0.21%   241  121s
+ 24106 18940   11.13945  130  301   11.14002   11.11731  0.20%   241  125s
+ 25887 19672   11.14002  183  320   11.14002   11.11769  0.20%   243  130s
+ 27778 20685   11.13981   90  148   11.14002   11.11769  0.20%   245  135s
+
+Cutting planes:
+  Learned: 9
+  Gomory: 1
+  Cover: 26
+  MIR: 13
+  Flow cover: 22
+  RLT: 313
+
+Explored 28828 nodes (7217980 simplex iterations) in 137.40 seconds (267.84 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 6: 11.14 11.14 11.14 ... 11.2797
+
+Optimal solution found (tolerance 2.00e-03)
+Best objective 1.114002461182e+01, best bound 1.111803549636e+01, gap 0.1974%
+m.flow_changes_penalty(): 500.0
+Total operational cost: 110900.25
+Maximum power (kW): 1091.18
+Discharge energy capacity (kWh): 1650.36
+Charge energy capacity (kWh): 0.00
+Levelized Cost of Flexibility ($/kWh): 0.15
+{'fixed_demand_cost': 4805.488247423439, 'variable_demand_cost': 2581.5415967300223, 'fixed_monthly_cost': 171938.17204301074, 'total_water_production': 282179.6712328764, 'total_energy_cost': 18068.703392852996, 'total_demand_cost': 7387.029844153461, 'total_customer_cost': 0.0, 'total_feed_cost': 50843.18400592359, 'total_brine_cost': 15303.798385783006, 'total_chemical_cost': 19297.53048944822, 'total_water_revenue': 0.0, 'total_demand_response_revenue': -0.0, 'total_emissions_cost': 0.0, 'total_op_cost': 110900.24611816129, 'fixed_cost': 121551.98252688172, 'total_cost': 232452.228645043, 'LCOW': 0.823773830444382, 'degree_of_flex': 0.0, 'total_replacement_cost': 992.3107078853046, 'maximum_power': 1091.1764410271321, 'energy_capacity': 1650.3579074418649, 'power_capacity': 9.823558972868243, 'round_trip_efficiency': 0, 'LVOF': 0.14880255353791946}
+Saved operation variable results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_result_winter_both_2_flexible_trains.csv
+Saved summary results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_pricetaker_summary_results_20260630_095423.csv
