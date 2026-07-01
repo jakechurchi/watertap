@@ -616,7 +616,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.015
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -689,9 +689,9 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
-    flex_types = ["no_flex"]
-    num_flex_skids = [0]
+    seasons = ["summer"]
+    flex_types = ["flow"]
+    num_flex_skids = [2]
 
     results_rows = []
 
