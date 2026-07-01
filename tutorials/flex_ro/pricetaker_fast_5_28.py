@@ -346,8 +346,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_test_dp_30.csv",
-        "winter": "price_signals/wrd_pricesignal_test_dp_20.csv",
+        "summer": "price_signals/wrd_pricesignal_test_dp_15.csv",
+        "winter": "price_signals/wrd_pricesignal_test_dp_12.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -616,7 +616,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.015
+    mip_gap = 0.0095
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
