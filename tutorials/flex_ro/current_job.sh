@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=PT
 #SBATCH --account=nawianalysis
-#SBATCH --time=03:00:00
+#SBATCH --time=06:00:00
 #SBATCH --nodes=2
-#SBATCH --partition=short
+#SBATCH --partition=standard
 #SBATCH -L gurobi:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
