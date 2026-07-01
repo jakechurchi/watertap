@@ -346,8 +346,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_test_dp_15.csv",
-        "winter": "price_signals/wrd_pricesignal_test_dp_12.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_TOU_8.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week_TOU_8.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -616,7 +616,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.011
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -632,9 +632,19 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
     if season_key == "winter":
-        baseline_electricity_cost = 25701  # $
+        if selected_price_signal_stem.upper().endswith("TOU_8"):
+            baseline_electricity_cost = 1
+        elif selected_price_signal_stem.upper().endswith("RTP"):
+            baseline_electricity_cost = 134639
+        else:
+            baseline_electricity_cost = 25701  # $
     else:
-        baseline_electricity_cost = 34653  # $
+        if selected_price_signal_stem.upper().endswith("TOU_8"):
+            baseline_electricity_cost = 1
+        elif selected_price_signal_stem.upper().endswith("RTP"):
+            baseline_electricity_cost = 101576
+        else:
+            baseline_electricity_cost = 34653  # $
 
     fs.calculate_replacement_costs(m)
     fs.calculate_flexibility_metrics(
@@ -680,8 +690,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
-    flex_types = ["both"]
-    num_flex_skids = [2]
+    flex_types = ["no_flex"]
+    num_flex_skids = [0]
 
     results_rows = []
 
