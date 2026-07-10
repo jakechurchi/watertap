@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-def op_plot_from_data(filename):
+def op_plot_from_data(filename, data_type="optimization_results"):
     script_dir = Path(__file__).resolve().parent
     file_path = Path(filename)
     if not file_path.is_absolute():
@@ -16,38 +16,109 @@ def op_plot_from_data(filename):
 
     df = pd.read_csv(file_path)
 
-    # Update these names to match the columns in the CSV you want to plot.
-    column_names = {
-        "total_energy": "net_power_consumption",
-        "ro1_energy": "reverse_osmosis.ro_skid[1].power_consumption",
-        "ro2_energy": "reverse_osmosis.ro_skid[2].power_consumption",
-        "ro3_energy": "reverse_osmosis.ro_skid[3].power_consumption",
-        "ro4_energy": "reverse_osmosis.ro_skid[4].power_consumption",
-        "uf1_energy": "pretreatment.uf_pumps[1].power_consumption",
-        "uf2_energy": "pretreatment.uf_pumps[2].power_consumption",
-        "uf3_energy": "pretreatment.uf_pumps[3].power_consumption",
-        "elec_price": "LMP",
-        "prod": "posttreatment.product_flowrate",
-        "train_1_flows": "reverse_osmosis.ro_skid[1].product_flowrate",
-        "train_2_flows": "reverse_osmosis.ro_skid[2].product_flowrate",
-        "train_3_flows": "reverse_osmosis.ro_skid[3].product_flowrate",
-        "train_4_flows": "reverse_osmosis.ro_skid[4].product_flowrate",
-        "peak_hours": "peak_hour",
-    }
+    # Column names depend on data_type
+    if data_type == "optimization_results":
+        column_names = {
+            "total_energy": "net_power_consumption",
+            "ro1_energy": "reverse_osmosis.ro_skid[1].power_consumption",
+            "ro2_energy": "reverse_osmosis.ro_skid[2].power_consumption",
+            "ro3_energy": "reverse_osmosis.ro_skid[3].power_consumption",
+            "ro4_energy": "reverse_osmosis.ro_skid[4].power_consumption",
+            "uf1_energy": "pretreatment.uf_pumps[1].power_consumption",
+            "uf2_energy": "pretreatment.uf_pumps[2].power_consumption",
+            "uf3_energy": "pretreatment.uf_pumps[3].power_consumption",
+            "elec_price": "LMP",
+            "prod": "posttreatment.product_flowrate",
+            "train_1_flows": "reverse_osmosis.ro_skid[1].product_flowrate",
+            "train_2_flows": "reverse_osmosis.ro_skid[2].product_flowrate",
+            "train_3_flows": "reverse_osmosis.ro_skid[3].product_flowrate",
+            "train_4_flows": "reverse_osmosis.ro_skid[4].product_flowrate",
+            "peak_hours": "peak_hour",
+        }
+    elif data_type == "plant_data":
+        # For plant data, flowrates are stored as percentages and power is pre-aggregated
+        max_perm_flowrate = 569.0  # m3/hr
+        column_names = {
+            "total_energy": None,  # Will be computed
+            "ro1_energy": "RO_train_1_kW",
+            "ro2_energy": "RO_train_2_kW",
+            "ro3_energy": "RO_train_3_kW",
+            "ro4_energy": "RO_train_4_kW",
+            "uf1_energy": "UFFeedPumps_1_kW",
+            "uf2_energy": "UFFeedPumps_2_kW",
+            "uf3_energy": "UFFeedPumps_3_kW",
+            "elec_price": "LMP",
+            "prod": None,  # Will be computed from flowrate percentages
+            "train_1_flows": ("train_1_flow_pct", max_perm_flowrate),
+            "train_2_flows": ("train_2_flow_pct", max_perm_flowrate),
+            "train_3_flows": ("train_3_flow_pct", max_perm_flowrate),
+            "train_4_flows": ("train_4_flow_pct", max_perm_flowrate),
+            "peak_hours": "peak_hour",
+        }
+        # Compute total energy as sum of all power columns
+        power_cols = [
+            "RO_train_1_kW",
+            "RO_train_2_kW",
+            "RO_train_3_kW",
+            "RO_train_4_kW",
+            "UFFeedPumps_1_kW",
+            "UFFeedPumps_2_kW",
+            "UFFeedPumps_3_kW",
+            "UVAOP_kW",
+        ]
+        df["_computed_total_energy"] = df[power_cols].sum(axis=1)
+        # Compute total flowrate from percentages
+        df["_computed_prod"] = (
+            df[
+                [
+                    "train_1_flow_pct",
+                    "train_2_flow_pct",
+                    "train_3_flow_pct",
+                    "train_4_flow_pct",
+                ]
+            ].sum(axis=1)
+            * max_perm_flowrate
+            / 100.0
+        )
+    else:
+        raise ValueError(
+            f"Unsupported data_type '{data_type}'. Valid options are: "
+            "'optimization_results' and 'plant_data'."
+        )
 
     def get_series(series_name, required=True):
-        column_name = column_names[series_name]
-        if column_name is None:
-            if required:
+        spec = column_names[series_name]
+
+        # Handle computed columns for plant_data
+        if spec is None:
+            if series_name == "total_energy" and data_type == "plant_data":
+                return df["_computed_total_energy"].to_numpy()
+            elif series_name == "prod" and data_type == "plant_data":
+                return df["_computed_prod"].to_numpy()
+            elif required:
                 raise KeyError(
-                    f"Column name for '{series_name}' has not been configured yet."
+                    f"Column for '{series_name}' has not been configured or is not "
+                    f"available for data_type='{data_type}'."
                 )
             return None
-        if column_name not in df.columns:
-            raise KeyError(
-                f"Column '{column_name}' for '{series_name}' was not found in {file_path}."
-            )
-        return df[column_name].to_numpy()
+
+        # Handle percentage-to-flowrate conversion for plant_data
+        if isinstance(spec, tuple):
+            pct_col, max_flow = spec
+            if pct_col not in df.columns:
+                raise KeyError(
+                    f"Column '{pct_col}' for '{series_name}' was not found in {file_path}."
+                )
+            return df[pct_col].to_numpy() * max_flow / 100.0
+
+        # Handle regular column lookups
+        if spec not in df.columns:
+            if required:
+                raise KeyError(
+                    f"Column '{spec}' for '{series_name}' was not found in {file_path}."
+                )
+            return None
+        return df[spec].to_numpy()
 
     total_energy = get_series("total_energy")
     n_time_points = len(total_energy)
@@ -162,17 +233,22 @@ def op_plot_from_data(filename):
     ax_energy.grid(False)
 
     ax_price = ax_energy.twinx()
-    elec_price = get_series("elec_price")
-    ax_price.plot(
-        time + 0.5,
-        elec_price,
-        label="Electricity Cost ($/kWh)",
-        color="orange",
-        linestyle="--",
-        linewidth=2,
-    )
-    ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
-    ax_price.set_ylim(0, max(elec_price) + 0.03)
+    elec_price = get_series("elec_price", required=False)
+    if elec_price is not None and not np.all(np.isnan(elec_price)):
+        ax_price.plot(
+            time + 0.5,
+            elec_price,
+            label="Electricity Cost ($/kWh)",
+            color="orange",
+            linestyle="--",
+            linewidth=2,
+        )
+        ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
+        ax_price.set_ylim(0, np.nanmax(elec_price) + 0.03)
+    else:
+        ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
+        ax_price.set_ylim(0, 1)
+        ax_price.set_visible(False)
 
     handle1, label1 = ax_energy.get_legend_handles_labels()
     handle2, label2 = ax_price.get_legend_handles_labels()
@@ -251,9 +327,14 @@ def op_plot_from_data(filename):
         a.tick_params(axis="both", labelsize=11)
 
     fig.tight_layout()
-    # fig.savefig(f"{output_stem}.png", dpi=600)
+    fig.savefig("wrd_aug_week_op_data.png", dpi=600)
     plt.show()
 
 
-filename = "wrd_result_summer_both_4_flexible_trains.csv"
-op_plot_from_data(filename)
+# Optimization Results
+# filename = "wrd_result_summer_both_4_flexible_trains.csv"
+
+# Plant Data
+filename = "hourly_operation_breakdown_week.csv"
+
+op_plot_from_data(filename, data_type="plant_data")
