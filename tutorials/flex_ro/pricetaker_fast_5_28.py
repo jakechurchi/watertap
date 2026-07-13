@@ -364,10 +364,9 @@ def main(season, flex_type, num_flexible_trains=4):
         )
 
     selected_price_signal_stem = Path(season_map[season_key]).stem
-    # output_suffix = (
-    #     f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
-    # )
-    output_suffix = "comp_to_plant_data"
+    output_suffix = (
+        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
+    )
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
     if selected_price_signal_stem.upper().endswith("TOU_8"):
@@ -409,8 +408,8 @@ def main(season, flex_type, num_flexible_trains=4):
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=12000
-        * 1.2602,  # This is to compare against the plant data
+        annual_production_AF=12000,
+        # * 1.2602,  # This is to compare against the plant data
         timestep_hours=timestep_hours,
         include_onsite_solar=False,
         onsite_capacity=pv_capacity,
@@ -618,7 +617,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.0175
+    mip_gap = 0.02
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -692,7 +691,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["summer"]
-    flex_types = ["both"]
+    flex_types = ["no_flex"]
     num_flex_skids = [4]
 
     results_rows = []
