@@ -32,7 +32,7 @@ from idaes.apps.grid_integration import PriceTakerModel
 
 def plot_function(m, n_time_points, output_stem, peak_hours=None):
     time = np.linspace(0, n_time_points - 1, n_time_points)
-    fig = plt.figure(figsize=(12, 12))
+    fig = plt.figure(figsize=(8, 8))
     gs = fig.add_gridspec(2, 1, height_ratios=[1, 1])
     ax_energy = fig.add_subplot(gs[0])
     ax_trains = fig.add_subplot(gs[1], sharex=ax_energy)
@@ -153,37 +153,45 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
     ax_energy.plot(
         time + 0.5,
         total_energy,
-        label="Total Energy Consumption",
+        label="Total Power",
         color="black",
         linestyle="--",
         linewidth=2,
     )
     ax_energy.set_ylim(0, 2500)
-    ax_energy.set_ylabel("Energy Consumption (kWh)", fontsize=12)
-    ax_energy.set_title(
-        "Energy Consumption and Electricity Price", fontsize=14, fontweight="bold"
-    )
+    ax_energy.set_ylabel("kW", fontsize=12)
     ax_energy.grid(False)
 
     ax_price = ax_energy.twinx()
-    elec_price = m._config.lmp_data
+    elec_price = np.asarray(m._config.lmp_data, dtype=float)
+    if elec_price.size != n_time_points:
+        if elec_price.size % n_time_points == 0:
+            elec_price = elec_price.reshape(n_time_points, -1).mean(axis=1)
+        else:
+            elec_price = elec_price[:n_time_points]
     ax_price.plot(
         time + 0.5,
-        elec_price,
-        label="Electricity Cost ($/kWh)",
+        elec_price * 100,
+        label="Elec. Price",
         color="orange",
-        linestyle="--",
         linewidth=2,
     )
-    ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
-    ax_price.set_ylim(0, max(elec_price) + 0.03)
+    ax_price.set_ylabel("¢/kWh", fontsize=12)
+    ax_price.set_ylim(0, max(elec_price * 100) + 3)
 
     handle1, label1 = ax_energy.get_legend_handles_labels()
     handle2, label2 = ax_price.get_legend_handles_labels()
     handles = handle2 + handle1
     labels = label2 + label1
     leg1 = ax_price.legend(
-        handles, labels, loc="lower left", framealpha=1.0, ncol=2, fontsize=10
+        handles,
+        labels,
+        loc="lower left",
+        bbox_to_anchor=(0.0, 1, 1, 1),
+        framealpha=1.0,
+        ncol=4,
+        fontsize=12,
+        mode="expand",
     )
     leg1.set_zorder(1000)
     leg1.get_frame().set_facecolor("white")
@@ -196,7 +204,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
     ax_trains.plot(
         time + 0.5,
         prod,
-        label="Water Production (m$^3$/h)",
+        label="Water Production",
         color="black",
         linestyle="--",
         linewidth=2,
@@ -206,17 +214,14 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
     ax_trains.axhline(
         y=602 * 4,
         color="blue",
-        linestyle="--",
+        linestyle=":",
         linewidth=2,
         alpha=0.75,
-        label="Nominal Plant Capacity (m$^3$/h)",
+        label="Max Production",
         zorder=0,
     )
-    ax_trains.set_ylabel("Water Production (m$^3$/h)", fontsize=12)
+    ax_trains.set_ylabel("m$^3$/h", fontsize=12)
     ax_trains.set_xlabel("Hours", fontsize=12)
-    ax_trains.set_title(
-        "Water Production & RO Train Flow Rates", fontsize=14, fontweight="bold"
-    )
     ax_trains.xaxis.set_major_locator(plt.MaxNLocator(24))
     ax_trains.grid(False)
 
@@ -261,9 +266,11 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
         handle_t,
         label_t,
         loc="lower left",
-        fontsize=11,
+        bbox_to_anchor=(0.0, 1, 1, 1),
         framealpha=1.0,
-        ncol=2,
+        ncol=3,
+        fontsize=12,
+        mode="expand",
     )
     leg3.get_frame().set_facecolor("white")
 
@@ -274,7 +281,13 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
 
     # Tick labels for all axes
     for a in (ax_energy, ax_price, ax_trains):
-        a.tick_params(axis="both", labelsize=11)
+        a.tick_params(axis="both", labelsize=14)
+    for label in ax_trains.get_xticklabels():
+        label.set_rotation(45)
+        label.set_ha("center")
+    for label in ax_energy.get_xticklabels():
+        label.set_rotation(45)
+        label.set_ha("center")
 
     fig.tight_layout()
     fig.savefig(f"{output_stem}.png", dpi=600)
@@ -615,11 +628,11 @@ def main(season, flex_type, num_flexible_trains=4):
     # dt.report_structural_issues()
 
     # IPOPT
-    # solver = get_solver()
+    solver = get_solver()
 
-    mip_gap = 0.01
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 1.0 %
+    # mip_gap = 0.01
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
