@@ -331,10 +331,57 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     plt.show()
 
 
+def calc_new_replacement_cost(filename):
+    # Example calculation for new replacement cost based on given parameters
+    membrane_total_cost = 500 * 4 * (72 + 30 + 15)
+    membrane_lifetime = 5  # years
+    motor_total_cost = 125000 * 4
+    motor_lifetime = 17.5  # years
+    num_days = (
+        167 / 24
+    )  # THIS IS ONLY TRUE FOR RESULTS OVER A WEEK. IDK why this number is off by an hour, but just roll with it.
+    num_months = num_days / 31
+    # Load in data to sum the number of shutdowns
+    script_dir = Path(__file__).resolve().parent
+    file_path = Path(filename)
+    if not file_path.is_absolute():
+        file_path = script_dir / file_path
+
+    df = pd.read_csv(file_path)
+
+    column_names = [
+        "reverse_osmosis.ro_skid[1].shutdown",
+        "reverse_osmosis.ro_skid[2].shutdown",
+        "reverse_osmosis.ro_skid[3].shutdown",
+        "reverse_osmosis.ro_skid[4].shutdown",
+    ]
+
+    num_shutdowns = df[column_names].sum().sum()
+
+    flex_degree = min(1, num_shutdowns / (4 * num_days))
+
+    memb_rep_cost = (
+        membrane_total_cost
+        * (num_months / 12)
+        / (membrane_lifetime * (1 - 0.1 * flex_degree))
+    )
+    motor_rep_cost = (
+        motor_total_cost
+        * (num_months / 12)
+        / (motor_lifetime * (1 - 0.1 * flex_degree))
+    )
+
+    total_replacement_cost = memb_rep_cost + motor_rep_cost
+
+    return total_replacement_cost
+
+
 # Optimization Results
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "hourly_operation_breakdown_week.csv"
+filename = "wrd_result_summer_steady.csv"
 
-op_plot_from_data(filename, data_type="plant_data")
+# op_plot_from_data(filename, data_type="optimization_results")
+rep_cost = calc_new_replacement_cost(filename)
+print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")

@@ -478,13 +478,13 @@ def main(season, flex_type, num_flexible_trains=4):
             "replacement_types": ["membranes", "motors"],
             "replacement_costs": [
                 500 * 4 * (72 + 30 + 15),
-                125000,
+                125000 * 4,
             ],  # $ per replacement
-            "replacement_lifetimes": [5, 20],  # years
+            "replacement_lifetimes": [5, 17.5],  # years
             "replacement_max_flex_penalty": [
                 0.1,
                 0.1,
-            ],  # Reduction in lifetime if shutdowns occur every day (?)
+            ],  # Reduction in lifetime if shutdowns occur twice a day
         }
     )
 
