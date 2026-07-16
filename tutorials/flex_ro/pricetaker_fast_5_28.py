@@ -52,6 +52,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
                     alpha=0.2,
                     linewidth=0,
                     zorder=-1,
+                    hatch="///",
                     label=span_label,
                 )
                 ax_trains.axvspan(
@@ -61,6 +62,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
                     alpha=0.2,
                     linewidth=0,
                     zorder=-1,
+                    hatch="///",
                     label=span_label,
                 )
                 peak_legend_added = True
@@ -621,9 +623,9 @@ def main(season, flex_type, num_flexible_trains=4):
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     # ADDING FOR TESTING to see if this will give the solution I'm expecting.
-    m.enforce_low_flow_for_peak_hrs = pyo.Constraint(
-        expr=m.period[1, 18].reverse_osmosis.ro_skid[2].feed_flowrate == 520
-    )
+    # m.enforce_low_flow_for_peak_hrs = pyo.Constraint(
+    #     expr=m.period[1, 18].reverse_osmosis.ro_skid[2].feed_flowrate == 520
+    # )
 
     print(degrees_of_freedom(m))
 
@@ -633,7 +635,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.02
+    mip_gap = 0.005
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -708,7 +710,7 @@ def main(season, flex_type, num_flexible_trains=4):
 if __name__ == "__main__":
     seasons = ["summer"]
     flex_types = ["both"]
-    num_flex_skids = [4]
+    num_flex_skids = [0]
 
     results_rows = []
 
