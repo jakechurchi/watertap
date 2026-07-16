@@ -295,6 +295,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
 
 
 def _fix_nominal_flowrates(m):
+    # TODO: This function is not working correctly because the optimal solution gives minimum and maximum flowrates that are not equal to the nominal flowrate. This is because the surrogate model is not perfectly accurate and the optimal solution is not exactly at the nominal flowrate.
     m.params.wrd_ro.minimum_flowrate = m.params.wrd_ro.nominal_flowrate
     m.params.wrd_ro.maximum_flowrate = m.params.wrd_ro.nominal_flowrate
 
@@ -630,7 +631,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.004
+    mip_gap = 0.025
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -647,25 +648,25 @@ def main(season, flex_type, num_flexible_trains=4):
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
     if season_key == "winter":
         if selected_price_signal_stem.upper().endswith("TOU_8"):
-            baseline_electricity_cost = 29586
+            baseline_OPEX = 115031
+
         elif selected_price_signal_stem.upper().endswith("RTP"):
-            baseline_electricity_cost = 134639
+            baseline_OPEX = 116862
         else:
-            baseline_electricity_cost = 25701  # $
+            baseline_OPEX = 111145  # $
     else:
         if selected_price_signal_stem.upper().endswith("TOU_8"):
-            baseline_electricity_cost = 39327
+            baseline_OPEX = 124771
         elif selected_price_signal_stem.upper().endswith("RTP"):
-            baseline_electricity_cost = 101576
+            baseline_OPEX = 187020
         else:
-            baseline_electricity_cost = 34653  # $
+            baseline_OPEX = 120098  # $
 
     fs.calculate_replacement_costs(m)
     fs.calculate_flexibility_metrics(
         m,
         baseline_power=1101,  # kW, from the baseline with steady production and 12000 AF/yr water production
-        baseline_electricity_cost=baseline_electricity_cost,
-        baseline_replacement_cost=992,
+        baseline_OPEX=baseline_OPEX,
     )
 
     design_var_values = m.get_design_var_values()
@@ -704,8 +705,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["summer"]
-    flex_types = ["flow", "rr"]
-    num_flex_skids = [0]
+    flex_types = ["no_flex"]
+    num_flex_skids = [4]
 
     results_rows = []
 

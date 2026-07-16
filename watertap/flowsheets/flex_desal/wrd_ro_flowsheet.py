@@ -1006,9 +1006,8 @@ def add_rain_shutdowns(m):
 
 def calculate_flexibility_metrics(
     m,
-    baseline_power=1000,
-    baseline_electricity_cost=100000,
-    baseline_replacement_cost=993,
+    baseline_power=1101,
+    baseline_OPEX=10000,
 ):
     # Should this really be included in this file?
     # Don't love having to pass the baseline costs because they would change depending on the time horizon
@@ -1069,15 +1068,18 @@ def calculate_flexibility_metrics(
     else:
         LVOF = (
             (
-                baseline_electricity_cost
+                baseline_OPEX
                 - value(
                     m.total_energy_cost
                     + m.total_demand_cost
                     + m.total_customer_cost
                     - m.total_demand_response_revenue
+                    + m.total_replacement_cost
+                    + m.total_feed_cost
+                    + m.total_brine_cost
+                    + m.total_chemical_cost
                 )
             )
-            - (baseline_replacement_cost - value(m.total_replacement_cost))
         ) / (discharge_energy_capacity)
     print(f"Levelized Cost of Flexibility ($/kWh): {LVOF:.2f}")
     # Levelized Cost of Flexibility. Only flexibility costs are the replacement costs
