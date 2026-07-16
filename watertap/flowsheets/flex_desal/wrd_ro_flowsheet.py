@@ -1085,8 +1085,10 @@ def calculate_flexibility_metrics(
     # Levelized Cost of Flexibility. Only flexibility costs are the replacement costs
 
     m.maximum_power = Var(initialize=maximum_power)
-    m.energy_capacity = Var(initialize=discharge_energy_capacity)
-    m.power_capacity = Var(initialize=discharge_power_capacity)
+    m.discharge_energy_capacity = Var(initialize=discharge_energy_capacity)
+    m.charge_energy_capacity = Var(initialize=charge_energy_capacity)
+    m.discharge_power_capacity = Var(initialize=discharge_power_capacity)
+    m.charge_power_capacity = Var(initialize=charge_power_capacity)
     m.round_trip_efficiency = Var(initialize=round_trip_efficiency)
     m.LVOF = Var(initialize=LVOF)
 

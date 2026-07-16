@@ -631,7 +631,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.025
+    mip_gap = 0.02
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -665,7 +665,7 @@ def main(season, flex_type, num_flexible_trains=4):
     fs.calculate_replacement_costs(m)
     fs.calculate_flexibility_metrics(
         m,
-        baseline_power=1101,  # kW, from the baseline with steady production and 12000 AF/yr water production
+        baseline_power=1102,  # kW, from the baseline with steady production and 12000 AF/yr water production
         baseline_OPEX=baseline_OPEX,
     )
 
@@ -736,9 +736,11 @@ if __name__ == "__main__":
                         "Total Demand Response Revenue": m.total_demand_response_revenue(),
                         "Total Cost": m.total_cost(),
                         "Maximum Power": m.maximum_power(),
-                        "Energy Capacity": m.energy_capacity(),
-                        "Power Capacity": m.power_capacity(),
+                        "Discharge Energy Capacity": m.discharge_energy_capacity(),
+                        "Discharge Power Capacity": m.discharge_power_capacity(),
                         "LVOF": m.LVOF(),
+                        "Charge Energy Capacity": m.charge_energy_capacity(),
+                        "Charge Power Capacity": m.charge_power_capacity(),
                     }
                 )
 
