@@ -139,7 +139,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
         print("Peak hours are missing or all zero; skipping peak-hour shading.")
 
     time = np.linspace(0, n_time_points - 1, n_time_points)
-    fig = plt.figure(figsize=(12, 12))
+    fig = plt.figure(figsize=(8, 8))
     gs = fig.add_gridspec(2, 1, height_ratios=[1, 1])
     ax_energy = fig.add_subplot(gs[0])
     ax_trains = fig.add_subplot(gs[1], sharex=ax_energy)
@@ -159,6 +159,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
                     alpha=0.2,
                     linewidth=0,
                     zorder=-1,
+                    hatch="///",
                     label=span_label,
                 )
                 ax_trains.axvspan(
@@ -168,6 +169,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
                     alpha=0.2,
                     linewidth=0,
                     zorder=-1,
+                    hatch="///",
                     label=span_label,
                 )
                 peak_legend_added = True
@@ -220,16 +222,13 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     ax_energy.plot(
         time + 0.5,
         total_energy,
-        label="Total Energy Consumption",
+        label="Total Power",
         color="black",
         linestyle="--",
         linewidth=2,
     )
     ax_energy.set_ylim(0, 2500)
-    ax_energy.set_ylabel("Energy Consumption (kWh)", fontsize=12)
-    ax_energy.set_title(
-        "Energy Consumption and Electricity Price", fontsize=14, fontweight="bold"
-    )
+    ax_energy.set_ylabel("kW", fontsize=12)
     ax_energy.grid(False)
 
     ax_price = ax_energy.twinx()
@@ -237,16 +236,15 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     if elec_price is not None and not np.all(np.isnan(elec_price)):
         ax_price.plot(
             time + 0.5,
-            elec_price,
-            label="Electricity Cost ($/kWh)",
+            elec_price * 100,
+            label="Elec. Price",
             color="orange",
-            linestyle="--",
             linewidth=2,
         )
-        ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
-        ax_price.set_ylim(0, np.nanmax(elec_price) + 0.03)
+        ax_price.set_ylabel("¢/kWh", fontsize=12)
+        ax_price.set_ylim(0, np.nanmax(elec_price * 100) + 3)
     else:
-        ax_price.set_ylabel("Electricity Cost ($/kWh)", fontsize=12)
+        ax_price.set_ylabel("¢/kWh", fontsize=12)
         ax_price.set_ylim(0, 1)
         ax_price.set_visible(False)
 
@@ -255,7 +253,14 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     handles = handle2 + handle1
     labels = label2 + label1
     leg1 = ax_price.legend(
-        handles, labels, loc="lower left", framealpha=1.0, ncol=2, fontsize=10
+        handles,
+        labels,
+        loc="lower left",
+        bbox_to_anchor=(0.0, 1, 1, 1),
+        framealpha=1.0,
+        ncol=4,
+        fontsize=12,
+        mode="expand",
     )
     leg1.set_zorder(1000)
     leg1.get_frame().set_facecolor("white")
@@ -266,7 +271,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     ax_trains.plot(
         time + 0.5,
         prod,
-        label="Water Production (m$^3$/h)",
+        label="Water Production",
         color="black",
         linestyle="--",
         linewidth=2,
@@ -276,17 +281,14 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     ax_trains.axhline(
         y=602 * 4,
         color="blue",
-        linestyle="--",
+        linestyle=":",
         linewidth=2,
         alpha=0.75,
-        label="Nominal Plant Capacity (m$^3$/h)",
+        label="Max Production",
         zorder=0,
     )
-    ax_trains.set_ylabel("Water Production (m$^3$/h)", fontsize=12)
+    ax_trains.set_ylabel("m$^3$/h", fontsize=12)
     ax_trains.set_xlabel("Hours", fontsize=12)
-    ax_trains.set_title(
-        "Water Production & RO Train Flow Rates", fontsize=14, fontweight="bold"
-    )
     ax_trains.xaxis.set_major_locator(plt.MaxNLocator(24))
     ax_trains.grid(False)
 
@@ -311,9 +313,11 @@ def op_plot_from_data(filename, data_type="optimization_results"):
         handle_t,
         label_t,
         loc="lower left",
-        fontsize=11,
+        bbox_to_anchor=(0.0, 1, 1, 1),
         framealpha=1.0,
-        ncol=2,
+        ncol=3,
+        fontsize=12,
+        mode="expand",
     )
     leg3.get_frame().set_facecolor("white")
 
@@ -324,10 +328,18 @@ def op_plot_from_data(filename, data_type="optimization_results"):
 
     # Tick labels for all axes
     for a in (ax_energy, ax_price, ax_trains):
-        a.tick_params(axis="both", labelsize=11)
+        a.tick_params(axis="both", labelsize=14)
+    for label in ax_trains.get_xticklabels():
+        label.set_rotation(45)
+        label.set_ha("center")
+    for label in ax_energy.get_xticklabels():
+        label.set_rotation(45)
+        label.set_ha("center")
 
     fig.tight_layout()
-    fig.savefig("wrd_aug_week_op_data.png", dpi=600)
+    output_dir = script_dir / "paper_figs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_dir / f"{output_name}.png", dpi=600)
     plt.show()
 
 
@@ -382,6 +394,6 @@ def calc_new_replacement_cost(filename):
 # Plant Data
 filename = "wrd_result_summer_steady.csv"
 
-# op_plot_from_data(filename, data_type="optimization_results")
-rep_cost = calc_new_replacement_cost(filename)
-print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
+op_plot_from_data(filename, data_type="optimization_results")
+# rep_cost = calc_new_replacement_cost(filename)
+# print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
