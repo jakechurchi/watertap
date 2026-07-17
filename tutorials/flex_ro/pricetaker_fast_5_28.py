@@ -314,11 +314,18 @@ def _restrict_flexible_trains(m, num_flexible_trains):
 
     non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
 
+    # This would be restricting just the modularity of the trains
+    # for p in m.period:
+    #     for skid in non_flexible_skids:
+    #         ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
+    #         ro_skid.startup.fix(0)
+    #         ro_skid.shutdown.fix(0)
+
     for p in m.period:
         for skid in non_flexible_skids:
             ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
-            ro_skid.startup.fix(0)
-            ro_skid.shutdown.fix(0)
+            ro_skid.feed_flowrate.fix(m.params.wrd_ro.nominal_flowrate)
+            ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
 
 
 def _fix_operations_for_first_four_days(m, peak_hours=None):
@@ -635,7 +642,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.0075
+    mip_gap = 0.007
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -710,7 +717,7 @@ def main(season, flex_type, num_flexible_trains=4):
 if __name__ == "__main__":
     seasons = ["summer"]
     flex_types = ["both"]
-    num_flex_skids = [2, 4]
+    num_flex_skids = [2]
 
     results_rows = []
 
