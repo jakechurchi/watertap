@@ -12,4 +12,4 @@
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-python pricetaker_fast_5_28_copy.py
+python pricetaker_fast_5_28_temp_copy.py

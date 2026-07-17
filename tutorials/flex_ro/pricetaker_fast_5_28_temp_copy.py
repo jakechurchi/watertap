@@ -388,7 +388,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     selected_price_signal_stem = Path(season_map[season_key]).stem
     output_suffix = (
-        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
+        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains_2026"
     )
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
