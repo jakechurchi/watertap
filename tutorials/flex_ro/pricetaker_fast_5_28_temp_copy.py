@@ -311,6 +311,10 @@ def _restrict_flexible_trains(m, num_flexible_trains):
             "Invalid num_flexible_trains "
             f"'{num_flexible_trains}'. Valid range is [0, {n_ro_skids}]."
         )
+    if num_flexible_trains == 0:
+        raise ValueError(
+            "Zero Flexible trains will force all trains on. 1 flexible train should be used for the steady state baseline"
+        )
 
     non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
 
@@ -717,7 +721,7 @@ def main(season, flex_type, num_flexible_trains=4):
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
     flex_types = ["no_flex"]
-    num_flex_skids = [0]
+    num_flex_skids = [1]
 
     results_rows = []
 
