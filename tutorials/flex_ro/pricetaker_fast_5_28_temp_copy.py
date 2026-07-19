@@ -519,8 +519,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
     _begin_and_end_constraint(m)
 
-    if season_key == "summer":
-        _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
+    # if season_key == "summer":
+    #     _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
