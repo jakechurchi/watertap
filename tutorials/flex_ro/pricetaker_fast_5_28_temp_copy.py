@@ -312,9 +312,14 @@ def _restrict_flexible_trains(m, num_flexible_trains):
             f"'{num_flexible_trains}'. Valid range is [0, {n_ro_skids}]."
         )
     if num_flexible_trains == 0:
-        raise ValueError(
-            "Zero Flexible trains will force all trains on. 1 flexible train should be used for the steady state baseline"
-        )
+        # Fix the 4th train to be off
+        for p in m.period:
+            m.period[p].reverse_osmosis.ro_skid[4].feed_flowrate.fix(0)
+            m.period[p].reverse_osmosis.ro_skid[4].recovery.fix(
+                m.params.wrd_ro.nominal_recovery
+            )
+        # Fix all the other skids to the nominal flowrate and recovery
+        non_flexible_skids = 1
 
     non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
 
@@ -721,7 +726,7 @@ def main(season, flex_type, num_flexible_trains=4):
 if __name__ == "__main__":
     seasons = ["winter", "summer"]
     flex_types = ["no_flex"]
-    num_flex_skids = [1]
+    num_flex_skids = [0]
 
     results_rows = []
 
