@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=PT
 #SBATCH --account=nawianalysis
-#SBATCH --time=00:10:00
+#SBATCH --time=12:00:00
 #SBATCH --nodes=2
-#SBATCH --partition=debug
+#SBATCH --partition=standard
 #SBATCH -L gurobi@slurmdb:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=PT_baseline.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=PT_higher_rate_even.%j.out  # %j will be replaced with the job ID
 
 module load gurobi
 module load anaconda3
