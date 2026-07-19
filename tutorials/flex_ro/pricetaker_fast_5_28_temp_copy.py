@@ -319,7 +319,7 @@ def _restrict_flexible_trains(m, num_flexible_trains):
             ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
             ro_skid.op_mode.fix(0)
         # Fix all the other skids to the nominal flowrate and recovery
-        non_flexible_skids = 1
+        num_flexible_trains = 1
 
     non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
 
@@ -651,7 +651,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.005
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
