@@ -314,10 +314,10 @@ def _restrict_flexible_trains(m, num_flexible_trains):
     if num_flexible_trains == 0:
         # Fix the 4th train to be off
         for p in m.period:
-            m.period[p].reverse_osmosis.ro_skid[4].feed_flowrate.fix(0)
-            m.period[p].reverse_osmosis.ro_skid[4].recovery.fix(
-                m.params.wrd_ro.nominal_recovery
-            )
+            ro_skid = m.period[p].reverse_osmosis.ro_skid[4]
+            ro_skid.feed_flowrate.fix(0)
+            ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
+            ro_skid.op_mode.fix(0)
         # Fix all the other skids to the nominal flowrate and recovery
         non_flexible_skids = 1
 
