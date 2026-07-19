@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_2026.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_higher_rate_even.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week_2026.csv",
     }
     season_key = season.lower()
@@ -396,9 +396,7 @@ def main(season, flex_type, num_flexible_trains=4):
         )
 
     selected_price_signal_stem = Path(season_map[season_key]).stem
-    output_suffix = (
-        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains_2026"
-    )
+    output_suffix = f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains_higher_rate_even"
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
     if selected_price_signal_stem.upper().endswith("TOU_8"):
@@ -724,7 +722,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter", "summer"]
+    seasons = ["summer"]
     flex_types = ["no_flex"]
     num_flex_skids = [0]
 
