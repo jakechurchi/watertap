@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pyomo.environ as pyo
-from pyomo.environ import SolverFactory
+from pyomo.environ import SolverFactory, value
 
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
@@ -456,7 +456,7 @@ def main(season, flex_type, num_flexible_trains=4):
         include_demand_response=True,
         max_daily_shutdowns=1,  # I'd like to change to one a day
     )
-
+    m.baseline_power = 1102  # kW
     m.params.intake.update(
         {
             "energy_intensity": 0,
@@ -651,11 +651,11 @@ def main(season, flex_type, num_flexible_trains=4):
     # dt.report_structural_issues()
 
     # IPOPT
-    # solver = get_solver()
+    solver = get_solver()
 
-    mip_gap = 0.01
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 1.0 %
+    # mip_gap = 0.01
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -687,7 +687,9 @@ def main(season, flex_type, num_flexible_trains=4):
     fs.calculate_replacement_costs(m)
     fs.calculate_flexibility_metrics(
         m,
-        baseline_power=1102,  # kW, from the baseline with steady production and 12000 AF/yr water production
+        baseline_power=value(
+            m.baseline_power
+        ),  # kW, from the baseline with steady production and 12000 AF/yr water production
         baseline_OPEX=baseline_OPEX,
     )
 

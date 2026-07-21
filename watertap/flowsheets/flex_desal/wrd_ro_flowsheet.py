@@ -62,7 +62,7 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
         initialize=0, mutable=True, doc="Demand-response prices"
     )
     blk.baseline_power = Param(
-        initialize=1062, mutable=True, doc="Baseline power requirement"
+        initialize=1102, mutable=True, doc="Baseline power requirement"
     )
     # blk.demand_response_power_delta = Var(
     #     within=Reals,
@@ -1006,7 +1006,7 @@ def add_rain_shutdowns(m):
 
 def calculate_flexibility_metrics(
     m,
-    baseline_power=1101,
+    baseline_power=1102,
     baseline_OPEX=10000,
 ):
     # Should this really be included in this file?
@@ -1100,6 +1100,12 @@ def add_useful_expressions(m):
     m.total_demand_response_revenue = Expression(
         expr=sum(m.period[:, :].demand_response_revenue)
     )
+    # Check that the baseline power is consistent with the demand response baseline.
+    # This only works if the baseline is a flat power demand.
+    if not value(m.baseline_power) == value(m.period[1, 1].baseline_power):
+        raise ValueError(
+            f"Baseline power ({value(m.baseline_power)}) does not match demand response baseline ({value(m.period[1, 1].baseline_power)})."
+        )
     m.total_emissions_cost = Expression(expr=sum(m.period[:, :].emissions_cost))
 
 
