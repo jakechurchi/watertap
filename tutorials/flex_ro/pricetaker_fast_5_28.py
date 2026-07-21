@@ -311,6 +311,15 @@ def _restrict_flexible_trains(m, num_flexible_trains):
             "Invalid num_flexible_trains "
             f"'{num_flexible_trains}'. Valid range is [0, {n_ro_skids}]."
         )
+    if num_flexible_trains == 0:
+        # Fix the 4th train to be off
+        for p in m.period:
+            ro_skid = m.period[p].reverse_osmosis.ro_skid[4]
+            ro_skid.feed_flowrate.fix(0)
+            ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
+            ro_skid.op_mode.fix(0)
+        # Fix all the other skids to the nominal flowrate and recovery
+        num_flexible_trains = 1
 
     non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
 
@@ -324,7 +333,7 @@ def _restrict_flexible_trains(m, num_flexible_trains):
     for p in m.period:
         for skid in non_flexible_skids:
             ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
-            ro_skid.feed_flowrate.fix(m.params.wrd_ro.nominal_flowrate)
+            ro_skid.feed_flowrate.fix(605.3)
             ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
 
 
@@ -521,8 +530,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
     _begin_and_end_constraint(m)
 
-    if season_key == "summer":
-        _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
+    # if season_key == "summer":
+    #     _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
