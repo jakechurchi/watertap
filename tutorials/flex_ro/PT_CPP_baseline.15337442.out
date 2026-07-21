@@ -1,0 +1,120 @@
+2026-07-21 14:09:38 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-07-21 14:09:38 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-07-21 14:09:38 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-07-21 14:09:39 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-07-21 14:09:40 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+4027
+Set parameter TokenServer to value "10.60.1.73"
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.005
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.005
+
+Optimize a model with 18624 rows, 14955 columns and 42290 nonzeros
+Model fingerprint: 0x718ee177
+Model has 168 quadratic objective terms
+Model has 1680 quadratic constraints
+Variable types: 9915 continuous, 5040 integer (5040 binary)
+Coefficient statistics:
+  Matrix range     [3e-02, 2e+03]
+  QMatrix range    [2e-07, 1e+00]
+  QLMatrix range   [3e-04, 1e+00]
+  Objective range  [1e-05, 1e-03]
+  QObjective range [2e-04, 2e-04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [9e-02, 3e+05]
+  QRHS range       [3e-01, 3e-01]
+Presolve removed 18619 rows and 14948 columns
+Presolve time: 0.06s
+Presolved: 21 rows, 12 columns, 48 nonzeros
+Presolved model has 6 bilinear constraint(s)
+
+Solving non-convex MIQCP
+
+Variable types: 11 continuous, 1 integer (1 binary)
+Found heuristic solution: objective 12.4750226
+
+Root relaxation: objective 1.160135e+01, 12 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0   11.60135    0    6   12.47502   11.60135  7.00%     -    0s
+     0     0   12.08438    0    6   12.47502   12.08438  3.13%     -    0s
+     0     0   12.21620    0    7   12.47502   12.21620  2.07%     -    0s
+     0     0   12.22168    0    7   12.47502   12.22168  2.03%     -    0s
+     0     0   12.22200    0    6   12.47502   12.22200  2.03%     -    0s
+     0     0   12.22208    0    7   12.47502   12.22208  2.03%     -    0s
+     0     0   12.35223    0    4   12.47502   12.35223  0.98%     -    0s
+H    0     0                      12.3683397   12.35223  0.13%     -    0s
+
+Explored 1 nodes (50 simplex iterations) in 0.08 seconds (0.10 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 2: 12.3683 12.475 
+
+Optimal solution found (tolerance 5.00e-03)
+Best objective 1.236833968536e+01, best bound 1.235222684341e+01, gap 0.1303%
+m.flow_changes_penalty(): 0.0
+Total operational cost: 123683.40
+Maximum power (kW): 1102.09
+Discharge energy capacity (kWh): 0.00
+Charge energy capacity (kWh): 15.57
+Levelized Cost of Flexibility ($/kWh): nan
+{'fixed_demand_cost': 4932.723816126392, 'variable_demand_cost': 9098.574822323408, 'fixed_monthly_cost': 171938.17204301074, 'total_water_production': 282190.8599999995, 'total_energy_cost': 24203.49776476604, 'total_demand_cost': 14031.2986384498, 'total_customer_cost': 0.0, 'total_feed_cost': 50845.20000000015, 'total_brine_cost': 15304.405199999966, 'total_chemical_cost': 19298.295660000025, 'total_water_revenue': 0.0, 'total_demand_response_revenue': -0.6995903714654901, 'total_emissions_cost': 0.0, 'total_op_cost': 123683.39685358744, 'fixed_cost': 121551.98252688172, 'total_cost': 245235.37938046915, 'LCOW': 0.8690408306649959, 'degree_of_flex': 0.0, 'total_replacement_cost': 1409.837429595494, 'maximum_power': 1102.092660976353, 'discharge_energy_capacity': 0.0, 'charge_energy_capacity': 15.567044027311567, 'discharge_power_capacity': nan, 'charge_power_capacity': 0.09266097635304504, 'round_trip_efficiency': 0, 'LVOF': nan}
+Saved operation variable results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_result_summer_no_flex_0_flexible_trains_CPP.csv
+Saved summary results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_pricetaker_summary_results_20260721_140943.csv
