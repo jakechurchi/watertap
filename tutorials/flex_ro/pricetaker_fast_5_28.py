@@ -668,10 +668,10 @@ def main(season, flex_type, num_flexible_trains=4):
     pyo.assert_optimal_termination(results)
 
     # Baseline power is a function of the target water production, but needs to be calculated by running this model!
+    # The OPEX value does not include the replacement costs... so I guess they aren't being included in the LVOF
     if season_key == "winter":
         if selected_price_signal_stem.upper().endswith("TOU_8"):
             baseline_OPEX = 115031
-
         elif selected_price_signal_stem.upper().endswith("RTP"):
             baseline_OPEX = 116862
         else:
@@ -681,6 +681,8 @@ def main(season, flex_type, num_flexible_trains=4):
             baseline_OPEX = 124771
         elif selected_price_signal_stem.upper().endswith("RTP"):
             baseline_OPEX = 187020
+        elif selected_price_signal_stem.upper().endswith("CPP"):
+            baseline_OPEX = 123683
         else:
             baseline_OPEX = 120098  # $
 
