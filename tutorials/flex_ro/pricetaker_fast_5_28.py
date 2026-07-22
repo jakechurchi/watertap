@@ -641,9 +641,12 @@ def main(season, flex_type, num_flexible_trains=4):
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     # ADDING FOR TESTING to see if this will give the solution I'm expecting.
-    # m.enforce_low_flow_for_peak_hrs = pyo.Constraint(
-    #     expr=m.period[1, 18].reverse_osmosis.ro_skid[2].feed_flowrate == 520
-    # )
+    m.enforce_one_plant_shutdown = pyo.Constraint(
+        expr=sum(
+            m.period[d, t].reverse_osmosis.ro_skid[1].shutdown for d, t in m.period
+        )
+        == 1
+    )
 
     print(degrees_of_freedom(m))
 
