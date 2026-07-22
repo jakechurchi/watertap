@@ -378,8 +378,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_CPP.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week_CPP.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_simple_DR.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -397,7 +397,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     selected_price_signal_stem = Path(season_map[season_key]).stem
     output_suffix = (
-        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
+        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains_DR"
     )
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
@@ -653,7 +653,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.0099
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
