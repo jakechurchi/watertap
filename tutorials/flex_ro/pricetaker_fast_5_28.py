@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_simple_DR.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
@@ -645,7 +645,7 @@ def main(season, flex_type, num_flexible_trains=4):
         expr=sum(
             m.period[d, t].reverse_osmosis.ro_skid[1].shutdown for d, t in m.period
         )
-        == 1
+        == 5
     )
 
     print(degrees_of_freedom(m))
@@ -656,7 +656,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.0099
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
