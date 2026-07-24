@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_simple_DR.csv",
         "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
@@ -405,6 +405,8 @@ def main(season, flex_type, num_flexible_trains=4):
         output_suffix = f"{output_suffix}_TOU_8"
     if selected_price_signal_stem.upper().endswith("CPP"):
         output_suffix = f"{output_suffix}_CPP"
+    if selected_price_signal_stem.upper().endswith("DR"):
+        output_suffix = f"{output_suffix}_DR"
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
 
@@ -554,7 +556,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
-    # fs.add_delayed_shutdown_constraints(m)
+    fs.add_delayed_shutdown_constraints(m)
     # fs.repeat_weekdays(m)
 
     m.total_water_production = pyo.Expression(
@@ -641,12 +643,12 @@ def main(season, flex_type, num_flexible_trains=4):
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     # ADDING FOR TESTING to see if this will give the solution I'm expecting.
-    m.enforce_one_plant_shutdown = pyo.Constraint(
-        expr=sum(
-            m.period[d, t].reverse_osmosis.ro_skid[1].shutdown for d, t in m.period
-        )
-        == 5
-    )
+    # m.enforce_one_plant_shutdown = pyo.Constraint(
+    #     expr=sum(
+    #         m.period[d, t].reverse_osmosis.ro_skid[1].shutdown for d, t in m.period
+    #     )
+    #     == 5
+    # )
 
     print(degrees_of_freedom(m))
 
@@ -656,7 +658,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.019
+    mip_gap = 0.015
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
