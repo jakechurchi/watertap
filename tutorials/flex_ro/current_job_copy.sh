@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=PT
+#SBATCH --job-name=PT_copy
 #SBATCH --account=nawianalysis
 #SBATCH --time=24:00:00
 #SBATCH --nodes=2
