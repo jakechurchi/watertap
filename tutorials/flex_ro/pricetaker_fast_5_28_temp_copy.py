@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pyomo.environ as pyo
-from pyomo.environ import SolverFactory
+from pyomo.environ import SolverFactory, value
 
 from watertap.flowsheets.flex_desal import wrd_ro_flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
@@ -396,14 +396,17 @@ def main(season, flex_type, num_flexible_trains=4):
         )
 
     selected_price_signal_stem = Path(season_map[season_key]).stem
-    output_suffix = f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains_higher_rate_even"
+    output_suffix = (
+        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
+    )
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
     if selected_price_signal_stem.upper().endswith("TOU_8"):
         output_suffix = f"{output_suffix}_TOU_8"
     if selected_price_signal_stem.upper().endswith("CPP"):
         output_suffix = f"{output_suffix}_CPP"
-
+    if selected_price_signal_stem.upper().endswith("DR"):
+        output_suffix = f"{output_suffix}_DR"
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
 
@@ -455,7 +458,7 @@ def main(season, flex_type, num_flexible_trains=4):
         include_demand_response=True,
         max_daily_shutdowns=1,  # I'd like to change to one a day
     )
-
+    m.baseline_power = 1102  # kW
     m.params.intake.update(
         {
             "energy_intensity": 0,
@@ -639,11 +642,11 @@ def main(season, flex_type, num_flexible_trains=4):
     if flex_type_key == "no_flex" and num_flexible_trains == 0:
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
-    # ADDING FOR TESTING to see if this will give the solution I'm expecting.
+    ##### ADDING FOR TESTING ####
     # m.enforce_low_flow_for_peak_hrs = pyo.Constraint(
     #     expr=m.period[1, 18].reverse_osmosis.ro_skid[2].feed_flowrate == 520
     # )
-
+    #### END TESTING CONSTRAINTS ####
     print(degrees_of_freedom(m))
 
     # dt = DiagnosticsToolbox(m)
@@ -680,13 +683,17 @@ def main(season, flex_type, num_flexible_trains=4):
             baseline_OPEX = 124771
         elif selected_price_signal_stem.upper().endswith("RTP"):
             baseline_OPEX = 187020
+        elif selected_price_signal_stem.upper().endswith("CPP"):
+            baseline_OPEX = 123683
         else:
             baseline_OPEX = 120098  # $
 
     fs.calculate_replacement_costs(m)
     fs.calculate_flexibility_metrics(
         m,
-        baseline_power=1102,  # kW, from the baseline with steady production and 12000 AF/yr water production
+        baseline_power=value(
+            m.baseline_power
+        ),  # kW, from the baseline with steady production and 12000 AF/yr water production
         baseline_OPEX=baseline_OPEX,
     )
 
