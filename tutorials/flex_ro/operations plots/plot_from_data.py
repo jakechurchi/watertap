@@ -34,6 +34,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
             "train_3_flows": "reverse_osmosis.ro_skid[3].product_flowrate",
             "train_4_flows": "reverse_osmosis.ro_skid[4].product_flowrate",
             "peak_hours": "peak_hour",
+            "demand_response_revenue": "demand_response_revenue",
         }
     elif data_type == "plant_data":
         # For plant data, flowrates are stored as percentages and power is pre-aggregated
@@ -158,7 +159,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
                     color="grey",
                     alpha=0.2,
                     linewidth=0,
-                    zorder=-1,
+                    zorder=-2,
                     hatch="///",
                     label=span_label,
                 )
@@ -168,11 +169,40 @@ def op_plot_from_data(filename, data_type="optimization_results"):
                     color="grey",
                     alpha=0.2,
                     linewidth=0,
-                    zorder=-1,
+                    zorder=-2,
                     hatch="///",
                     label=span_label,
                 )
                 peak_legend_added = True
+
+    demand_response_event = get_series("demand_response_revenue", required=False) != 0
+    if any(demand_response_event):
+        DR_legend_added = False
+        for i, is_DR in enumerate(demand_response_event):
+            if is_DR:
+                # Shade full hourly intervals where Demand Response Event occurs
+                span_label = "Demand Response Event" if not DR_legend_added else None
+                ax_energy.axvspan(
+                    i,
+                    i + 1,
+                    color="red",
+                    alpha=0.2,
+                    linewidth=0,
+                    zorder=-1,
+                    hatch="///",
+                    label=span_label,
+                )
+                ax_trains.axvspan(
+                    i,
+                    i + 1,
+                    color="red",
+                    alpha=0.2,
+                    linewidth=0,
+                    zorder=-1,
+                    hatch="///",
+                    label=span_label,
+                )
+                DR_legend_added = True
 
     # First subplot: Stacked energy consumption by major equipment
     ro1_energy = get_series("ro1_energy")
@@ -370,7 +400,9 @@ def calc_new_replacement_cost(filename, max_degradation=0.1):
     # Example calculation for new replacement cost based on given parameters
     membrane_total_cost = 500 * 4 * (72 + 30 + 15)
     membrane_lifetime = 5  # years
-    motor_total_cost = 125000 * 4
+    motor_total_cost = (
+        125000 * 7
+    )  # This is only considering the RO motors... and not the UF motors.
     motor_lifetime = 17.5  # years
 
     df, _ = _load_results_dataframe(filename)
@@ -462,11 +494,11 @@ def solve_max_degradation_for_target(
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "wrd_result_summer_full_flex.csv"
+filename = "wrd_result_summer_DR.csv"
 
-# op_plot_from_data(filename, data_type="optimization_results")
-# rep_cost = calc_new_replacement_cost(filename)
-# print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
+op_plot_from_data(filename, data_type="optimization_results")
+rep_cost = calc_new_replacement_cost(filename)
+print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
 
 target_cost = 3718 + 1410  # 1410 is the baseline replacement cost (full lifetime)
 max_deg_solution = solve_max_degradation_for_target(filename, target_cost=target_cost)
