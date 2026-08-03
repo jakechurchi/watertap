@@ -378,8 +378,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_simple_DR.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week_RTP.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week_RTP.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -486,7 +486,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     m.params.wrd_ro.update(
         {
-            "startup_delay": 3,  # hours
+            "startup_delay": 2,  # hours
             "minimum_downtime": 2,  # hours
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
@@ -556,7 +556,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
-    # fs.add_delayed_shutdown_constraints(m)
+    fs.add_delayed_shutdown_constraints(m)
     # fs.repeat_weekdays(m)
 
     m.total_water_production = pyo.Expression(
