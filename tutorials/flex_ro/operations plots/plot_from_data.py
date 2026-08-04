@@ -494,7 +494,7 @@ def solve_max_degradation_for_target(
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "wrd_result_summer_DR.csv"
+filename = "wrd_result_summer_CPP.csv"
 
 op_plot_from_data(filename, data_type="optimization_results")
 rep_cost = calc_new_replacement_cost(filename)
