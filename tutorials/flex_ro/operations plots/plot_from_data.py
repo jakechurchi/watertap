@@ -181,7 +181,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
         for i, is_DR in enumerate(demand_response_event):
             if is_DR:
                 # Shade full hourly intervals where Demand Response Event occurs
-                span_label = "Demand Response Event" if not DR_legend_added else None
+                span_label = "DR Event" if not DR_legend_added else None
                 ax_energy.axvspan(
                     i,
                     i + 1,
