@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=PT_copy
 #SBATCH --account=nawianalysis
-#SBATCH --time=24:00:00
+#SBATCH --time=00:05:00
 #SBATCH --nodes=2
-#SBATCH --partition=standard
+#SBATCH --partition=debug
 #SBATCH -L gurobi@slurmdb:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
