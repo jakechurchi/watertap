@@ -378,8 +378,8 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week_hot_RTP.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week_RTP.csv",
+        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
+        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:
@@ -471,7 +471,7 @@ def main(season, flex_type, num_flexible_trains=4):
     m.params.wrd_uf.update(
         {
             "minimum_downtime": 2,
-            "startup_delay": 2,
+            "startup_delay": 1,
             "minimum_flowrate": 344,  # m3/hr
             "nominal_flowrate": 900,
             "maximum_flowrate": 989,
@@ -653,11 +653,11 @@ def main(season, flex_type, num_flexible_trains=4):
     # dt.report_structural_issues()
 
     # IPOPT
-    # solver = get_solver()
+    solver = get_solver()
 
-    mip_gap = 0.01
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 1.0 %
+    # mip_gap = 0.01
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
