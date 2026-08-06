@@ -643,9 +643,21 @@ def main(season, flex_type, num_flexible_trains=4):
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
     ##### ADDING FOR TESTING ####
-    # m.enforce_low_flow_for_peak_hrs = pyo.Constraint(
-    #     expr=m.period[1, 18].reverse_osmosis.ro_skid[2].feed_flowrate == 520
-    # )
+    # Convert the DR mask to model time indices (1-based) for direct indexing.
+    _shutdown_times = np.flatnonzero(price_data["Var Demand Rate"].to_numpy() != 0) + 1
+    m.enforce_plant_shutdown = pyo.Constraint(
+        expr=sum(
+            m.period[1, t].reverse_osmosis.ro_skid[1].op_mode for t in _shutdown_times
+        )
+        == 0
+    )
+    m.enforce_plant_on = pyo.ConstraintList()
+    for _d, _t in m.period.index_set():
+        if _d == 1 and _t not in _shutdown_times:
+            m.enforce_plant_on.add(
+                m.period[1, _t].reverse_osmosis.ro_skid[1].op_mode == 1
+            )
+
     #### END TESTING CONSTRAINTS ####
     print(degrees_of_freedom(m))
 
@@ -655,7 +667,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.009
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
