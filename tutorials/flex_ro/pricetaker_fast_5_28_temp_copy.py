@@ -486,7 +486,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     m.params.wrd_ro.update(
         {
-            "startup_delay": 2,  # hours
+            "startup_delay": 1,  # hours
             "minimum_downtime": 2,  # hours
             "minimum_flowrate": 520,  # m3/hr
             "nominal_flowrate": 602,
@@ -667,7 +667,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.009
+    mip_gap = 0.007
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -718,14 +718,14 @@ def main(season, flex_type, num_flexible_trains=4):
     print(filtered_design_var_values)
 
     # Write optimal values of all operational variables to a csv file
-    output_csv = script_dir / f"wrd_result_{output_suffix}.csv"
+    output_csv = script_dir / f"wrd_result_{output_suffix}_1_hr_delay.csv"
     m.get_operation_var_values().to_csv(output_csv)
     print(f"Saved operation variable results to: {output_csv}")
 
     plot_function(
         m,
         n_time_points=len(price_data),
-        output_stem=script_dir / f"wrd_pricetaker_{output_suffix}",
+        output_stem=script_dir / f"wrd_pricetaker_{output_suffix}_1_hr_delay",
         peak_hours=peak_hours,
     )
 
