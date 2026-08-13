@@ -444,8 +444,9 @@ def main(season, flex_type, num_flexible_trains=4):
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=12000,
-        # * 1.2602,  # This is to compare against the plant data
+        annual_production_AF=12000
+        * 1.0863,  # This is to compare against the October plant data
+        # * 1.2602,  # This is to compare against the Aug plant data
         timestep_hours=timestep_hours,
         include_onsite_solar=False,
         onsite_capacity=pv_capacity,
@@ -743,7 +744,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
+    seasons = ["winter"]
     flex_types = ["both"]
     num_flex_skids = [4]
 
