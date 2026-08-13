@@ -38,7 +38,8 @@ def op_plot_from_data(filename, data_type="optimization_results"):
         }
     elif data_type == "plant_data":
         # For plant data, flowrates are stored as percentages and power is pre-aggregated
-        max_perm_flowrate = 569.0  # m3/hr
+        # max_perm_flowrate = 569.0  # m3/hr # I believe this value works for the August week data???
+        max_perm_flowrate = 588.2  # m3/hr # For October week data.
         column_names = {
             "total_energy": None,  # Will be computed
             "ro1_energy": "RO_train_1_kW",
@@ -55,6 +56,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
             "train_3_flows": ("train_3_flow_pct", max_perm_flowrate),
             "train_4_flows": ("train_4_flow_pct", max_perm_flowrate),
             "peak_hours": "peak_hour",
+            "demand_response_revenue": "demand_response_revenue",
         }
         # Compute total energy as sum of all power columns
         power_cols = [
@@ -365,6 +367,12 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     for label in ax_energy.get_xticklabels():
         label.set_rotation(45)
         label.set_ha("center")
+    print(
+        f"total water produced: {sum(sum([train_1_flows,train_2_flows,train_3_flows,train_4_flows]))} m3"
+    )
+    print(
+        f"total water produced: {sum(sum([train_1_flows,train_2_flows,train_3_flows,train_4_flows]))/1233} AF"
+    )
 
     fig.tight_layout()
     output_dir = script_dir / "paper_figs"
@@ -494,17 +502,17 @@ def solve_max_degradation_for_target(
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "wrd_result_summer_full_flex.csv"
+filename = "real_Oct_week.csv"
 
-# op_plot_from_data(filename, data_type="optimization_results")
-rep_cost = calc_new_replacement_cost(filename, max_degradation=0.4)
-print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
+op_plot_from_data(filename, data_type="plant_data")
+# rep_cost = calc_new_replacement_cost(filename, max_degradation=0.4)
+# print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
 
-target_cost = 3718 + 1410  # 1410 is the baseline replacement cost (full lifetime)
-max_deg_solution = solve_max_degradation_for_target(filename, target_cost=target_cost)
-check_cost = calc_new_replacement_cost(filename, max_degradation=max_deg_solution)
-print(
-    f"max_degradation for target replacement cost ${target_cost:,.2f}: "
-    f"{max_deg_solution:.6f}"
-)
-print(f"Check replacement cost at this value: ${check_cost:,.2f}")
+# target_cost = 3718 + 1410  # 1410 is the baseline replacement cost (full lifetime)
+# max_deg_solution = solve_max_degradation_for_target(filename, target_cost=target_cost)
+# check_cost = calc_new_replacement_cost(filename, max_degradation=max_deg_solution)
+# print(
+#     f"max_degradation for target replacement cost ${target_cost:,.2f}: "
+#     f"{max_deg_solution:.6f}"
+# )
+# print(f"Check replacement cost at this value: ${check_cost:,.2f}")
