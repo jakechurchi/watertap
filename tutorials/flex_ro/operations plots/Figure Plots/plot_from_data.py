@@ -10,7 +10,7 @@ import pandas as pd
 
 def op_plot_from_data(filename, data_type="optimization_results"):
     script_dir = Path(__file__).resolve().parent
-    file_path = Path(filename)
+    file_path = Path(data_type + "/" + filename)
     if not file_path.is_absolute():
         file_path = script_dir / file_path
 
@@ -381,9 +381,9 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     plt.show()
 
 
-def _load_results_dataframe(filename):
+def _load_results_dataframe(filename, data_type="optimization_results"):
     script_dir = Path(__file__).resolve().parent
-    file_path = Path(filename)
+    file_path = Path(data_type + "/" + filename)
     if not file_path.is_absolute():
         file_path = script_dir / file_path
 
@@ -404,7 +404,9 @@ def _calc_flex_degree(df):
     return min(1, num_shutdowns / (4 * num_days)), num_days
 
 
-def calc_new_replacement_cost(filename, max_degradation=0.1):
+def calc_new_replacement_cost(
+    filename, max_degradation=0.1, data_type="optimization_results"
+):
     # Example calculation for new replacement cost based on given parameters
     membrane_total_cost = 500 * 4 * (72 + 30 + 15)
     membrane_lifetime = 5  # years
@@ -413,7 +415,7 @@ def calc_new_replacement_cost(filename, max_degradation=0.1):
     )  # This is only considering the RO motors... and not the UF motors.
     motor_lifetime = 17.5  # years
 
-    df, _ = _load_results_dataframe(filename)
+    df, _ = _load_results_dataframe(filename, data_type=data_type)
     flex_degree, num_days = _calc_flex_degree(df)
     num_months = num_days / 31
 
@@ -441,9 +443,15 @@ def replacement_cost_residual(max_degradation, filename, target_cost=4000.0):
 
 
 def solve_max_degradation_for_target(
-    filename, target_cost=4000.0, lower=0.0, upper=0.999999, tol=1e-8, max_iter=200
+    filename,
+    data_type="optimization_results",
+    target_cost=4000.0,
+    lower=0.0,
+    upper=0.999999,
+    tol=1e-8,
+    max_iter=200,
 ):
-    df, _ = _load_results_dataframe(filename)
+    df, _ = _load_results_dataframe(filename, data_type=data_type)
     flex_degree, _ = _calc_flex_degree(df)
 
     if flex_degree <= 0:
@@ -502,17 +510,19 @@ def solve_max_degradation_for_target(
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "real_Oct_week.csv"
+filename = "wrd_result_Aug_opt.csv"
 
-op_plot_from_data(filename, data_type="plant_data")
-# rep_cost = calc_new_replacement_cost(filename, max_degradation=0.4)
-# print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
+# op_plot_from_data(filename, data_type="plant_data")
+rep_cost = calc_new_replacement_cost(
+    filename, data_type="optimization_results", max_degradation=0.4
+)
+print(f"Calculated replacement cost based on shutdowns: ${rep_cost:,.2f}")
 
-# target_cost = 3718 + 1410  # 1410 is the baseline replacement cost (full lifetime)
-# max_deg_solution = solve_max_degradation_for_target(filename, target_cost=target_cost)
-# check_cost = calc_new_replacement_cost(filename, max_degradation=max_deg_solution)
-# print(
-#     f"max_degradation for target replacement cost ${target_cost:,.2f}: "
-#     f"{max_deg_solution:.6f}"
-# )
-# print(f"Check replacement cost at this value: ${check_cost:,.2f}")
+target_cost = 3718 + 1410  # 1410 is the baseline replacement cost (full lifetime)
+max_deg_solution = solve_max_degradation_for_target(filename, target_cost=target_cost)
+check_cost = calc_new_replacement_cost(filename, max_degradation=max_deg_solution)
+print(
+    f"max_degradation for target replacement cost ${target_cost:,.2f}: "
+    f"{max_deg_solution:.6f}"
+)
+print(f"Check replacement cost at this value: ${check_cost:,.2f}")
