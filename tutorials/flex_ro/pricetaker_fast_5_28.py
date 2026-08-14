@@ -519,7 +519,7 @@ def main(season, flex_type, num_flexible_trains=4):
         }
     )  # kWh/m3 #$/m3
 
-    m.params.brinedischarge.update({"brine_cost": 2.15, "energy_intensity": 0})
+    m.params.brinedischarge.update({"brine_cost": 0.43, "energy_intensity": 0})
 
     # Append LMP data to the model
     m.append_lmp_data(lmp_data=price_data["Energy Rate"])
@@ -667,7 +667,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.0044
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
