@@ -34,6 +34,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
             "train_4_flows": "reverse_osmosis.ro_skid[4].product_flowrate",
             "peak_hours": "peak_hour",
             "demand_response_revenue": "demand_response_revenue",
+            "working_hours": "working_hour",
         }
     elif data_type == "plant_data":
         # For plant data, flowrates are stored as percentages and power is pre-aggregated
@@ -56,6 +57,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
             "train_4_flows": ("train_4_flow_pct", max_perm_flowrate),
             "peak_hours": "peak_hour",
             "demand_response_revenue": "demand_response_revenue",
+            "working_hours": "working_hour",
         }
         # Compute total energy as sum of all power columns
         power_cols = [
@@ -131,6 +133,7 @@ def op_plot_from_data(filename, data_type="optimization_results"):
         else output_name
     )
 
+    working_hours = get_series("working_hours", required=False)
     peak_hours_data = get_series("peak_hours", required=False)
     peak_hours = (
         None
@@ -204,6 +207,34 @@ def op_plot_from_data(filename, data_type="optimization_results"):
                     label=span_label,
                 )
                 DR_legend_added = True
+
+    if working_hours is not None:
+        working_legend_added = False
+        for i, is_working in enumerate(working_hours):
+            if is_working:
+                # Shade full hourly intervals where the plant is operating.
+                span_label = "Working Hours" if not working_legend_added else None
+                ax_energy.axvspan(
+                    i,
+                    i + 1,
+                    color="lightblue",
+                    alpha=0.2,
+                    linewidth=0,
+                    zorder=-3,
+                    hatch="\\\\\\",
+                    label=span_label,
+                )
+                ax_trains.axvspan(
+                    i,
+                    i + 1,
+                    color="lightblue",
+                    alpha=0.2,
+                    linewidth=0,
+                    zorder=-3,
+                    hatch="\\\\\\",
+                    label=span_label,
+                )
+                working_legend_added = True
 
     # First subplot: Stacked energy consumption by major equipment
     ro1_energy = get_series("ro1_energy")
@@ -384,6 +415,6 @@ def op_plot_from_data(filename, data_type="optimization_results"):
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "wrd_result_summer_DR_1_hr_startup.csv"
+filename = "wrd_result_summer_working_hrs.csv"
 
 op_plot_from_data(filename, data_type="optimization_results")
