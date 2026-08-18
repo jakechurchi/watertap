@@ -450,9 +450,10 @@ def main(season, flex_type, num_flexible_trains=4):
         timestep_hours=timestep_hours,
         include_onsite_solar=False,
         onsite_capacity=pv_capacity,
-        nonworking_hours=list(
-            range(17, 21)
-        ),  # list(range(0, 8)) + list(range(18, 24)),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
+        nonworking_hours=list(range(0, 9))
+        + list(
+            range(18, 25)
+        ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
         # rainy_days=1,  # This will reduce the maxumim value for annual_production AF
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
         include_demand_response=True,
@@ -666,7 +667,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.015
+    mip_gap = 0.008
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
