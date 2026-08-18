@@ -444,8 +444,8 @@ def main(season, flex_type, num_flexible_trains=4):
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=12000
-        * 1.0863,  # This is to compare against the October plant data
+        annual_production_AF=12000,
+        # * 1.0863,  # This is to compare against the October plant data
         # * 1.2602,  # This is to compare against the Aug plant data
         timestep_hours=timestep_hours,
         include_onsite_solar=False,
@@ -619,7 +619,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # restricts number of shutdowns per 24 hours period, mainly to reduce solution space
     # fs.add_maximum_shutdowns(m)
 
-    # fs.add_working_hours_constraint(m)
+    fs.add_working_hours_constraint(m)
 
     # fs.add_rain_shutdowns(m)
 
@@ -667,7 +667,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.01
+    mip_gap = 0.025
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -744,8 +744,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
 
 if __name__ == "__main__":
-    seasons = ["winter"]
-    flex_types = ["both"]
+    seasons = ["summer"]
+    flex_types = ["no_flex"]
     num_flex_skids = [4]
 
     results_rows = []
