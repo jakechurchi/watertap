@@ -403,8 +403,8 @@ def main(
     use_two_phase_both=False,
 ):
     season_map = {
-        "summer": "price_signals/wrd_pricesignal_summer_week.csv",
-        "winter": "price_signals/wrd_pricesignal_winter_week.csv",
+        "summer": "price_signals/summer_week.csv",
+        "winter": "price_signals/winter_week.csv",
     }
     season_key = season.lower()
     if season_key not in season_map:

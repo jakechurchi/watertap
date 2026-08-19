@@ -284,7 +284,7 @@ if __name__ == "__main__":
     script_dir = Path(__file__).parent
 
     # Load price data
-    price_data = pd.read_csv(script_dir / "wrd_pricesignal_summer_week.csv")
+    price_data = pd.read_csv(script_dir / "summer_week.csv")
     price_data["Energy Rate"] = (
         price_data["electric_energy_on_peak"]
         + price_data["electric_energy_mid_peak"]
