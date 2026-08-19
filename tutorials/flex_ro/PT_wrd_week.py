@@ -407,9 +407,9 @@ def main(season, flex_type, num_flexible_trains=4):
         output_suffix = f"{output_suffix}_CPP"
     if selected_price_signal_stem.upper().endswith("DR"):
         output_suffix = f"{output_suffix}_DR"
+
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-
     # Load price data
     price_data = pd.read_csv(script_dir / season_map[season_key])
     price_data["Energy Rate"] = (
@@ -422,7 +422,6 @@ def main(season, flex_type, num_flexible_trains=4):
     price_data["Var Demand Rate"] = price_data["electric_demand_peak"]
     price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
     price_data["Demand_Response_Price"] = price_data["electric_demand_response_price"]
-
     price_data["Emissions Intensity"] = 0
     peak_hours = price_data["Var Demand Rate"].to_numpy() != 0
 
@@ -557,7 +556,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
-    # fs.add_delayed_shutdown_constraints(m)
+    fs.add_delayed_shutdown_constraints(m)
     # fs.repeat_weekdays(m)
 
     m.total_water_production = pyo.Expression(
