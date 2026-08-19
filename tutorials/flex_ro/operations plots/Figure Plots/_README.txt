@@ -8,4 +8,4 @@ FILE DESCRIPTIONS:
 - plant_data => redundant with files in the "Comparison to Real Week"
 
 NOTES:
-- 
+- Currently, an additional column has to be added to the csvs to represent the peak hours. This can be easily copied over from one of the existing csvs.
