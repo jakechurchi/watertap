@@ -659,9 +659,11 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
-        8000,
-        11000,
-        14000,
+        9000,
+        10000,
+        13000,
+        15000,
+        16000,
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
     season = "summer"
     flex_type = "num_shutdowns"
