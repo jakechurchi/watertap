@@ -1,0 +1,954 @@
+
+
+Running optimization for annual production of 8000 AF...
+2026-08-19 18:55:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-19 18:55:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-19 18:55:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-19 18:55:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-08-19 18:55:57 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+4364
+Set parameter TokenServer to value "10.60.1.73"
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.01
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.01
+
+Optimize a model with 18127 rows, 16467 columns and 51343 nonzeros
+Model fingerprint: 0x7bbded71
+Model has 168 quadratic objective terms
+Model has 2352 quadratic constraints
+Variable types: 11259 continuous, 5208 integer (5208 binary)
+Coefficient statistics:
+  Matrix range     [5e-04, 2e+03]
+  QMatrix range    [2e-07, 1e+00]
+  QLMatrix range   [3e-04, 1e+00]
+  Objective range  [1e-05, 1e-03]
+  QObjective range [2e-04, 2e-04]
+  Bounds range     [9e-01, 1e+03]
+  RHS range        [5e-02, 2e+05]
+  QRHS range       [3e-01, 3e-01]
+Presolve removed 6908 rows and 7238 columns
+Presolve time: 0.10s
+Presolved: 20459 rows, 9734 columns, 57065 nonzeros
+Presolved model has 336 SOS constraint(s)
+Presolved model has 2352 bilinear constraint(s)
+
+Solving non-convex MIQCP
+
+Variable types: 5740 continuous, 3994 integer (3994 binary)
+Found heuristic solution: objective 8.0065289
+
+Root relaxation: unbounded, 0 iterations, 0.01 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     2  postponed    0         8.00653          -      -     -    3s
+     3     8  postponed    2         8.00653          -      -  3882    6s
+    15    20  postponed    4         8.00653          -      -  7361   11s
+    47    54  postponed    6         8.00653          -      -  9760   16s
+   114   143  postponed    8         8.00653          -      -  9117   23s
+   178   467  postponed    9         8.00653          -      - 10835   31s
+   684   921 infeasible   16         8.00653          -      -  3454   42s
+H 1251   921                       8.0065287          -      -  2228   42s
+  1404  1492  postponed   24         8.00653          -      -  2084   55s
+  2328  2251  postponed   36         8.00653          -      -  1554   76s
+  3587  3181 infeasible   52         8.00653          -      -  1328  103s
+  5056  4057  postponed   71         8.00653          -      -  1178  129s
+  6558  5855  postponed   90         8.00653          -      -  1201  156s
+  9138  6908  postponed  106         8.00653          -      -  1169  179s
+ 10996  7914 infeasible  118         8.00653          -      -  1152  203s
+ 12631  7915 -1.000e+100   99    0    8.00653          -      -  1142  205s
+ 12633  7916    5.90757  146 1638    8.00653    5.90757  26.2%  1142  241s
+ 12634  7917    6.21645   64 1738    8.00653    6.21645  22.4%  1142  250s
+ 12635  7918    6.53153   41 1993    8.00653    6.53153  18.4%  1142  263s
+ 12636  7918    6.98001   11 1843    8.00653    6.98001  12.8%  1142  277s
+ 12637  7919    7.57456  204 2097    8.00653    7.19599  10.1%  1142  287s
+ 12638  7920    7.35565   15 2176    8.00653    7.35565  8.13%  1142  301s
+ 12639  7920    7.36691   32 2204    8.00653    7.36691  7.99%  1141  306s
+ 12640  7921    7.39882   90 2218    8.00653    7.39882  7.59%  1141  317s
+ 12641  7922    7.70425  352 2413    8.00653    7.40241  7.55%  1141  321s
+ 12642  7922    7.42755   61 2243    8.00653    7.42755  7.23%  1141  333s
+ 12643  7923    7.43113  101 2354    8.00653    7.43113  7.19%  1141  339s
+ 12644  7924    7.45527   44 2395    8.00653    7.45527  6.89%  1141  351s
+ 12645  7924    7.45768   50 2444    8.00653    7.45768  6.86%  1141  358s
+ 12646  7925    7.48502   71 2417    8.00653    7.48502  6.51%  1141  370s
+ 12647  7926    7.92069  207 2553    8.00653    7.48670  6.49%  1141  378s
+ 12648  7926    7.49619   45 2472    8.00653    7.49619  6.37%  1141  387s
+ 12649  7927    7.84093  512 2533    8.00653    7.49757  6.36%  1141  392s
+ 12650  7928    7.49878   19 2469    8.00653    7.49878  6.34%  1140  396s
+ 12652  7929    7.50026   69 2375    8.00653    7.50026  6.32%  1140  404s
+ 12653  7930    7.90727  217 2521    8.00653    7.50063  6.32%  1140  407s
+ 12654  7930    7.50125  193 2499    8.00653    7.50125  6.31%  1140  411s
+ 12656  7932    7.50157   53 2504    8.00653    7.50157  6.31%  1140  421s
+ 12659  7934    7.50184  156 2520    8.00653    7.50184  6.30%  1140  427s
+ 12660  7934    7.50187   41 2444    8.00653    7.50187  6.30%  1140  433s
+ 12662  7936    7.83248  495 2510    8.00653    7.50202  6.30%  1139  438s
+ 12663  7936    7.50207  148 2509    8.00653    7.50207  6.30%  1139  470s
+ 12664  7937    7.92951  544 2509    8.00653    7.50207  6.30%  1139  502s
+ 12665  7941    7.51520   12 4578    8.00653    7.50207  6.30%  1173  736s
+ 12667  7944    7.52190   13 4558    8.00653    7.51520  6.14%  1177  772s
+ 12671  7951    7.53264   14 4606    8.00653    7.52190  6.05%  1185  809s
+ 12679  7964    7.57599   15 4486    8.00653    7.53264  5.92%  1203  836s
+ 12695  7991    7.59787   16 4546    8.00653    7.53571  5.88%  1222  859s
+ 12727  8012    7.60283   17 4575    8.00653    7.54964  5.71%  1259  878s
+ 12759  8104    7.60667   18 4654    8.00653    7.54964  5.71%  1297  904s
+ 12862  8152    7.63943   21 4395    8.00653    7.54964  5.71%  1343  923s
+ 12944  8196    7.66638   23 4417    8.00653    7.54964  5.71%  1377  943s
+ 13020  8234    7.68084   24 4123    8.00653    7.54964  5.71%  1409  961s
+ 13088  8287    7.68902   25 4088    8.00653    7.54964  5.71%  1435  981s
+ 13178  8307    7.73530   26 4107    8.00653    7.54964  5.71%  1454  997s
+ 13243  8330    7.73271   27 3899    8.00653    7.54964  5.71%  1475 1017s
+ 13315  8350    7.75307   29 3942    8.00653    7.54964  5.71%  1498 1034s
+ 13371  8384    7.76327   31 3248    8.00653    7.54964  5.71%  1531 1053s
+ 13437  8412    7.76975   32 3235    8.00653    7.54964  5.71%  1557 1071s
+ 13502  8443    7.81285   34 2636    8.00653    7.54964  5.71%  1583 1086s
+ 13577  8480    7.82967   35 2609    8.00653    7.54964  5.71%  1617 1104s
+ 13658  8528    7.86937   38 2188    8.00653    7.54964  5.71%  1645 1121s
+H13777  8099                       8.0065283    7.54964  5.71%  1687 1138s
+ 13861  8092    7.89267   41 1743    8.00653    7.54964  5.71%  1721 1156s
+ 13935  8083     cutoff   43         8.00653    7.54964  5.71%  1773 1175s
+ 14024  8100    7.99199   46 1449    8.00653    7.57602  5.38%  1825 1195s
+ 14119  8108     cutoff   46         8.00653    7.57602  5.38%  1870 1214s
+ 14203  8125    7.96476   37 1946    8.00653    7.57602  5.38%  1912 1234s
+ 14307  8171     cutoff   41         8.00653    7.57602  5.38%  1974 1254s
+ 14429  8219    7.85574   38 2888    8.00653    7.57602  5.38%  2032 1277s
+ 14570  8251     cutoff   47         8.00653    7.57602  5.38%  2079 1301s
+ 14695  8273    7.97659   45 2569    8.00653    7.57602  5.38%  2130 1324s
+ 14839  8327     cutoff   46         8.00653    7.57602  5.38%  2188 1350s
+ 14983  8395    7.90020   27 2856    8.00653    7.57602  5.38%  2242 1373s
+ 15156  8407     cutoff   32         8.00653    7.57602  5.38%  2307 1398s
+ 15304  8415    7.90570   40 2821    8.00653    7.57602  5.38%  2379 1425s
+ 15462  8429    7.95221   42 2676    8.00653    7.57602  5.38%  2442 1451s
+ 15589  8455     cutoff   46         8.00653    7.57919  5.34%  2504 1476s
+ 15734  8505    7.87787   20 4326    8.00653    7.61544  4.88%  2574 1509s
+ 15884  8576    7.89665   21 4203    8.00653    7.61544  4.88%  2645 1539s
+ 16041  8626    7.93934   22 4064    8.00653    7.61544  4.88%  2718 1571s
+ 16225  8636     cutoff   24         8.00653    7.63144  4.68%  2790 1604s
+ 16400  8708    7.66301   19 4420    8.00653    7.63817  4.60%  2866 1640s
+ 16608  8779    7.67716   21 4263    8.00653    7.64408  4.53%  2931 1676s
+ 16843  8832    7.73064   26 4095    8.00653    7.64519  4.51%  2997 1711s
+ 17063  8848    7.81843   30 3418    8.00653    7.64544  4.51%  3073 1748s
+ 17287  8919     cutoff   42         8.00653    7.64599  4.50%  3151 1791s
+ 17549  8988    7.76966   26 3272    8.00653    7.64679  4.49%  3212 1832s
+ 17814  8917    7.89653   35 3034    8.00653    7.64934  4.46%  3281 1874s
+ 17860  8935    7.89693   36 3011    8.00653    7.64934  4.46%  3304 1911s
+ 17962  9044    7.89740   37 2999    8.00653    7.64934  4.46%  3336 1952s
+ 18204  9090    7.98616   48 2714    8.00653    7.65166  4.43%  3392 1993s
+ 18478  9212    7.69182   26 3394    8.00653    7.65234  4.42%  3472 2039s
+ 18798  9278    8.00259   51 2400    8.00653    7.65234  4.42%  3551 2087s
+ 19113  9378    7.78645   27 3148    8.00653    7.66085  4.32%  3647 2139s
+ 19457  9374    7.94059   49 2599    8.00653    7.66085  4.32%  3735 2190s
+ 19680  9492    7.73724   23 4159    8.00653    7.66408  4.28%  3843 2244s
+ 19963  9552    7.77236   27 4261    8.00653    7.66408  4.28%  3940 2297s
+ 20240  9619    7.93129   32 3637    8.00653    7.67249  4.17%  4057 2356s
+ 20506  9702     cutoff   37         8.00653    7.67274  4.17%  4174 2415s
+ 20859  9809    7.71260   26 4274    8.00653    7.67620  4.13%  4273 2473s
+ 21231  9896    7.80734   35 1945    8.00653    7.67620  4.13%  4398 2533s
+ 21607 10018    7.93359   40 1598    8.00653    7.67693  4.12%  4511 2599s
+ 22014 10103    7.91501   26 4227    8.00653    7.67970  4.08%  4610 2666s
+ 22459 10229    7.81389   26 3234    8.00653    7.67970  4.08%  4696 2731s
+ 22998 10361    7.96579   34 2782    8.00653    7.68189  4.05%  4773 2809s
+ 23507 10321    7.85206   31 3109    8.00653    7.68594  4.00%  4872 2877s
+ 23691 10565    7.92883   41 2949    8.00653    7.68666  4.00%  4891 2956s
+ 24165 10750    7.74745   23 3290    8.00653    7.68666  4.00%  4984 3037s
+ 24716 10921    7.97892   32 2804    8.00653    7.68666  4.00%  5092 3118s
+ 25276 11053     cutoff   39         8.00653    7.69080  3.94%  5206 3198s
+ 25831 11117    7.93711   36 1476    8.00653    7.69300  3.92%  5326 3291s
+ 26449 11092    7.84676   26 4353    8.00653    7.69300  3.92%  5454 3379s
+ 27018 11175    7.97257   31 4119    8.00653    7.69896  3.84%  5584 3475s
+ 27529 11343     cutoff   38         8.00653    7.69962  3.83%  5664 3568s
+ 28242 11507    7.89372   32 2962    8.00653    7.69996  3.83%  5770 3669s
+ 29002 11728    7.78837   31 3149    8.00653    7.70328  3.79%  5874 3771s
+ 29814 11811     cutoff   41         8.00653    7.71133  3.69%  5969 3863s
+ 30479 11858    7.95113   32 3127    8.00653    7.71240  3.67%  6049 3964s
+ 31075 11897    7.93098   37 3649    8.00653    7.71663  3.62%  6153 4073s
+ 31758 11974    7.94520   54 3549    8.00653    7.71703  3.62%  6291 4191s
+ 32438 12163    7.94757   63 3407    8.00653    7.71953  3.58%  6427 4315s
+ 33305 12321    7.85769   31 3105    8.00653    7.72138  3.56%  6544 4442s
+ 34335 12370    7.80035   32 4218    8.00653    7.72362  3.53%  6637 4578s
+ 35137 12438    8.00516   30 2690    8.00653    7.72390  3.53%  6759 4715s
+ 35986 12873    7.84753   31 2893    8.00653    7.72447  3.52%  6886 4863s
+ 37084 13503     cutoff   43         8.00653    7.72888  3.47%  6973 5003s
+ 38339 14041    7.75487   33 4117    8.00653    7.73491  3.39%  7033 5156s
+ 39615 14567     cutoff   27         8.00653    7.73736  3.36%  7100 5310s
+ 40827 15061    7.85903   35 3115    8.00653    7.73739  3.36%  7163 5479s
+ 41984 15570     cutoff   32         8.00653    7.74151  3.31%  7252 5641s
+ 43231 16058    7.95741   34 3002    8.00653    7.74306  3.29%  7329 5812s
+ 44408 16757    7.89381   24 3177    8.00653    7.74557  3.26%  7420 5987s
+ 45786 17419    7.88736   30 3173    8.00653    7.74557  3.26%  7502 6170s
+ 47147 18055    7.94530   31 3127    8.00653    7.74729  3.24%  7566 6354s
+ 48734 18661     cutoff   39         8.00653    7.75033  3.20%  7640 6551s
+ 50512 19236     cutoff   36         8.00653    7.75141  3.19%  7702 6749s
+ 52134 19716    7.97763   34 2914    8.00653    7.75523  3.14%  7774 6958s
+ 53788 20196    7.84177   31 3726    8.00653    7.75620  3.13%  7862 7183s
+H53813 20196                       8.0065283    7.75620  3.13%  7864 7183s
+H53945 17749                       7.9731115    7.75638  2.72%  7873 7183s
+H54301 15972                       7.9536530    7.75706  2.47%  7883 7183s
+ 55142 16366    7.92990   36 3568    7.95365    7.75889  2.45%  7923 7406s
+H55269 16224                       7.9522515    7.75889  2.43%  7927 7406s
+H56353 16224                       7.9522491    7.75943  2.42%  7960 7406s
+H56842 16224                       7.9522393    7.76059  2.41%  7983 7406s
+H56945 16750                       7.9522369    7.76059  2.41%  7989 7639s
+H57077 16750                       7.9522364    7.76059  2.41%  7990 7639s
+H58706 16744                       7.9521741    7.76226  2.39%  8042 7639s
+ 58842 17317     cutoff   44         7.95217    7.76511  2.35%  8052 7894s
+H58844 17317                       7.9521739    7.76511  2.35%  8052 7894s
+H58964 17317                       7.9521707    7.76511  2.35%  8059 7894s
+H59175 17317                       7.9521667    7.76539  2.35%  8061 7894s
+H59934 17317                       7.9521631    7.76552  2.35%  8095 7894s
+H60448 17223                       7.9512163    7.76602  2.33%  8126 7894s
+ 60760 17673     cutoff   35         7.95122    7.76725  2.31%  8133 8145s
+H60763 17636                       7.9508832    7.76725  2.31%  8133 8145s
+H60875 17635                       7.9508758    7.76725  2.31%  8136 8145s
+H61252 17633                       7.9508434    7.76745  2.31%  8142 8145s
+H62189 17328                       7.9476766    7.76841  2.26%  8170 8145s
+ 62449 17927     cutoff   29         7.94768    7.76966  2.24%  8178 8428s
+H62451 17921                       7.9476287    7.76966  2.24%  8178 8428s
+ 64782 18561     cutoff   30         7.94763    7.77276  2.20%  8245 8720s
+H64783 18561                       7.9476286    7.77276  2.20%  8245 8720s
+H65410 18338                       7.9456370    7.77285  2.17%  8261 8720s
+H66055 18329                       7.9455268    7.77302  2.17%  8271 8720s
+ 66979 18792    7.82429   17 4541    7.94553    7.77491  2.15%  8299 9003s
+ 69113 19302    7.88040   24 3346    7.94553    7.77673  2.12%  8377 9299s
+H69425 19270                       7.9452883    7.77673  2.12%  8394 9299s
+H69597 19270                       7.9452845    7.77673  2.12%  8397 9299s
+H71542 19824                       7.9452840    7.77961  2.09%  8437 9606s
+H71690 19824                       7.9452838    7.78014  2.08%  8443 9606s
+H71832 19816                       7.9452361    7.78015  2.08%  8447 9606s
+H71911 19813                       7.9452205    7.78018  2.08%  8448 9606s
+H73732 19805                       7.9451826    7.78061  2.07%  8496 9606s
+ 73967 20213     cutoff   32         7.94518    7.78139  2.06%  8503 9948s
+H74225 20213                       7.9451822    7.78139  2.06%  8506 9948s
+H74351 20213                       7.9451821    7.78139  2.06%  8510 9948s
+H74930 20213                       7.9451821    7.78211  2.05%  8522 9948s
+H75337 20213                       7.9451821    7.78247  2.05%  8542 9948s
+ 76165 20832     cutoff   28         7.94518    7.78338  2.04%  8568 10310s
+ 78801 21524    7.93462   33 3915    7.94518    7.78635  2.00%  8638 10667s
+H79746 21524                       7.9451809    7.78671  1.99%  8674 10667s
+H81404 22262                       7.9451791    7.78902  1.97%  8723 11041s
+H82711 22262                       7.9451791    7.78905  1.97%  8777 11041s
+ 84041 22933    7.91365   29 2912    7.94518    7.78998  1.95%  8822 11433s
+H84111 22933                       7.9451790    7.78998  1.95%  8828 11433s
+H84188 22933                       7.9451790    7.78998  1.95%  8831 11433s
+H84374 22933                       7.9451788    7.78998  1.95%  8835 11433s
+ 86866 23550    7.88106   26 3049    7.94518    7.79102  1.94%  8910 11835s
+H87499 23550                       7.9451787    7.79205  1.93%  8929 11835s
+H89840 23550                       7.9451787    7.79494  1.89%  8972 11835s
+ 89913 24182    7.93052   63 2827    7.94518    7.79494  1.89%  8977 12243s
+H89997 24182                       7.9451787    7.79494  1.89%  8979 12243s
+H91014 24060                       7.9441791    7.79536  1.87%  8991 12243s
+ 92882 24621     cutoff   28         7.94418    7.79748  1.85%  9018 12690s
+ 96346 25252     cutoff   30         7.94418    7.80039  1.81%  9081 13126s
+ 99538 25851     cutoff   28         7.94418    7.80283  1.78%  9149 13556s
+ 102873 26396     cutoff   35         7.94418    7.80557  1.74%  9201 13987s
+ 106360 27110    7.86736   33 3310    7.94418    7.80768  1.72%  9242 14405s
+ 109780 27580    7.89832   34 2957    7.94418    7.80883  1.70%  9271 14833s
+H112015 27580                       7.9441731    7.80938  1.70%  9295 14833s
+ 112787 28050    7.89444   32 2988    7.94417    7.81136  1.67%  9308 15254s
+H112854 28050                       7.9441730    7.81136  1.67%  9311 15254s
+H113143 28050                       7.9441729    7.81136  1.67%  9314 15254s
+H115636 28670                       7.9441724    7.81320  1.65%  9347 15697s
+ 118864 29276    7.86609   64 3532    7.94417    7.81447  1.63%  9390 16134s
+ 122014 29844    7.94172   33 3042    7.94417    7.81633  1.61%  9442 16574s
+H124626 29844                       7.9441724    7.81672  1.60%  9474 16574s
+H125155 29844                       7.9441724    7.81692  1.60%  9481 16574s
+ 125369 30401    7.89988   35 3713    7.94417    7.81781  1.59%  9483 17007s
+ 128225 30938     cutoff   29         7.94417    7.81950  1.57%  9532 17457s
+H129971 30938                       7.9441723    7.81957  1.57%  9547 17457s
+ 131626 31781    7.93932   34 2987    7.94417    7.82111  1.55%  9572 17907s
+ 135093 32387    7.90673   59 3531    7.94417    7.82197  1.54%  9611 18340s
+ 138261 32917     cutoff   64         7.94417    7.82377  1.52%  9654 18776s
+ 141389 33475    7.86270   35 4147    7.94417    7.82515  1.50%  9695 19218s
+ 144724 34106     cutoff   38         7.94417    7.82656  1.48%  9729 19647s
+ 147744 34656    7.88965   36 3039    7.94417    7.82795  1.46%  9773 20106s
+ 150882 35420    7.86041   32 4207    7.94417    7.82900  1.45%  9793 20555s
+ 154364 35884    7.87826   36 3009    7.94417    7.83045  1.43%  9810 20981s
+ 157504 36138    7.87612   55 3882    7.94417    7.83088  1.43%  9838 21413s
+ 160365 36439    7.92127   30 3143    7.94417    7.83279  1.40%  9876 21863s
+ 163114 36789     cutoff   35         7.94417    7.83376  1.39%  9913 22323s
+ 166321 37222    7.92846   29 2939    7.94417    7.83510  1.37%  9952 22789s
+ 169792 37477    7.93257   31 3137    7.94417    7.83623  1.36%  9975 23245s
+H171876 37477                       7.9441722    7.83647  1.36% 10002 23245s
+H172593 37477                       7.9441721    7.83660  1.35% 10006 23245s
+ 172842 37713    7.89988   32 2906    7.94417    7.83734  1.34% 10006 23698s
+ 175684 38031     cutoff   32         7.94417    7.83838  1.33% 10037 24172s
+ 178981 38297    7.93249   37 2679    7.94417    7.83947  1.32% 10072 24609s
+ 182079 38535    7.93981   34 4065    7.94417    7.84086  1.30% 10096 25063s
+ 184967 38796    7.91889   65 3578    7.94417    7.84148  1.29% 10124 25544s
+ 188355 39191    7.91204   32 3258    7.94417    7.84312  1.27% 10154 26011s
+ 191812 39443     cutoff   79         7.94417    7.84452  1.25% 10168 26489s
+ 195240 39689    7.91569   23 4505    7.94417    7.84561  1.24% 10185 26960s
+ 198429 39902    7.92700   33 2966    7.94417    7.84670  1.23% 10208 27475s
+ 200950 39887    7.91094   38 2763    7.94417    7.84738  1.22% 10226 27967s
+ 204238 39976    7.93309   29 4354    7.94417    7.84868  1.20% 10256 28449s
+ 207527 40137    7.92322   29 4074    7.94417    7.84953  1.19% 10283 28926s
+ 210473 40355    7.90756   89 3209    7.94417    7.85053  1.18% 10306 29374s
+ 213388 40754     cutoff   50         7.94417    7.85159  1.17% 10334 29864s
+ 217207 41072     cutoff   29         7.94417    7.85272  1.15% 10341 30317s
+ 220129 41266    7.93003   29 3181    7.94417    7.85338  1.14% 10365 30777s
+ 223337 41467    7.89702   27 3080    7.94417    7.85474  1.13% 10385 31240s
+ 226711 41468     cutoff   32         7.94417    7.85583  1.11% 10398 31695s
+ 229425 42678    7.94176   31 3128    7.94417    7.85675  1.10% 10421 32167s
+ 233778 42842     cutoff   30         7.94417    7.85750  1.09% 10395 32609s
+ 236953 42726    7.92449   52 3924    7.94417    7.85886  1.07% 10405 33045s
+ 239646 42767     cutoff   38         7.94417    7.85987  1.06% 10436 33501s
+ 242557 42783     cutoff   35         7.94417    7.86095  1.05% 10460 33974s
+ 245246 42767     cutoff   44         7.94417    7.86193  1.04% 10483 34458s
+ 248359 42679    7.91067   29 3116    7.94417    7.86276  1.02% 10503 34954s
+ 251540 42652     cutoff   50         7.94417    7.86371  1.01% 10528 35455s
+
+Cutting planes:
+  Learned: 867
+  Gomory: 83
+  Cover: 1674
+  Implied bound: 889
+  Projected implied bound: 202
+  Clique: 22
+  MIR: 1068
+  StrongCG: 2
+  Flow cover: 2109
+  GUB cover: 51
+  Inf proof: 24
+  Zero half: 12
+  Mod-K: 1
+  Network: 31
+  RLT: 1508
+  Relax-and-lift: 655
+  BQP: 43
+  PSD: 1
+
+Explored 254984 nodes (2688533266 simplex iterations) in 35455.85 seconds (93356.69 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 10: 7.94417 7.94417 7.94417 ... 7.94518
+
+Optimal solution found (tolerance 1.00e-02)
+Best objective 7.944172119344e+00, best bound 7.865117576743e+00, gap 0.9951%
+m.flow_changes_penalty(): 310.0
+Total operational cost: 79131.72
+Maximum power (kW): 766.81
+Discharge energy capacity (kWh): 61106.65
+Charge energy capacity (kWh): 0.00
+Levelized Cost of Flexibility ($/kWh): 0.65
+{'fixed_demand_cost': 3432.0814890886727, 'variable_demand_cost': 4864.646263553777, 'fixed_monthly_cost': 171938.17204301074, 'total_water_production': 188119.78330095107, 'total_energy_cost': 13644.599077984469, 'total_demand_cost': 8296.72775264245, 'total_customer_cost': 0.0, 'total_feed_cost': 33953.83514759752, 'total_brine_cost': 10359.425139760044, 'total_chemical_cost': 12877.134075455988, 'total_water_revenue': 0.0, 'total_demand_response_revenue': 0.0, 'total_emissions_cost': 0.0, 'total_op_cost': 79131.72119344048, 'fixed_cost': 121551.98252688172, 'total_cost': 200683.7037203222, 'LCOW': 1.06678681103556, 'degree_of_flex': 0.0, 'total_replacement_cost': 1409.837429595494, 'maximum_power': 766.8120012378455, 'discharge_energy_capacity': 61106.6533863473, 'charge_energy_capacity': 0.0, 'discharge_power_capacity': 363.7300796806387, 'charge_power_capacity': nan, 'round_trip_efficiency': 0, 'LVOF': 0.6473344420756955}
+Saved operation variable results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_result_num_shutdowns_10_summer_8000AF.csv
+
+
+Running optimization for annual production of 11000 AF...
+2026-08-20 04:46:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 04:46:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 04:46:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 04:46:56 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-08-20 04:46:58 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+4364
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.01
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.01
+
+Optimize a model with 18127 rows, 16467 columns and 51343 nonzeros
+Model fingerprint: 0xda3d4602
+Model has 168 quadratic objective terms
+Model has 2352 quadratic constraints
+Variable types: 11259 continuous, 5208 integer (5208 binary)
+Coefficient statistics:
+  Matrix range     [5e-04, 2e+03]
+  QMatrix range    [2e-07, 1e+00]
+  QLMatrix range   [3e-04, 1e+00]
+  Objective range  [1e-05, 1e-03]
+  QObjective range [2e-04, 2e-04]
+  Bounds range     [9e-01, 1e+03]
+  RHS range        [5e-02, 3e+05]
+  QRHS range       [3e-01, 3e-01]
+Presolve removed 6908 rows and 7238 columns
+Presolve time: 0.10s
+Presolved: 20459 rows, 9734 columns, 57065 nonzeros
+Presolved model has 336 SOS constraint(s)
+Presolved model has 2352 bilinear constraint(s)
+
+Solving non-convex MIQCP
+
+Variable types: 5740 continuous, 3994 integer (3994 binary)
+Found heuristic solution: objective 11.0455119
+
+Root relaxation: unbounded, 0 iterations, 0.01 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     2  postponed    0        11.04551          -      -     -    4s
+     1     4  postponed    1        11.04551          -      -   0.0    7s
+     3     8  postponed    2        11.04551          -      -  5954   10s
+    15    20  postponed    4        11.04551          -      -  9441   15s
+    47    54  postponed    6        11.04551          -      - 11551   22s
+    79    80  postponed    7        11.04551          -      - 10345   25s
+   115   144  postponed    8        11.04551          -      - 10668   31s
+   179   521  postponed    9        11.04551          -      - 12169   40s
+   760  1008  postponed   16        11.04551          -      -  3710   51s
+H 1365  1008                      11.0455117          -      -  2492   51s
+  1515  1729  postponed   25        11.04551          -      -  2359   67s
+  2658  2772  postponed   38        11.04551          -      -  1775   93s
+  4341  3797 infeasible   57        11.04551          -      -  1500  121s
+H 4863  3797                      11.0455117          -      -  1467  121s
+  6022  5851 infeasible   77        11.04551          -      -  1425  145s
+  8703  9043 infeasible   95        11.04551          -      -  1291  167s
+ 12472 11208  postponed  105        11.04551          -      -  1133  183s
+ 15082 11209   10.49775  311    0   11.04551          -      -  1086  186s
+ 15084 11210    9.00972   74 1786   11.04551    9.00972  18.4%  1086  225s
+ 15085 11211    9.38228   19 2233   11.04551    9.38228  15.1%  1085  238s
+ 15086 11212   10.52400  532 2435   11.04551    9.47748  14.2%  1085  244s
+ 15087 11212   10.39662  434 2582   11.04551   10.12180  8.36%  1085  259s
+ 15088 11213   10.17126   19 2776   11.04551   10.17126  7.92%  1085  266s
+ 15089 11214   10.70518  612 2666   11.04551   10.22707  7.41%  1085  275s
+ 15091 11215   10.50754  340 2641   11.04551   10.24805  7.22%  1085  285s
+ 15093 11216   10.37094  428 2586   11.04551   10.25798  7.13%  1085  293s
+ 15094 11217   10.25891  276 2559   11.04551   10.25891  7.12%  1085  295s
+ 15096 11218   10.28481   94 2472   11.04551   10.28481  6.89%  1085  301s
+ 15098 11220   10.79370  112 2539   11.04551   10.28891  6.85%  1085  306s
+ 15100 11221   10.95742  728 2536   11.04551   10.28962  6.84%  1084  311s
+ 15102 11222   10.29046  300 2557   11.04551   10.29046  6.84%  1084  315s
+ 15103 11223   10.58557  597 2562   11.04551   10.29614  6.78%  1084  320s
+ 15106 11225   10.30617  321 2522   11.04551   10.30617  6.69%  1084  326s
+ 15109 11227   10.80205  598 2538   11.04551   10.31010  6.66%  1084  332s
+ 15111 11228   10.69960  509 2519   11.04551   10.31090  6.65%  1084  335s
+ 15114 11230   10.49820  313 2543   11.04551   10.31108  6.65%  1083  343s
+ 15115 11231   10.31297  159 2535   11.04551   10.31297  6.63%  1083  346s
+ 15117 11232   10.31368  299 2591   11.04551   10.31368  6.63%  1083  350s
+ 15123 11236   10.50340  278 2572   11.04551   10.31426  6.62%  1083  355s
+ 15124 11237   10.31426   80 2572   11.04551   10.31426  6.62%  1083  388s
+ 15125 11238   10.68399  799 2572   11.04551   10.31426  6.62%  1083  412s
+ 15126 11241   10.35494   12 4655   11.04551   10.31426  6.62%  1102  657s
+ 15128 11245   10.38078   13 4171   11.04551   10.35494  6.25%  1104  699s
+ 15132 11251   10.39080   14 4046   11.04551   10.38078  6.02%  1112  724s
+ 15140 11265   10.46758   15 4191   11.04551   10.39080  5.93%  1122  745s
+ 15156 11291   10.47781   16 4425   11.04551   10.39931  5.85%  1137  773s
+H15167 10725                      11.0455117   10.39931  5.85%  1146  773s
+ 15188 10750   10.55216   17 3122   11.04551   10.40276  5.82%  1163  787s
+ 15220 10832   10.63020   18 2848   11.04551   10.40276  5.82%  1187  808s
+ 15313 10887   10.71975   21 2756   11.04551   10.40276  5.82%  1223  827s
+ 15399 10921   10.70139   22 2572   11.04551   10.40276  5.82%  1251  843s
+ 15464 10979   10.77625   24 2590   11.04551   10.40276  5.82%  1268  861s
+ 15547 11031   10.82324   27 2578   11.04551   10.40276  5.82%  1288  878s
+ 15635 11064   10.84282   29 2517   11.04551   10.40276  5.82%  1306  893s
+ 15705 11091   10.86096   31 2455   11.04551   10.40276  5.82%  1328  912s
+ 15765 11123   11.00186   32 2464   11.04551   10.40276  5.82%  1349  928s
+ 15832 11150   10.89614   33 2502   11.04551   10.41171  5.74%  1370  943s
+ 15897 11182   10.92475   35 2497   11.04551   10.41171  5.74%  1388  958s
+ 15971 11195   10.97002   38 2461   11.04551   10.41171  5.74%  1412  971s
+ 16038 11214   10.99189   39 2315   11.04551   10.41171  5.74%  1439  990s
+ 16106 11225   10.99807   40 2180   11.04551   10.41171  5.74%  1462 1006s
+ 16183 11233   10.90515   31 3950   11.04551   10.41171  5.74%  1497 1025s
+ 16261 11241   10.91013   32 3743   11.04551   10.41171  5.74%  1536 1048s
+ 16354 11252   10.97881   34 3722   11.04551   10.41171  5.74%  1574 1066s
+ 16463 11273   10.98451   35 3726   11.04551   10.41171  5.74%  1608 1085s
+ 16563 11311   10.98723   36 3650   11.04551   10.41171  5.74%  1655 1110s
+ 16687 11356   10.98945   37 3563   11.04551   10.41171  5.74%  1693 1127s
+ 16825 11374   11.01455   36 3887   11.04551   10.41171  5.74%  1736 1147s
+ 16971 11398   10.99823   40 3499   11.04551   10.41171  5.74%  1793 1165s
+ 17112 11484   11.00234   41 3487   11.04551   10.47136  5.20%  1850 1184s
+ 17295 11586     cutoff   42        11.04551   10.47136  5.20%  1890 1204s
+ 17526 11639     cutoff   45        11.04551   10.47136  5.20%  1928 1227s
+ 17729 11727   11.03116   48 3422   11.04551   10.47136  5.20%  1970 1249s
+ 17940 11819   11.03215   51 3507   11.04551   10.47136  5.20%  2016 1272s
+ 18139 11958   11.03434   54 3478   11.04551   10.47136  5.20%  2058 1293s
+ 18413 12060   11.03576   55 3405   11.04551   10.47136  5.20%  2087 1318s
+ 18658 12191   11.03659   58 3401   11.04551   10.47136  5.20%  2125 1343s
+ 18937 12241   11.04157   61 3283   11.04551   10.47136  5.20%  2157 1368s
+ 19124 12432     cutoff   62        11.04551   10.48628  5.06%  2194 1394s
+ 19436 12544     cutoff   62        11.04551   10.48628  5.06%  2223 1419s
+ 19720 12705   11.00903   46 1558   11.04551   10.48628  5.06%  2258 1449s
+ 20015 12915   11.02339   66 1217   11.04551   10.48628  5.06%  2303 1477s
+H20371 11232                      10.9914458   10.48628  4.60%  2333 1509s
+H20393  9808                      10.8817534   10.48628  3.63%  2334 1509s
+H20399  9323                      10.8744940   10.48628  3.57%  2336 1509s
+H20469  8841                      10.8611410   10.48628  3.45%  2339 1509s
+H20555  8378                      10.8566935   10.48628  3.41%  2341 1509s
+ 20599  8223   10.77409   29 4133   10.85669   10.48628  3.41%  2351 1540s
+H20649  7792                      10.8566935   10.48628  3.41%  2357 1540s
+ 20808  7710   10.82022   32 4095   10.85669   10.48628  3.41%  2387 1571s
+H20813  7316                      10.8566549   10.48628  3.41%  2389 1571s
+H20899  6914                      10.8566514   10.48628  3.41%  2416 1571s
+ 20944  6897   10.84793   33 4092   10.85665   10.48628  3.41%  2434 1604s
+ 21094  6862     cutoff   35        10.85665   10.48753  3.40%  2486 1639s
+H21139  6492                      10.8566425   10.49187  3.36%  2502 1639s
+H21153  6151                      10.8566299   10.49187  3.36%  2505 1639s
+ 21232  6202   10.54979   22 4295   10.85663   10.49794  3.30%  2530 1676s
+ 21365  6236   10.61894   25 4241   10.85663   10.49794  3.30%  2573 1711s
+H21374  5913                      10.8566185   10.49794  3.30%  2577 1711s
+H21433  5588                      10.8565966   10.49794  3.30%  2597 1711s
+ 21481  5670   10.68526   33 4041   10.85660   10.49794  3.30%  2627 1746s
+H21605  5430                      10.8565907   10.49794  3.30%  2676 1785s
+H21620  5150                      10.8565898   10.49794  3.30%  2680 1785s
+H21626  4888                      10.8565873   10.49794  3.30%  2686 1785s
+H21651  4631                      10.8565791   10.49794  3.30%  2699 1785s
+ 21725  4708   10.69591   44 3913   10.85658   10.49794  3.30%  2730 1822s
+ 21892  4741   10.81102   48 3787   10.85658   10.50511  3.24%  2783 1859s
+H21929  4494                      10.8565342   10.50511  3.24%  2795 1859s
+ 22055  4558   10.85271   55 3691   10.85653   10.50511  3.24%  2842 1896s
+ 22213  4647     cutoff   58        10.85653   10.50664  3.22%  2904 1939s
+H22245  4412                      10.8565341   10.50664  3.22%  2918 1939s
+H22344  4167                      10.8565284   10.50891  3.20%  2950 1939s
+ 22403  4283   10.54450   41 4240   10.85653   10.50891  3.20%  2966 1978s
+ 22615  4337   10.84153   50 3981   10.85653   10.50891  3.20%  3027 2020s
+ 22793  4383   10.84522   52 3837   10.85653   10.51192  3.17%  3093 2072s
+ 22970  4489     cutoff   57        10.85653   10.51192  3.17%  3166 2116s
+ 23208  4586   10.57956   22 4525   10.85653   10.51407  3.15%  3242 2162s
+ 23491  4667   10.60005   24 4399   10.85653   10.51407  3.15%  3313 2213s
+H23497  4451                      10.8546599   10.51407  3.14%  3315 2213s
+H23502  4258                      10.8542980   10.51407  3.13%  3318 2213s
+ 23749  4361   10.69962   30 4125   10.85430   10.51528  3.12%  3389 2264s
+ 24001  4476     cutoff   41        10.85430   10.51833  3.10%  3470 2316s
+H24224  4220                      10.8542980   10.51833  3.10%  3545 2316s
+ 24268  4423   10.60812   26 4364   10.85430   10.51833  3.10%  3563 2372s
+H24339  4226                      10.8542979   10.51833  3.10%  3595 2372s
+H24373  4051                      10.8542971   10.51833  3.10%  3606 2372s
+ 24533  4243   10.65778   34 4190   10.85430   10.51833  3.10%  3660 2427s
+ 24817  4545   10.83059   37 4012   10.85430   10.51833  3.10%  3758 2487s
+ 25174  4784   10.84363   49 3886   10.85430   10.51833  3.10%  3853 2562s
+ 25523  5056   10.84910   55 3614   10.85430   10.53388  2.95%  3973 2625s
+H25804  5056                      10.8542971   10.53678  2.93%  4044 2625s
+H25830  5044                      10.8525724   10.53678  2.91%  4053 2625s
+H25881  5222                      10.8515724   10.53678  2.90%  4075 2692s
+H25941  5222                      10.8515723   10.53678  2.90%  4086 2692s
+ 26102  5548   10.81892   38 4310   10.85157   10.53678  2.90%  4112 2757s
+H26251  5548                      10.8515723   10.53678  2.90%  4158 2757s
+ 26507  5873   10.83671   50 3943   10.85157   10.53678  2.90%  4218 2831s
+ 26924  6148   10.70699   80 3626   10.85157   10.53897  2.88%  4336 2907s
+H26946  6148                      10.8515723   10.53897  2.88%  4342 2907s
+ 27256  6524   10.72546   91 3306   10.85157   10.53897  2.88%  4436 2982s
+H27450  6524                      10.8515718   10.53897  2.88%  4464 2982s
+ 27767  6937   10.75258  104 3004   10.85157   10.54319  2.84%  4555 3059s
+ 28336  7276   10.79975  150 2429   10.85157   10.54599  2.82%  4667 3141s
+ 28911  7563   10.83591  180 1921   10.85157   10.54599  2.82%  4779 3228s
+H28979  7560                      10.8514945   10.54599  2.82%  4787 3228s
+H29062  7560                      10.8514745   10.54599  2.82%  4808 3228s
+H29262  7560                      10.8514421   10.54810  2.80%  4858 3228s
+ 29330  7963   10.76101   84 3366   10.85144   10.54810  2.80%  4869 3353s
+H30017  7963                      10.8514421   10.55169  2.76%  5043 3353s
+ 30025  8429   10.72589   87 3410   10.85144   10.55169  2.76%  5045 3471s
+ 30656  8881   10.76340  112 2860   10.85144   10.55169  2.76%  5224 3593s
+ 31405  9267     cutoff  174        10.85144   10.55444  2.74%  5393 3722s
+H31407  9265                      10.8513949   10.55444  2.74%  5393 3722s
+H31430  9232                      10.8494215   10.55444  2.72%  5404 3722s
+H31483  9228                      10.8493302   10.55444  2.72%  5415 3722s
+H31515  9156                      10.8465179   10.55444  2.69%  5426 3722s
+H31650  6837                      10.7891009   10.55444  2.18%  5427 3722s
+ 31886  7090   10.57921   35 4416   10.78910   10.55476  2.17%  5481 3859s
+H31955  7090                      10.7891004   10.55476  2.17%  5503 3859s
+H32056  7090                      10.7890994   10.55476  2.17%  5538 3859s
+H32238  7084                      10.7889098   10.55614  2.16%  5575 3859s
+ 32555  7450   10.67305   48 4254   10.78891   10.55718  2.15%  5649 4002s
+H33306  7923                      10.7879152   10.55930  2.12%  5830 4150s
+H33357  7815                      10.7856053   10.55930  2.10%  5841 4150s
+H33386  7744                      10.7839839   10.55930  2.08%  5845 4150s
+H34049  7739                      10.7839006   10.55949  2.08%  5998 4150s
+H34109  7721                      10.7749006   10.55949  2.00%  6007 4310s
+ 34868  8095   10.76804  110 2809   10.77490   10.56522  1.95%  6210 4478s
+ 35717  8545   10.76467   65 3605   10.77490   10.56570  1.94%  6394 4645s
+H35754  8534                      10.7747531   10.56570  1.94%  6400 4645s
+H36694  8803                      10.7717531   10.56989  1.87%  6580 4808s
+ 37643  9107   10.70231   75 3325   10.77175   10.57437  1.83%  6753 4983s
+H37721  9059                      10.7708082   10.57499  1.82%  6770 4983s
+H37763  8808                      10.7669965   10.57499  1.78%  6775 4983s
+ 38340  9250   10.74532   95 2855   10.76700   10.57566  1.78%  6877 5173s
+ 39361  9777     cutoff   25        10.76700   10.58044  1.73%  7026 5364s
+H39394  9763                      10.7667146   10.58044  1.73%  7031 5364s
+H40348  9763                      10.7667117   10.58414  1.70%  7198 5364s
+ 40370 10174   10.71784   24 4337   10.76671   10.58416  1.70%  7208 5568s
+ 41264 10588   10.76519   48 3894   10.76671   10.58706  1.67%  7432 5778s
+ 42294 10994   10.66571   27 4125   10.76671   10.58973  1.64%  7609 6002s
+H42296 10994                      10.7666996   10.58973  1.64%  7609 6002s
+H42824 10993                      10.7666010   10.58973  1.64%  7667 6002s
+ 43513 11654     cutoff   29        10.76660   10.59130  1.63%  7766 6223s
+H43563 11654                      10.7666010   10.59130  1.63%  7769 6223s
+H43626 11654                      10.7666010   10.59130  1.63%  7769 6223s
+H44431 11654                      10.7666010   10.59357  1.61%  7855 6223s
+H44605 11654                      10.7665888   10.59357  1.61%  7887 6223s
+ 44692 12320   10.75692   67 3739   10.76659   10.59357  1.61%  7921 6457s
+ 45983 12860     cutoff   41        10.76659   10.59734  1.57%  8083 6696s
+H47429 13536                      10.7665887   10.59984  1.55%  8209 6951s
+H47471  9942                      10.7315294   10.59984  1.23%  8213 6951s
+H47541  9672                      10.7289430   10.60011  1.20%  8235 6951s
+H47618  8911                      10.7211368   10.60045  1.13%  8248 6951s
+ 48752  8799     cutoff   31        10.72114   10.60240  1.11%  8284 7207s
+H48757  8565                      10.7189873   10.60240  1.09%  8284 7207s
+H49317  8564                      10.7189844   10.60291  1.08%  8367 7207s
+H50069  8849                      10.7179844   10.60308  1.07%  8442 7479s
+ 51486  9182   10.69825   42 3937   10.71798   10.60853  1.02%  8597 7762s
+H51961  9182                      10.7179843   10.60939  1.01%  8652 7762s
+H52179  9182                      10.7179842   10.60939  1.01%  8663 7762s
+
+Cutting planes:
+  Learned: 768
+  Gomory: 43
+  Cover: 1589
+  Implied bound: 550
+  Projected implied bound: 311
+  Clique: 1
+  MIR: 923
+  StrongCG: 13
+  Flow cover: 1704
+  GUB cover: 66
+  Inf proof: 6
+  Zero half: 6
+  Network: 29
+  RLT: 1664
+  Relax-and-lift: 528
+  BQP: 35
+
+Explored 53161 nodes (463150431 simplex iterations) in 7762.49 seconds (18500.45 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 10: 10.718 10.718 10.718 ... 10.7666
+
+Optimal solution found (tolerance 1.00e-02)
+Best objective 1.071798479342e+01, best bound 1.061129933990e+01, gap 0.9954%
+m.flow_changes_penalty(): 560.0
+Total operational cost: 106619.85
+Maximum power (kW): 1093.60
+Discharge energy capacity (kWh): 16275.63
+Charge energy capacity (kWh): 0.00
+Levelized Cost of Flexibility ($/kWh): 0.74
+{'fixed_demand_cost': 4894.719189566378, 'variable_demand_cost': 4864.65085456164, 'fixed_monthly_cost': 171938.17204301074, 'total_water_production': 258664.6989481127, 'total_energy_cost': 18324.725722167623, 'total_demand_cost': 9759.370044128018, 'total_customer_cost': 0.0, 'total_feed_cost': 46660.58204062724, 'total_brine_cost': 14174.493686497191, 'total_chemical_cost': 17700.67644082168, 'total_water_revenue': 0.0, 'total_demand_response_revenue': 0.0, 'total_emissions_cost': 0.0, 'total_op_cost': 106619.84793424176, 'fixed_cost': 121551.98252688172, 'total_cost': 228171.8304611235, 'LCOW': 0.8821143023729497, 'degree_of_flex': 0.08982035928143713, 'total_replacement_cost': 1422.6154123410724, 'maximum_power': 1093.6014815548149, 'discharge_energy_capacity': 16275.633169466644, 'charge_energy_capacity': 0.0, 'discharge_power_capacity': 96.87876886587289, 'charge_power_capacity': nan, 'round_trip_efficiency': 0, 'LVOF': 0.7407107623950107}
+Saved operation variable results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_result_num_shutdowns_10_summer_11000AF.csv
+
+
+Running optimization for annual production of 14000 AF...
+2026-08-20 06:56:23 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 06:56:23 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 06:56:23 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 06:56:23 [INFO] idaes.core.surrogate.pysmo_surrogate: Decode surrogate. type=poly
+
+===========================Polynomial Regression===============================================
+
+The number of cross-validation cases (3) is used.
+The default training/cross-validation split of 0.75 is used.
+No iterations will be run.
+Default parameter estimation method is used.
+Parameter estimation method:  pyomo 
+
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[1] - Adding minimum uptime/downtime constraints.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[1] at uf_pumps_1_startup_shutdown.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[2] - Adding minimum uptime/downtime constraints.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[2] at uf_pumps_2_startup_shutdown.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for pretreatment.uf_pumps[3] - Adding minimum uptime/downtime constraints.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  pretreatment.uf_pumps[3] at uf_pumps_3_startup_shutdown.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[1] - Adding minimum uptime/downtime constraints.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[1] at ro_skid_1_startup_shutdown.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[2] - Adding minimum uptime/downtime constraints.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[2] at ro_skid_2_startup_shutdown.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[3] - Adding minimum uptime/downtime constraints.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[3] at ro_skid_3_startup_shutdown.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Found minimum uptime/downtime data for reverse_osmosis.ro_skid[4] - Adding minimum uptime/downtime constraints.
+2026-08-20 06:56:25 [INFO] idaes.apps.grid_integration.pricetaker.price_taker_model: Created startup/shutdown constraints for operation model  reverse_osmosis.ro_skid[4] at ro_skid_4_startup_shutdown.
+4364
+Set parameter LogToConsole to value 1
+Set parameter MIPGap to value 0.01
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (linux64 - "Red Hat Enterprise Linux 8.8 (Ootpa)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8470QL, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 104 physical cores, 104 logical processors, using up to 32 threads
+
+Non-default parameters:
+MIPGap  0.01
+
+Optimize a model with 18127 rows, 16467 columns and 51343 nonzeros
+Model fingerprint: 0xf7c940dd
+Model has 168 quadratic objective terms
+Model has 2352 quadratic constraints
+Variable types: 11259 continuous, 5208 integer (5208 binary)
+Coefficient statistics:
+  Matrix range     [5e-04, 2e+03]
+  QMatrix range    [2e-07, 1e+00]
+  QLMatrix range   [3e-04, 1e+00]
+  Objective range  [1e-05, 1e-03]
+  QObjective range [2e-04, 2e-04]
+  Bounds range     [9e-01, 1e+03]
+  RHS range        [5e-02, 3e+05]
+  QRHS range       [3e-01, 3e-01]
+Presolve removed 6908 rows and 7238 columns
+Presolve time: 0.09s
+Presolved: 20459 rows, 9734 columns, 57065 nonzeros
+Presolved model has 336 SOS constraint(s)
+Presolved model has 2352 bilinear constraint(s)
+
+Solving non-convex MIQCP
+
+Variable types: 5740 continuous, 3994 integer (3994 binary)
+Found heuristic solution: objective 19.1781505
+
+Root relaxation: unbounded, 0 iterations, 0.01 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     2  postponed    0        19.17815          -      -     -    3s
+     1     4  postponed    1        19.17815          -      -   0.0    5s
+     7    12  postponed    3        19.17815          -      -  9036   10s
+    27    34  postponed    5        19.17815          -      - 10248   15s
+    79    81  postponed    7        19.17815          -      - 10084   21s
+   116   147  postponed    8        19.17815          -      - 10173   25s
+   184   535  postponed    8        19.17815          -      - 11297   32s
+   738  1258 infeasible   15        19.17815          -      -  3497   41s
+H 1535  1258                      16.0055403          -      -  1985   41s
+H 1542  1258                      15.6315718          -      -  1979   41s
+  1698  2302  postponed   27        15.63157          -      -  1838   53s
+H 2949  2302                      15.1510196          -      -  1372   53s
+  3109  3314 infeasible   40        15.15102          -      -  1308   69s
+H 3626  3311                      15.1429998          -      -  1325   69s
+H 3903  3298                      15.1082543          -      -  1300   69s
+H 4179  3291                      15.0759483          -      -  1255   69s
+  4649  4509  postponed   53        15.07595          -      -  1215   85s
+H 5076  4406                      14.2600418          -      -  1258   85s
+  6391  5713  postponed   64        14.26004          -      -  1156  100s
+H 6656  5665                      14.0625612          -      -  1183  100s
+  8160  6763 infeasible   75        14.06256          -      -  1119  116s
+H 8394  6759                      14.0611989          -      -  1146  116s
+H 8603  6676                      14.0037750          -      -  1145  116s
+H 9532  6617                      13.9569271          -      -  1136  116s
+  9778  7559 infeasible   84        13.95693          -      -  1130  132s
+H10039  7543                      13.9467423          -      -  1151  132s
+H10217  7542                      13.9465709          -      -  1160  132s
+H10400  7534                      13.9322366          -      -  1159  132s
+ 11284  8101 infeasible   95        13.93224          -      -  1164  150s
+ 12524  8605 infeasible  104        13.93224          -      -  1196  167s
+H13137  8553                      13.9228566          -      -  1223  167s
+H13279  8181                      13.8704411          -      -  1226  167s
+ 13593  8183   13.85087  256 2334   13.87044   12.31474  11.2%  1241  212s
+ 13594  8184   13.15387   93 1271   13.87044   13.15387  5.17%  1241  220s
+ 13596  8185   13.27266  270 1539   13.87044   13.27266  4.31%  1241  228s
+ 13597  8186   13.28166   39  995   13.87044   13.28166  4.24%  1240  230s
+ 13598  8187   13.40429  179 1035   13.87044   13.29575  4.14%  1240  235s
+ 13600  8188   13.31357  133 1165   13.87044   13.31357  4.01%  1240  242s
+ 13601  8189   13.31520   63 1041   13.87044   13.31520  4.00%  1240  245s
+ 13603  8190   13.76216  190 1155   13.87044   13.31956  3.97%  1240  250s
+ 13606  8192   13.32227  168 1180   13.87044   13.32227  3.95%  1240  257s
+ 13608  8193   13.32360  145 1261   13.87044   13.32360  3.94%  1239  260s
+ 13611  8195   13.32431  103 1247   13.87044   13.32431  3.94%  1239  265s
+H13613  7786                      13.8704408   13.32509  3.93%  1239  270s
+ 13619  7790   13.32538   97 1194   13.87044   13.32538  3.93%  1238  309s
+ 13620  7790   13.32538  153 1194   13.87044   13.32538  3.93%  1238  322s
+ 13621  7794   13.42058   12 2876   13.87044   13.32538  3.93%  1253  490s
+ 13623  7797   13.46782   13 2501   13.87044   13.32704  3.92%  1257  563s
+ 13627  7804   13.47552   14 2615   13.87044   13.36616  3.64%  1264  594s
+ 13635  7817   13.60329   15 2305   13.87044   13.38922  3.47%  1276  615s
+ 13651  7844   13.61098   16 2246   13.87044   13.39277  3.44%  1288  637s
+H13672  7447                      13.8704408   13.39765  3.41%  1304  637s
+ 13683  7472   13.64199   17 2169   13.87044   13.39765  3.41%  1318  653s
+ 13712  7565   13.66554   18 2174   13.87044   13.39765  3.41%  1346  677s
+ 13832  7598   13.67457   20 2253   13.87044   13.39765  3.41%  1396  698s
+ 13920  7602   13.70977   22 2041   13.87044   13.39765  3.41%  1448  715s
+H13930  7229                      13.8684411   13.39765  3.39%  1460  715s
+ 13989  7264   13.86599   23 1918   13.86844   13.39765  3.39%  1493  733s
+ 14061  7280   13.74845   24 2271   13.86844   13.39765  3.39%  1534  748s
+ 14126  7302     cutoff   24        13.86844   13.39837  3.39%  1583  768s
+ 14198  7312   13.80880   25 2004   13.86844   13.39837  3.39%  1624  790s
+ 14255  7339   13.76368   26 2127   13.86844   13.39837  3.39%  1661  808s
+ 14321  7364   13.76802   27 2083   13.86844   13.39837  3.39%  1692  825s
+ 14405  7405   13.76896   29 1899   13.86844   13.39837  3.39%  1727  844s
+ 14486  7447   13.81588   29 1909   13.86844   13.39837  3.39%  1758  863s
+H14532  7079                      13.8666047   13.39837  3.38%  1773  863s
+ 14572  7133   13.76938   32 1905   13.86660   13.39837  3.38%  1793  885s
+H14656  6821                      13.8666047   13.39837  3.38%  1831  906s
+H14672  6499                      13.8666034   13.39837  3.38%  1832  906s
+H14717  6182                      13.8655788   13.39837  3.37%  1869  906s
+H14730  5918                      13.8645788   13.39837  3.36%  1880  927s
+ 14797  5939   13.82098   38 1833   13.86458   13.39837  3.36%  1934  949s
+ 14890  5971     cutoff   40        13.86458   13.39837  3.36%  2005  969s
+ 14984  6012     cutoff   42        13.86458   13.40328  3.33%  2068  988s
+H14993  5737                      13.8645411   13.40328  3.33%  2072  988s
+ 15096  5811   13.40442   20 4900   13.86454   13.40328  3.33%  2119 1005s
+H15233  5638                      13.8645407   13.40328  3.33%  2162 1024s
+H15253  5385                      13.8645317   13.40328  3.33%  2172 1024s
+H15315  5131                      13.8645158   13.40328  3.33%  2191 1024s
+ 15389  5237   13.44729   21 3031   13.86452   13.40328  3.33%  2218 1043s
+ 15551  5341   13.48173   22 2716   13.86452   13.40328  3.33%  2252 1067s
+ 15745  5385   13.54443   25 2725   13.86452   13.40328  3.33%  2280 1091s
+ 15904  5486   13.75785   27 1869   13.86452   13.40328  3.33%  2326 1111s
+ 16071  5627   13.77667   30 1881   13.86452   13.40328  3.33%  2362 1134s
+ 16300  5717   13.83777   35 1706   13.86452   13.40328  3.33%  2405 1162s
+H16358  5476                      13.8645157   13.40328  3.33%  2410 1162s
+ 16489  5640     cutoff   34        13.86452   13.41487  3.24%  2451 1190s
+ 16734  5800   13.52393   21 2537   13.86452   13.41487  3.24%  2504 1216s
+H16735  5589                      13.8645073   13.41487  3.24%  2504 1216s
+H16791  5370                      13.8645043   13.41487  3.24%  2520 1216s
+ 16998  5529   13.52593   22 2337   13.86450   13.41487  3.24%  2562 1239s
+ 17246  5651   13.52897   23 2266   13.86450   13.41487  3.24%  2612 1266s
+H17396  5371                      13.8613938   13.41487  3.22%  2632 1266s
+ 17495  5567   13.58984   22 2516   13.86139   13.41487  3.22%  2673 1290s
+ 17765  5792   13.59509   23 2496   13.86139   13.41487  3.22%  2730 1319s
+H17848  5583                      13.8613937   13.41487  3.22%  2725 1319s
+ 18120  5877   13.62484   26 2434   13.86139   13.41487  3.22%  2770 1344s
+H18494  5581                      13.8613936   13.41487  3.22%  2783 1344s
+ 18548  5976   13.67818   30 1416   13.86139   13.41487  3.22%  2788 1373s
+H19002  5940                      13.8613878   13.41487  3.22%  2795 1405s
+H19005  3206                      13.5302941   13.41487  0.85%  2796 1405s
+
+Cutting planes:
+  Learned: 313
+  Gomory: 20
+  Cover: 644
+  Implied bound: 250
+  Projected implied bound: 301
+  Clique: 7
+  MIR: 711
+  StrongCG: 1
+  Flow cover: 964
+  GUB cover: 18
+  Zero half: 4
+  Network: 6
+  RLT: 2119
+  Relax-and-lift: 638
+  BQP: 20
+
+Explored 19297 nodes (53756675 simplex iterations) in 1405.96 seconds (2692.35 work units)
+Thread count was 32 (of 104 available processors)
+
+Solution count 10: 13.5303 13.8614 13.8614 ... 13.8645
+
+Optimal solution found (tolerance 1.00e-02)
+Best objective 1.353029410397e+01, best bound 1.341486981461e+01, gap 0.8531%
+m.flow_changes_penalty(): 710.0
+Total operational cost: 134592.94
+Maximum power (kW): 1464.20
+Discharge energy capacity (kWh): 16496.02
+Charge energy capacity (kWh): 47358.02
+Levelized Cost of Flexibility ($/kWh): -0.97
+{'fixed_demand_cost': 6553.435248018879, 'variable_demand_cost': 4870.94348813786, 'fixed_monthly_cost': 171938.17204301074, 'total_water_production': 329209.61643835704, 'total_energy_cost': 23256.219349561547, 'total_demand_cost': 11424.37873615674, 'total_customer_cost': 0.0, 'total_feed_cost': 59375.347859546695, 'total_brine_cost': 18011.112304037917, 'total_chemical_cost': 22525.882790445026, 'total_water_revenue': 0.0, 'total_demand_response_revenue': 0.0, 'total_emissions_cost': 0.0, 'total_op_cost': 134592.9410397479, 'fixed_cost': 121551.98252688172, 'total_cost': 256144.92356662964, 'LCOW': 0.7780602715613308, 'degree_of_flex': 0.17964071856287425, 'total_replacement_cost': 1435.6271386734606, 'maximum_power': 1464.1997322885002, 'discharge_energy_capacity': 16496.01926675197, 'charge_energy_capacity': 47358.021520041766, 'discharge_power_capacity': 445.83835856086404, 'charge_power_capacity': 361.51161465680735, 'round_trip_efficiency': 0, 'LVOF': -0.9657219672705969}
+Saved operation variable results to: /home/rchurchi/watertap_test/watertap/tutorials/flex_ro/wrd_result_num_shutdowns_10_summer_14000AF.csv
