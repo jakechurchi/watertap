@@ -587,12 +587,12 @@ def one_week(
     # dt.report_structural_issues()
 
     # IPOPT
-    solver = get_solver()
-    solver.options["max_iter"] = 500
+    # solver = get_solver()
+    # solver.options["max_iter"] = 500
 
-    # mip_gap = 0.01
-    # solver = pyo.SolverFactory("gurobi_direct_minlp")
-    # solver.options["MIPGap"] = mip_gap  # 1.0 %
+    mip_gap = 0.01
+    solver = pyo.SolverFactory("gurobi_direct_minlp")
+    solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
