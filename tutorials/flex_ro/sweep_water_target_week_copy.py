@@ -307,7 +307,11 @@ def _begin_and_end_constraint(m):
 
 
 def one_week(
-    annual_production_AF=13000, flex_type=None, season="summer", num_shutdowns=None
+    annual_production_AF=13000,
+    flex_type=None,
+    season="summer",
+    num_shutdowns=None,
+    rainy_days=0,
 ):
 
     season_map = {
@@ -377,6 +381,7 @@ def one_week(
         timestep_hours=timestep_hours,
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
         include_demand_response=True,
+        rainy_days=rainy_days,
     )
     m.baseline_power = 1102  # kW
     m.params.intake.update(
@@ -504,6 +509,8 @@ def one_week(
 
     fs.constrain_water_production(m)
 
+    fs.add_rain_shutdowns(m)
+
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
         utils.wrd_fix_ro_recovery(
@@ -547,14 +554,6 @@ def one_week(
     # Only to find the baseline power for this water production
     if flex_type_key == "no_flex":
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
-
-        # ADDING A MAXIMUM FLOW CASE
-        @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
-        def max_flow_constraint(m_blk, i):
-            return (
-                m.period[1, 1].reverse_osmosis.ro_skid[i].feed_flowrate
-                >= m.params.wrd_ro.maximum_flowrate
-            )
 
     if flex_type_key == "num_shutdowns":
         # Add constraint to allow for exactly num_shutdowns during the period for each RO train.
@@ -669,10 +668,12 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
-        1
+        2398,
+        1798,
+        1191,
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
     season = "winter"
-    flex_type = "no_flex"
+    flex_type = "both"
     number_of_shutdowns = [10]  # 10 is essentially unlimited shutdowns allowed
 
     # Outputs
@@ -700,6 +701,7 @@ if __name__ == "__main__":
                 flex_type=flex_type,
                 season=season,
                 num_shutdowns=i,
+                rainy_days=5,
             )
             water.append(design_vars["total_water_production"])
             cost.append(design_vars["total_cost"])
