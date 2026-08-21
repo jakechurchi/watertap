@@ -580,7 +580,7 @@ def one_week(
     # solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.01
+    mip_gap = 0.0112
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -659,14 +659,10 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
-        9000,
-        10000,
-        13000,
-        15000,
-        16000,
+        9000
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
     season = "summer"
-    flex_type = "num_shutdowns"
+    flex_type = "both"
     number_of_shutdowns = [10]  # 10 is essentially unlimited shutdowns allowed
 
     # Outputs
