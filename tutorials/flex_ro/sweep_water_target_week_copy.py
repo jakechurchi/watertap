@@ -207,7 +207,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
     )
     ax_trains.set_ylim(0, 2500)
     ax_trains.axhline(
-        y=602 * 4,
+        y=635 * 0.925 * 4,
         color="blue",
         linestyle=":",
         linewidth=2,
@@ -671,7 +671,7 @@ if __name__ == "__main__":
     water_prod_targs = [
         1
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
-    season = "summer"
+    season = "winter"
     flex_type = "no_flex"
     number_of_shutdowns = [10]  # 10 is essentially unlimited shutdowns allowed
 
