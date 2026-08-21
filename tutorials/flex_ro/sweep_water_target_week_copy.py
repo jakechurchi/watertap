@@ -668,9 +668,13 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
-        2398,
-        1798,
-        1191,
+        9592,
+        4000,
+        5000,
+        6000,
+        7000,
+        8000,
+        9000,
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
     season = "winter"
     flex_type = "both"
@@ -701,7 +705,7 @@ if __name__ == "__main__":
                 flex_type=flex_type,
                 season=season,
                 num_shutdowns=i,
-                rainy_days=5,
+                rainy_days=3,
             )
             water.append(design_vars["total_water_production"])
             cost.append(design_vars["total_cost"])
