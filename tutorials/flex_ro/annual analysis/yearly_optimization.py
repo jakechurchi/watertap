@@ -1,6 +1,7 @@
 # imports
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 from pyomo.environ import (
     ConcreteModel,
     Param,
@@ -14,11 +15,19 @@ from pyomo.environ import (
 from watertap.core.solvers import get_solver
 
 # load surrogate data for summer and winter costs as function of water production (and # of rainy days)
-WINTER_INTERP_WATER_PRODUCTION_M3 = [180000, 256000, 330000]
-WINTER_INTERP_COST_USD = [200000, 220000, 240000]
+WINTER_INTERP_WATER_PRODUCTION_M3 = np.array(
+    [188120, 236075, 282180, 329242, 376240], dtype=float
+)
+WINTER_INTERP_COST_USD = np.array([74098, 94214, 111743, 130494, 150717], dtype=float)
 
-SUMMER_INTERP_WATER_PRODUCTION_M3 = [180000, 256000, 330000]
-SUMMER_INTERP_COST_USD = [200000, 220000, 240000]
+SUMMER_INTERP_WATER_PRODUCTION_M3 = np.array(
+    [188120, 211635, 235150, 258665, 282180, 305695, 329282, 352725, 376242],
+    dtype=float,
+)
+SUMMER_INTERP_COST_USD = np.array(
+    [80066, 89190, 98655, 107665, 117732, 126083, 136088, 146233, 159336],
+    dtype=float,
+)
 
 
 def _line_through_points(x0, y0, x1, y1):
@@ -54,15 +63,18 @@ SUMMER_SEGMENT_LINES = _build_segment_lines(
 def apply_water_production_ub(num_rainy_days):
     """Returns an upper bound on water production based on the number of rainy days."""
     # Placeholder linear relationship between rainy days and max water production
-    return 376000 - 56080 * num_rainy_days
+    # 394716 is absolute maxium level of water production possible in one week
+    # 56080 is the reduction in water production for each additional rainy day
+    # HOWEVER, THE RAINY DAYS WILL IMPACT THE COST
+    return 394716 - 56388 * num_rainy_days
 
 
 def init_rainy_days(m, w):
     # This would be replaced with designed rain scenarios or a random distribution
-    if w in [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]:
-        return 1
+    if w in [13, 14, 15, 16, 17, 18, 19, 20]:
+        return 3
     elif w in [25, 26, 27, 28]:
-        return 5
+        return 7
     else:
         return 0
 
@@ -107,13 +119,13 @@ def plot_year(m):
     dark_blue_patch = None
     for w in weeks:
         rd = m.num_rainy_days[w]
-        if rd == 1:
+        if rd == 3:
             p = ax.axvspan(
                 w - 0.5, w + 0.5, color="lightblue", alpha=0.6, label="_nolegend_"
             )
             if light_blue_patch is None:
                 light_blue_patch = p
-        elif rd == 5:
+        elif rd == 7:
             p = ax.axvspan(
                 w - 0.5, w + 0.5, color="steelblue", alpha=0.8, label="_nolegend_"
             )
@@ -153,10 +165,10 @@ def plot_year(m):
     legend_labels = [line_cum.get_label(), line_target.get_label(), "Summer Weeks"]
     if light_blue_patch is not None:
         legend_handles.append(light_blue_patch)
-        legend_labels.append("Rainy (1 day)")
+        legend_labels.append("Rainy (3 day)")
     if dark_blue_patch is not None:
         legend_handles.append(dark_blue_patch)
-        legend_labels.append("Rainy (5 days)")
+        legend_labels.append("Rainy (7 days)")
     ax.legend(legend_handles, legend_labels, fontsize=14, ncol=2)
 
     # --- Bottom subplot: cumulative cost + normalized cost ---
@@ -250,21 +262,21 @@ if __name__ == "__main__":
     m.weekly_cost = Var(m.weeks, bounds=(0, None))  # $/week
 
     # Add piecewise-linear cost surrogate constraints.
-    # Using linear inequalities plus a minimizing objective keeps the formulation linear.
-    @m.Constraint(m.weeks)
-    def eq_cost_segment_1(blk, w):
-        if m.week_type[w] == "winter":
-            slope, intercept = WINTER_SEGMENT_LINES[0]
-        else:
-            slope, intercept = SUMMER_SEGMENT_LINES[0]
-        return m.weekly_cost[w] >= slope * m.water_production_week[w] + intercept
+    # This supports different segment counts for summer and winter.
+    max_num_segments = max(len(WINTER_SEGMENT_LINES), len(SUMMER_SEGMENT_LINES))
+    m.cost_segments = RangeSet(0, max_num_segments - 1)
 
-    @m.Constraint(m.weeks)
-    def eq_cost_segment_2(blk, w):
+    @m.Constraint(m.weeks, m.cost_segments)
+    def eq_cost_segments(blk, w, s):
         if m.week_type[w] == "winter":
-            slope, intercept = WINTER_SEGMENT_LINES[1]
+            lines = WINTER_SEGMENT_LINES
         else:
-            slope, intercept = SUMMER_SEGMENT_LINES[1]
+            lines = SUMMER_SEGMENT_LINES
+
+        if s >= len(lines):
+            return Constraint.Skip
+
+        slope, intercept = lines[s]
         return m.weekly_cost[w] >= slope * m.water_production_week[w] + intercept
 
     # Add any operational constraints
@@ -291,7 +303,7 @@ if __name__ == "__main__":
             == blk.cumulative_cost_var[w - 1] + blk.weekly_cost[w]
         )
 
-    mid_year_targets(m, [26], [4000])  # Set mid-year targets in AF
+    mid_year_targets(m, [52 - 8], [10000])  # Set mid-year targets in AF
 
     # Expressions for total cost and production
     @m.Expression()

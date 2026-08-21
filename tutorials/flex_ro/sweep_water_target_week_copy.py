@@ -1,10 +1,3 @@
-##########
-#
-# Pricetaker Implementation for WRD plant using surrogate models for UF and RO energy consumption.
-# Short = Only testing one or two days, and no rain events or demand response events.
-#
-##########
-
 import warnings
 import logging
 
@@ -14,8 +7,8 @@ logging.getLogger("pyomo").setLevel(logging.ERROR)
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
 
 import pyomo.environ as pyo
 from pyomo.environ import SolverFactory, value
@@ -293,70 +286,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
 
     fig.tight_layout()
     fig.savefig(f"{output_stem}.png", dpi=600)
-    plt.show()
-
-
-def _fix_nominal_flowrates(m):
-    # TODO: This function is not working correctly because the optimal solution gives minimum and maximum flowrates that are not equal to the nominal flowrate. This is because the surrogate model is not perfectly accurate and the optimal solution is not exactly at the nominal flowrate.
-    m.params.wrd_ro.minimum_flowrate = m.params.wrd_ro.nominal_flowrate
-    m.params.wrd_ro.maximum_flowrate = m.params.wrd_ro.nominal_flowrate
-
-
-def _restrict_flexible_trains(m, num_flexible_trains):
-    ro_skids = sorted(list(m.period[1, 1].reverse_osmosis.set_ro_skids))
-    n_ro_skids = len(ro_skids)
-
-    if num_flexible_trains < 0 or num_flexible_trains > n_ro_skids:
-        raise ValueError(
-            "Invalid num_flexible_trains "
-            f"'{num_flexible_trains}'. Valid range is [0, {n_ro_skids}]."
-        )
-    if num_flexible_trains == 0:
-        # Fix the 4th train to be off
-        for p in m.period:
-            ro_skid = m.period[p].reverse_osmosis.ro_skid[4]
-            ro_skid.feed_flowrate.fix(0)
-            ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
-            ro_skid.op_mode.fix(0)
-        # Fix all the other skids to the nominal flowrate and recovery
-        num_flexible_trains = 1
-
-    non_flexible_skids = ro_skids[: n_ro_skids - num_flexible_trains]
-
-    # This would be restricting just the modularity of the trains
-    # for p in m.period:
-    #     for skid in non_flexible_skids:
-    #         ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
-    #         ro_skid.startup.fix(0)
-    #         ro_skid.shutdown.fix(0)
-
-    for p in m.period:
-        for skid in non_flexible_skids:
-            ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
-            ro_skid.feed_flowrate.fix(605.3)
-            ro_skid.recovery.fix(m.params.wrd_ro.nominal_recovery)
-
-
-def _fix_operations_for_first_four_days(m, peak_hours=None):
-    """Fix all RO trains to expected behavior for first four days. This could be some part of an initialization strat. to improve solve times."""
-    for d, p in m.period:
-        if p <= 4 * 24:  # Assuming hourly time steps
-            if p <= 2:
-                # Avoiding constraint that plant has to be on at first (and therefore last) time step.
-                pass
-            elif peak_hours is not None and peak_hours[p]:
-                # Full shutdown during peak hours. Could also consider just shutting down two RO skids during peak hours
-                # This is too strong to impose on model. Turning off during peak hours should be an output of the opt., not prescribed.
-                # m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(0)
-                m.period[d, p].reverse_osmosis.ro_skid[4].op_mode.fix(
-                    0
-                )  # 4th skid off during peak hours. If 0 flex skids, forces this train off. But that should be ok for cases we are looking at.
-                pass
-            else:
-                # Just ensure plant is on during the non-peak hours
-                m.period[d, p].reverse_osmosis.ro_skid[1].op_mode.fix(
-                    1
-                )  # Plant must be on
+    # plt.show()
 
 
 def _begin_and_end_constraint(m):
@@ -376,7 +306,10 @@ def _begin_and_end_constraint(m):
         )
 
 
-def main(season, flex_type, num_flexible_trains=4):
+def one_week(
+    annual_production_AF=13000, flex_type=None, season="summer", num_shutdowns=None
+):
+
     season_map = {
         "summer": "price_signals/summer_week.csv",
         "winter": "price_signals/winter_week.csv",
@@ -388,17 +321,19 @@ def main(season, flex_type, num_flexible_trains=4):
         )
 
     flex_type_key = flex_type.lower()
-    valid_flex_types = {"rr", "flow", "both", "no_flex"}
+    valid_flex_types = {"both", "no_flex", "num_shutdowns"}
     if flex_type_key not in valid_flex_types:
         raise ValueError(
             "Invalid flex_type "
             f"'{flex_type}'. Valid options are: {sorted(valid_flex_types)}"
         )
-
     selected_price_signal_stem = Path(season_map[season_key]).stem
-    output_suffix = (
-        f"{season_key}_{flex_type_key}_{num_flexible_trains}_flexible_trains"
-    )
+    if flex_type_key == "num_shutdowns":
+        output_suffix = (
+            f"{flex_type_key}_{num_shutdowns}_{season_key}_{annual_production_AF}AF"
+        )
+    else:
+        output_suffix = f"{flex_type_key}_{season_key}_{annual_production_AF}AF"
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
     if selected_price_signal_stem.upper().endswith("TOU_8"):
@@ -425,11 +360,6 @@ def main(season, flex_type, num_flexible_trains=4):
     price_data["Emissions Intensity"] = 0
     peak_hours = price_data["Var Demand Rate"].to_numpy() != 0
 
-    # Load PV data
-    pv_kW = price_data["solar_output_kW"]
-    pv_capacity = max(pv_kW)
-    pv_capacity_factors = pv_kW / pv_capacity
-
     m = PriceTakerModel()
     # Find start and end datetimes and time step  from the price data
     price_datetimes = pd.to_datetime(price_data["DateTime"])
@@ -443,20 +373,10 @@ def main(season, flex_type, num_flexible_trains=4):
     m.params = FlexDesalParams(
         start_date=start_date,
         end_date=end_date,
-        annual_production_AF=12000,
-        # * 1.0863,  # This is to compare against the October plant data
-        # * 1.2602,  # This is to compare against the Aug plant data
+        annual_production_AF=annual_production_AF,
         timestep_hours=timestep_hours,
-        include_onsite_solar=False,
-        onsite_capacity=pv_capacity,
-        nonworking_hours=list(range(0, 8))
-        + list(
-            range(18, 24)
-        ),  # 6pm-8am are nonworking hours (assuming time index starts at 0 for 12am-1am)
-        # rainy_days=1,  # This will reduce the maxumim value for annual_production AF
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
         include_demand_response=True,
-        max_daily_shutdowns=1,  # I'd like to change to one a day
     )
     m.baseline_power = 1102  # kW
     m.params.intake.update(
@@ -528,12 +448,7 @@ def main(season, flex_type, num_flexible_trains=4):
         flowsheet_options={"params": m.params},
     )
 
-    _restrict_flexible_trains(m, num_flexible_trains=num_flexible_trains)
-
     _begin_and_end_constraint(m)
-
-    # if season_key == "summer":
-    #     _fix_operations_for_first_four_days(m, peak_hours=peak_hours)
 
     # Update the time-varying parameters other than the LMP, such as
     # demand costs and emissions intensity. LMP value is updated by default
@@ -546,10 +461,6 @@ def main(season, flex_type, num_flexible_trains=4):
             "demand_response_price": price_data["Demand_Response_Price"],
         }
     )
-    if m.params.include_onsite_solar:
-        m.update_operation_params(
-            {"power_generation.capacity_factor": pv_capacity_factors}
-        )
 
     # Add demand cost and fixed cost calculation constraints
     fs.add_demand_and_fixed_costs(m)
@@ -557,7 +468,6 @@ def main(season, flex_type, num_flexible_trains=4):
     # Add the startup delay constraints
     fs.add_delayed_startup_constraints(m)
     fs.add_delayed_shutdown_constraints(m)
-    # fs.repeat_weekdays(m)
 
     m.total_water_production = pyo.Expression(
         expr=m.params.timestep_hours
@@ -606,21 +516,15 @@ def main(season, flex_type, num_flexible_trains=4):
         uf_recovery=m.params.wrd_uf.nominal_recovery,
     )
 
-    if flex_type_key == "rr":
-        _fix_nominal_flowrates(m)
-
     # Could cause feasibility issues b/c this is a slack variable essentially.
     # m.fix_operation_var("reverse_osmosis.leftover_flow", 0)
 
     # Flowrates not fixed, but shouldn't randomly fluctuate either.
     fs.add_flow_changes_penalty_binary(m)
 
-    # restricts number of shutdowns per 24 hours period, mainly to reduce solution space
-    # fs.add_maximum_shutdowns(m)
+    # fs.add_working_hours_constraint(m)
 
-    fs.add_working_hours_constraint(m)
-
-    fs.add_rain_shutdowns(m)
+    # fs.add_rain_shutdowns(m)
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
@@ -638,25 +542,44 @@ def main(season, flex_type, num_flexible_trains=4):
         sense=pyo.minimize,
     )
 
+    # m.obj = pyo.Objective(expr = m.total_water_production, sense=pyo.maximize)
+
     # Only to find the baseline power for this water production
-    if flex_type_key == "no_flex" and num_flexible_trains == 0:
+    if flex_type_key == "no_flex":
         m.enforce_steady_state = pyo.Constraint(expr=m.flow_changes_penalty == 0)
 
-    ##### ADDING FOR TESTING ####
-    # _shutdown_times = {42, 43, 44, 45, 46}
-    # m.enforce_one_plant_shutdown = pyo.Constraint(
-    #     expr=sum(
-    #         m.period[1, t].reverse_osmosis.ro_skid[1].op_mode for t in _shutdown_times
-    #     )
-    #     == 0
-    # )
-    # m.enforce_one_plant_on = pyo.ConstraintList()
-    # for _d, _t in m.period.index_set():
-    #     if _d == 1 and _t not in _shutdown_times:
-    #         m.enforce_one_plant_on.add(
-    #             m.period[1, _t].reverse_osmosis.ro_skid[1].op_mode == 1
-    #         )
-    #### END TESTING CONSTRAINTS ####
+        # ADDING A MAXIMUM FLOW CASE
+        @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
+        def max_flow_constraint(m_blk, i):
+            return (
+                m.period[1, 1].reverse_osmosis.ro_skid[i].feed_flowrate
+                >= m.params.wrd_ro.maximum_flowrate
+            )
+
+    if flex_type_key == "num_shutdowns":
+        # Add constraint to allow for exactly num_shutdowns during the period for each RO train.
+        @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
+        def num_shutdowns_constraint(m_blk, i):
+            return (
+                sum(
+                    m.period[d, t].reverse_osmosis.ro_skid[i].shutdown
+                    for d in m.set_days
+                    for t in m.set_time
+                )
+                <= num_shutdowns
+            )
+
+        # Add constraint to allow for exactly num_startups during the period for each RO train.
+        @m.Constraint(range(1, m.params.wrd_ro.num_ro_skids + 1))
+        def num_startups_constraint(m_blk, i):
+            return (
+                sum(
+                    m.period[d, t].reverse_osmosis.ro_skid[i].startup
+                    for d in m.set_days
+                    for t in m.set_time
+                )
+                <= num_shutdowns
+            )
 
     print(degrees_of_freedom(m))
 
@@ -664,11 +587,12 @@ def main(season, flex_type, num_flexible_trains=4):
     # dt.report_structural_issues()
 
     # IPOPT
-    # solver = get_solver()
+    solver = get_solver()
+    solver.options["max_iter"] = 500
 
-    mip_gap = 0.01
-    solver = pyo.SolverFactory("gurobi_direct_minlp")
-    solver.options["MIPGap"] = mip_gap  # 1.0 %
+    # mip_gap = 0.01
+    # solver = pyo.SolverFactory("gurobi_direct_minlp")
+    # solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
     #     0.1  # $1,000 (b/c objective function is scaled down by 1e-4)
     # )
@@ -739,53 +663,78 @@ def main(season, flex_type, num_flexible_trains=4):
     # )
     # fig.savefig(script_dir / f"wrd_operation_profile_{output_suffix}.png")
 
-    return m
+    return filtered_design_var_values
 
 
 if __name__ == "__main__":
-    seasons = ["summer"]
-    flex_types = ["both"]
-    num_flex_skids = [4]
+    # Inputs
+    water_prod_targs = [
+        1
+    ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
+    season = "summer"
+    flex_type = "no_flex"
+    number_of_shutdowns = [10]  # 10 is essentially unlimited shutdowns allowed
 
-    results_rows = []
+    # Outputs
+    water = []
+    cost = []
+    energy_cost = []
+    demand_cost = []
+    feed_cost = []
+    brine_cost = []
+    chemical_cost = []
+    replacement_cost = []
+    deg_of_flex = []
+    electricity_cost = []
+    LCOW = []
+    annual_production_values = []
+    allowed_shutdown_values = []
 
-    for season in seasons:
-        for flex_type in flex_types:
-            for num_skids in num_flex_skids:
-                m = main(
-                    season=season, flex_type=flex_type, num_flexible_trains=num_skids
-                )
-                results_rows.append(
-                    {
-                        "Season": season,
-                        "Flexibility Type": flex_type,
-                        "Num Flexible Trains": num_skids,
-                        "Total Operational Cost": m.total_op_cost(),
-                        "Total Water Production (m3)": m.total_water_production(),
-                        "LCOW ($/m3)": m.LCOW(),
-                        "Total Energy Cost": m.total_energy_cost(),
-                        "Fixed Demand Cost": m.fixed_demand_cost(),
-                        "Variable Demand Cost": m.variable_demand_cost(),
-                        "Total Electricity Cost": m.total_energy_cost()
-                        + m.total_demand_cost(),
-                        "Total Feed Cost": m.total_feed_cost(),
-                        "Total Brine Cost": m.total_brine_cost(),
-                        "Total Chemical Cost": m.total_chemical_cost(),
-                        "Total Replacement Cost": m.total_replacement_cost(),
-                        "Total Demand Response Revenue": m.total_demand_response_revenue(),
-                        "Total Cost": m.total_cost(),
-                        "Maximum Power": m.maximum_power(),
-                        "Discharge Energy Capacity": m.discharge_energy_capacity(),
-                        "Discharge Power Capacity": m.discharge_power_capacity(),
-                        "LVOF": m.LVOF(),
-                        "Charge Energy Capacity": m.charge_energy_capacity(),
-                        "Charge Power Capacity": m.charge_power_capacity(),
-                    }
-                )
+    for annual_production in water_prod_targs:
+        for i in number_of_shutdowns:
+            print(
+                f"\n\nRunning optimization for annual production of {annual_production} AF..."
+            )
+            design_vars = one_week(
+                annual_production_AF=annual_production,
+                flex_type=flex_type,
+                season=season,
+                num_shutdowns=i,
+            )
+            water.append(design_vars["total_water_production"])
+            cost.append(design_vars["total_cost"])
+            energy_cost.append(design_vars["total_energy_cost"])
+            demand_cost.append(design_vars["total_demand_cost"])
+            feed_cost.append(design_vars["total_feed_cost"])
+            brine_cost.append(design_vars["total_brine_cost"])
+            chemical_cost.append(design_vars["total_chemical_cost"])
+            replacement_cost.append(design_vars["total_replacement_cost"])
+            deg_of_flex.append(design_vars["degree_of_flex"])
+            electricity_cost.append(
+                design_vars["total_demand_cost"] + design_vars["total_energy_cost"]
+            )
+            LCOW.append(design_vars["LCOW"])
+            annual_production_values.append(annual_production)
+            allowed_shutdown_values.append(i)
 
-    results_df = pd.DataFrame(results_rows)
-    script_dir = Path(__file__).parent
+    df = pd.DataFrame(
+        {
+            "Annual Production (AF)": annual_production_values,
+            "Number of Allowed Shutdowns": allowed_shutdown_values,
+            "Total Water Production (m3)": water,
+            "Total Cost ($)": cost,
+            "Total Energy Cost ($)": energy_cost,
+            "Total Demand Cost ($)": demand_cost,
+            "Total Feed Cost ($)": feed_cost,
+            "Total Brine Cost ($)": brine_cost,
+            "Total Chemical Cost ($)": chemical_cost,
+            "Total Electricity Cost ($)": electricity_cost,
+            "Total Replacement Cost ($)": replacement_cost,
+            "Degree of Flexibility": deg_of_flex,
+            "Levelized Cost of Water ($/m3)": LCOW,
+        }
+    )
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_csv = script_dir / f"wrd_pricetaker_summary_results_{timestamp}.csv"
-    results_df.to_csv(results_csv, index=False)
-    print(f"Saved summary results to: {results_csv}")
+    df.to_csv(
+        f"water_targ_sweep_week_{season}_{flex_type}_{timestamp}.csv", index=False
+    )
