@@ -207,7 +207,7 @@ def plot_function(m, n_time_points, output_stem, peak_hours=None):
     )
     ax_trains.set_ylim(0, 2500)
     ax_trains.axhline(
-        y=602 * 4,
+        y=635 * 0.925 * 4,
         color="blue",
         linestyle=":",
         linewidth=2,
@@ -307,7 +307,11 @@ def _begin_and_end_constraint(m):
 
 
 def one_week(
-    annual_production_AF=13000, flex_type=None, season="summer", num_shutdowns=None
+    annual_production_AF=13000,
+    flex_type=None,
+    season="summer",
+    num_shutdowns=None,
+    rainy_days=0,
 ):
 
     season_map = {
@@ -377,6 +381,7 @@ def one_week(
         timestep_hours=timestep_hours,
         CAPEX_yr=6498300,  # For WRD, this assumes a 30 yr lifetime
         include_demand_response=True,
+        rainy_days=rainy_days,
     )
     m.baseline_power = 1102  # kW
     m.params.intake.update(
@@ -504,6 +509,9 @@ def one_week(
 
     fs.constrain_water_production(m)
 
+    if rainy_days > 0:
+        fs.add_rain_shutdowns(m)
+
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
         utils.wrd_fix_ro_recovery(
@@ -523,8 +531,6 @@ def one_week(
     fs.add_flow_changes_penalty_binary(m)
 
     # fs.add_working_hours_constraint(m)
-
-    # fs.add_rain_shutdowns(m)
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
@@ -580,7 +586,7 @@ def one_week(
     # solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.0112
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
@@ -659,7 +665,10 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
-        9000
+        12000,
+        14000,
+        15000,
+        16000,
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
     season = "summer"
     flex_type = "both"
@@ -690,6 +699,7 @@ if __name__ == "__main__":
                 flex_type=flex_type,
                 season=season,
                 num_shutdowns=i,
+                rainy_days=0,
             )
             water.append(design_vars["total_water_production"])
             cost.append(design_vars["total_cost"])

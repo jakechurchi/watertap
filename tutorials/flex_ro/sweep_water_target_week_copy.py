@@ -509,7 +509,8 @@ def one_week(
 
     fs.constrain_water_production(m)
 
-    fs.add_rain_shutdowns(m)
+    if rainy_days > 0:
+        fs.add_rain_shutdowns(m)
 
     # If water recovery is static, it must be fixed
     if not m.params.wrd_ro.allow_variable_recovery:
@@ -531,8 +532,6 @@ def one_week(
 
     # fs.add_working_hours_constraint(m)
 
-    # fs.add_rain_shutdowns(m)
-
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
         expr=1e-4
@@ -548,8 +547,6 @@ def one_week(
         ),
         sense=pyo.minimize,
     )
-
-    # m.obj = pyo.Objective(expr = m.total_water_production, sense=pyo.maximize)
 
     # Only to find the baseline power for this water production
     if flex_type_key == "no_flex":
@@ -669,11 +666,7 @@ if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
         9000,
-        4000,
-        5000,
-        6000,
-        7000,
-        8000,
+        14000,
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
     season = "winter"
     flex_type = "both"
@@ -704,7 +697,7 @@ if __name__ == "__main__":
                 flex_type=flex_type,
                 season=season,
                 num_shutdowns=i,
-                rainy_days=3,
+                rainy_days=0,
             )
             water.append(design_vars["total_water_production"])
             cost.append(design_vars["total_cost"])
