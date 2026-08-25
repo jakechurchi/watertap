@@ -623,8 +623,7 @@ def calculate_replacement_costs(m):
 def add_flow_costs(m):
     """Adds expressions for feed and brine costs"""
 
-    # If the brine discharge in being operated, then plant start-up is occurring, and the feed is being recirculated, so there is no cost.
-    # Arguably this could be applied to the brine as well but that's tbd
+    # If the brine discharge in being operated, then plant start-up is occurring, and the intake is closed, so there is no cost.
     m.total_feed_cost = Expression(
         expr=sum(
             m.period[d, t].intake.feed_cost
@@ -635,11 +634,23 @@ def add_flow_costs(m):
         doc="Total cost of feed water over the time horizon ($)",
     )
 
+    # If the brine discharge in being operated, then plant start-up is occurring, and all out-flows are being recirculated, so there is no cost.
     m.total_brine_cost = Expression(
-        expr=sum(m.period[:, :].brine_discharge.brine_cost) * m.params.timestep_hours,
+        expr=sum(
+            m.period[d, t].brine_discharge.brine_cost
+            * (1 - m.period[d, t].brine_discharge.op_mode)
+            for d, t in m.period.index_set()
+        )
+        * m.params.timestep_hours,
         doc="Total cost of brine discharge over the time horizon ($)",
     )
 
+    # m.total_brine_cost = Expression(
+    #     expr=sum(m.period[:, :].brine_discharge.brine_cost) * m.params.timestep_hours,
+    #     doc="Total cost of brine discharge over the time horizon ($)",
+    # )
+
+    # It is assumed chemicals are still applied in the normal amounts during startup.
     m.total_chemical_cost = Expression(
         expr=m.params.timestep_hours
         * (
