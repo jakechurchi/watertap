@@ -616,7 +616,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # restricts number of shutdowns per 24 hours period, mainly to reduce solution space
     # fs.add_maximum_shutdowns(m)
 
-    fs.add_working_hours_constraint(m)
+    # fs.add_working_hours_constraint(m)
 
     fs.add_rain_shutdowns(m)
 
