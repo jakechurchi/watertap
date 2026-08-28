@@ -633,12 +633,15 @@ def add_flow_costs(m):
         * m.params.timestep_hours,
         doc="Total cost of feed water over the time horizon ($)",
     )
+    brine_cost_start_up_mod = (
+        -0.5
+    )  # If this is 1, the brine cost is doubled during startup. If it is 2, it is tripled. If it is -1, there is no brine cost during startup.
 
-    # If the brine discharge in being operated, then plant start-up is occurring, and all out-flows are being recirculated, so there is no cost.
+    # If brine discharge is operating, plant startup is occurring and brine cost is modified.
     m.total_brine_cost = Expression(
         expr=sum(
             m.period[d, t].brine_discharge.brine_cost
-            * (1 - m.period[d, t].brine_discharge.op_mode)
+            * (1 + brine_cost_start_up_mod * m.period[d, t].brine_discharge.op_mode)
             for d, t in m.period.index_set()
         )
         * m.params.timestep_hours,
