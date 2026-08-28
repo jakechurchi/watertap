@@ -658,9 +658,9 @@ def main(season, flex_type, num_flexible_trains=4):
             m.enforce_plant_on.add(
                 m.period[1, _t].reverse_osmosis.ro_skid[1].op_mode == 1
             )
-            m.enforce_plant_on.add(
-                m.period[1, _t].reverse_osmosis.ro_skid[3].op_mode == 1
-            )
+            # m.enforce_plant_on.add(
+            #     m.period[1, _t].reverse_osmosis.ro_skid[3].op_mode == 1
+            # )
 
     #### END TESTING CONSTRAINTS ####
 
