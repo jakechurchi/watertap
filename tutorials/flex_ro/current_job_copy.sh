@@ -7,9 +7,9 @@
 #SBATCH -L gurobi@slurmdb:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=water_targ_winter.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=PT_faster_no_brine_cost.%j.out  # %j will be replaced with the job ID
 
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-python sweep_water_target_week_copy.py
+python PT_wrd_week_temp_copy.py
