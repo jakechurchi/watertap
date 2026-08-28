@@ -645,12 +645,12 @@ def main(season, flex_type, num_flexible_trains=4):
     ##### ADDING FOR TESTING ####
     # Convert the DR mask to model time indices (1-based) for direct indexing.
     _shutdown_times = np.flatnonzero(price_data["Var Demand Rate"].to_numpy() != 0) + 1
-    # m.enforce_plant_shutdown = pyo.Constraint(
-    #     expr=sum(
-    #         m.period[1, t].reverse_osmosis.ro_skid[1].op_mode for t in _shutdown_times
-    #     )
-    #     == 0
-    # )
+    m.enforce_plant_shutdown = pyo.Constraint(
+        expr=sum(
+            m.period[1, t].reverse_osmosis.ro_skid[1].op_mode for t in _shutdown_times
+        )
+        == 0
+    )
     # This might improve the solve time. Unclear why removing startup brine cost makes the model difficult to solve.
     m.enforce_plant_on = pyo.ConstraintList()
     for _d, _t in m.period.index_set():
