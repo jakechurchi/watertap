@@ -307,7 +307,7 @@ def _begin_and_end_constraint(m):
 
 
 def one_week(
-    annual_production_AF=13000,
+    annual_production_AF=12000,
     flex_type=None,
     season="summer",
     num_shutdowns=None,
@@ -665,11 +665,18 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
+        8000,
+        9000,
         10000,
+        11000,
+        12000,
         13000,
+        14000,
+        15000,
+        16000,
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
     season = "summer"
-    flex_type = "both"
+    flex_type = "no_flex"
     number_of_shutdowns = [10]  # 10 is essentially unlimited shutdowns allowed
 
     # Outputs
