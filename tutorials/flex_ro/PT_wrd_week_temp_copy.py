@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/summer_week_ELRP.csv",
+        "summer": "price_signals/summer_week_hot_RTP.csv",
         "winter": "price_signals/winter_week.csv",
     }
     season_key = season.lower()
