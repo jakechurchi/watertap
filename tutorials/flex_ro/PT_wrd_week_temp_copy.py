@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/summer_week.csv",
+        "summer": "price_signals/summer_week_ELRP.csv",
         "winter": "price_signals/winter_week.csv",
     }
     season_key = season.lower()
@@ -405,8 +405,8 @@ def main(season, flex_type, num_flexible_trains=4):
         output_suffix = f"{output_suffix}_TOU_8"
     if selected_price_signal_stem.upper().endswith("CPP"):
         output_suffix = f"{output_suffix}_CPP"
-    if selected_price_signal_stem.upper().endswith("DR"):
-        output_suffix = f"{output_suffix}_DR"
+    if selected_price_signal_stem.upper().endswith("ELRP"):
+        output_suffix = f"{output_suffix}_ELRP"
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
 
@@ -672,7 +672,7 @@ def main(season, flex_type, num_flexible_trains=4):
     # IPOPT
     # solver = get_solver()
 
-    mip_gap = 0.005
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
