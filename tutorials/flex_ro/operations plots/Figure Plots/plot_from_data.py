@@ -415,6 +415,6 @@ def op_plot_from_data(filename, data_type="optimization_results"):
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "wrd_result_summer_working_hrs.csv"
+filename = "wrd_result_summer_full_flex.csv"
 
 op_plot_from_data(filename, data_type="optimization_results")
