@@ -7,7 +7,7 @@
 #SBATCH -L gurobi@slurmdb:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=PT_triple_startup_brine_cost_RTP.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=PT_half_startup_brine_cost_RTP.%j.out  # %j will be replaced with the job ID
 
 module load gurobi
 module load anaconda3
