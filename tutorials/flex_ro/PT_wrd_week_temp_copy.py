@@ -574,7 +574,7 @@ def main(season, flex_type, num_flexible_trains=4):
     )
 
     brine_cost_start_up_mod = (
-        -0.5
+        -1
     )  # If this is 1, the brine cost is doubled during startup. If it is 2, it is tripled. If it is -1, there is no brine cost during startup.
 
     fs.add_flow_costs(
