@@ -15,18 +15,29 @@ from pyomo.environ import (
 from watertap.core.solvers import get_solver
 
 # load surrogate data for summer and winter costs as function of water production (and # of rainy days)
-WINTER_INTERP_WATER_PRODUCTION_M3 = np.array(
+
+## 0 Rainy Days ##
+WINTER_0_RAINY_WATER_PRODUCTION_M3 = np.array(
     [188120, 236075, 282180, 329242, 376240], dtype=float
 )
-WINTER_INTERP_COST_USD = np.array([74098, 94214, 111743, 130494, 150717], dtype=float)
+WINTER_0_RAINY_COST_USD = np.array([74098, 94214, 111743, 130494, 150717], dtype=float)
 
-SUMMER_INTERP_WATER_PRODUCTION_M3 = np.array(
+SUMMER_0_RAINY_WATER_PRODUCTION_M3 = np.array(
     [188120, 211635, 235150, 258665, 282180, 305695, 329282, 352725, 376242],
     dtype=float,
 )
-SUMMER_INTERP_COST_USD = np.array(
+SUMMER_0_RAINY_COST_USD = np.array(
     [80066, 89190, 98655, 107665, 117732, 126083, 136088, 146233, 159336],
     dtype=float,
+)
+
+## 3 Rainy Days ###
+WINTER_3_RAINY_WATER_PRODUCTION_M3 = np.array(
+    [94060, 117575, 141090, 164605, 188120, 211635], dtype=float
+)
+
+WINTER_3_RAINY_COST_USD = np.array(
+    [41752, 51496, 60725, 70388, 80116, 90892], dtype=float
 )
 
 
@@ -48,13 +59,15 @@ def _build_segment_lines(production_points, cost_points):
     ]
 
 
-WINTER_SEGMENT_LINES = _build_segment_lines(
-    WINTER_INTERP_WATER_PRODUCTION_M3, WINTER_INTERP_COST_USD
+WINTER_0_RAINY_SEGMENT_LINES = _build_segment_lines(
+    WINTER_0_RAINY_WATER_PRODUCTION_M3, WINTER_0_RAINY_COST_USD
 )
-SUMMER_SEGMENT_LINES = _build_segment_lines(
-    SUMMER_INTERP_WATER_PRODUCTION_M3, SUMMER_INTERP_COST_USD
+SUMMER_0_RAINY_SEGMENT_LINES = _build_segment_lines(
+    SUMMER_0_RAINY_WATER_PRODUCTION_M3, SUMMER_0_RAINY_COST_USD
 )
-
+WINTER_3_RAINY_SEGMENT_LINES = _build_segment_lines(
+    WINTER_3_RAINY_WATER_PRODUCTION_M3, WINTER_3_RAINY_COST_USD
+)
 
 # create surrogate model for both
 # For now, I will assign a linear fit for simplicity, but should be rbf (not polynomial!!)
@@ -71,9 +84,9 @@ def apply_water_production_ub(num_rainy_days):
 
 def init_rainy_days(m, w):
     # This would be replaced with designed rain scenarios or a random distribution
-    if w in [13, 14, 15, 16, 17, 18, 19, 20]:
+    if w in [18, 19, 20, 21]:
         return 3
-    elif w in [25, 26, 27, 28]:
+    elif w in [27, 28, 29, 30]:
         return 7
     else:
         return 0
@@ -88,6 +101,36 @@ def mid_year_targets(m, weeks, targets_af):
         if w in target_map:
             return blk.cumulative_water[w] >= target_map[w]
         return Constraint.Skip
+
+
+MONTH_TO_WEEKS = {
+    1: [1, 2, 3, 4],
+    2: [5, 6, 7, 8],
+    3: [9, 10, 11, 12, 13],
+    4: [14, 15, 16, 17],
+    5: [18, 19, 20, 21],
+    6: [22, 23, 24, 25, 26],
+    7: [27, 28, 29, 30],
+    8: [31, 32, 33, 34],
+    9: [35, 36, 37, 38, 39],
+    10: [40, 41, 42, 43],
+    11: [44, 45, 46, 47, 48],
+    12: [49, 50, 51, 52],
+}
+
+
+def equal_production_for_weeks_in_month(m, month, weeks_in_month):
+    """Makes all weeks within one month have equal water production."""
+    reference_week = weeks_in_month[0]
+
+    @m.Constraint(range(1, len(weeks_in_month)))
+    def equal_production_constraint(blk, offset):
+        week = weeks_in_month[offset]
+        return (
+            blk.water_production_week[week] == blk.water_production_week[reference_week]
+        )
+
+    setattr(m, f"equal_production_month_{month}", equal_production_constraint)
 
 
 def plot_year(m):
@@ -108,10 +151,10 @@ def plot_year(m):
 
     # Shade summer weeks on both subplots
     summer_patch = ax.axvspan(
-        0.5, 12.5, color="peachpuff", alpha=0.5, label="_nolegend_"
+        0.5, 13.5, color="peachpuff", alpha=0.5, label="_nolegend_"
     )
     ax.axvspan(48.5, 52.5, color="peachpuff", alpha=0.5, label="_nolegend_")
-    ax2.axvspan(0.5, 12.5, color="peachpuff", alpha=0.5, label="_nolegend_")
+    ax2.axvspan(0.5, 13.5, color="peachpuff", alpha=0.5, label="_nolegend_")
     ax2.axvspan(48.5, 52.5, color="peachpuff", alpha=0.5, label="_nolegend_")
 
     # Shade rainy weeks on top subplot only
@@ -157,7 +200,7 @@ def plot_year(m):
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="black"),
         )
 
-    ax.set_ylabel("Water Production (AF)", fontsize=14)
+    ax.set_ylabel("Cumulative Water (AF)", fontsize=14)
     ax.set_title("Yearly Water Production", fontsize=14)
     ax.tick_params(axis="both", labelsize=14)
 
@@ -216,7 +259,7 @@ def plot_year(m):
         f"Total Cost: ${total_cost:,.0f}",
         xy=(52, total_cost / 1e6),
         xycoords="data",
-        xytext=(0.97, 0.28),
+        xytext=(0.97, 0.35),
         textcoords="axes fraction",
         fontsize=12,
         ha="right",
@@ -261,17 +304,25 @@ if __name__ == "__main__":
     )  # m3/week
     m.weekly_cost = Var(m.weeks, bounds=(0, None))  # $/week
 
+    for month, weeks_in_month in MONTH_TO_WEEKS.items():
+        equal_production_for_weeks_in_month(m, month, weeks_in_month)
+
     # Add piecewise-linear cost surrogate constraints.
     # This supports different segment counts for summer and winter.
-    max_num_segments = max(len(WINTER_SEGMENT_LINES), len(SUMMER_SEGMENT_LINES))
+    max_num_segments = max(
+        len(WINTER_0_RAINY_SEGMENT_LINES), len(SUMMER_0_RAINY_SEGMENT_LINES)
+    )
     m.cost_segments = RangeSet(0, max_num_segments - 1)
 
     @m.Constraint(m.weeks, m.cost_segments)
     def eq_cost_segments(blk, w, s):
         if m.week_type[w] == "winter":
-            lines = WINTER_SEGMENT_LINES
+            if m.num_rainy_days[w] == 3:
+                lines = WINTER_3_RAINY_SEGMENT_LINES
+            else:
+                lines = WINTER_0_RAINY_SEGMENT_LINES
         else:
-            lines = SUMMER_SEGMENT_LINES
+            lines = SUMMER_0_RAINY_SEGMENT_LINES
 
         if s >= len(lines):
             return Constraint.Skip
@@ -303,7 +354,7 @@ if __name__ == "__main__":
             == blk.cumulative_cost_var[w - 1] + blk.weekly_cost[w]
         )
 
-    mid_year_targets(m, [52 - 8], [10000])  # Set mid-year targets in AF
+    # mid_year_targets(m, [13],[3000])  # Set mid-year targets in AF
 
     # Expressions for total cost and production
     @m.Expression()
