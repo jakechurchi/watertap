@@ -665,18 +665,14 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
-        8000,
-        9000,
         10000,
         11000,
-        12000,
         13000,
-        14000,
         15000,
         16000,
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
-    season = "summer"
-    flex_type = "no_flex"
+    season = "winter"
+    flex_type = "both"
     number_of_shutdowns = [10]  # 10 is essentially unlimited shutdowns allowed
 
     # Outputs
@@ -684,6 +680,8 @@ if __name__ == "__main__":
     cost = []
     energy_cost = []
     demand_cost = []
+    var_demand_cost = []
+    fixed_demand_cost = []
     feed_cost = []
     brine_cost = []
     chemical_cost = []
@@ -719,6 +717,9 @@ if __name__ == "__main__":
                 design_vars["total_demand_cost"] + design_vars["total_energy_cost"]
             )
             LCOW.append(design_vars["LCOW"])
+            var_demand_cost.append(design_vars["total_variable_demand_cost"])
+            fixed_demand_cost.append(design_vars["total_fixed_demand_cost"])
+
             annual_production_values.append(annual_production)
             allowed_shutdown_values.append(i)
 
