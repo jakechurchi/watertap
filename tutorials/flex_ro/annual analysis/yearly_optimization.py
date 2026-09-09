@@ -99,7 +99,9 @@ def mid_year_targets(m, weeks, targets_af):
     @m.Constraint(m.weeks)
     def eq_mid_year_targets(blk, w):
         if w in target_map:
-            return blk.cumulative_water[w] >= target_map[w]
+            return (
+                blk.cumulative_water[w] == target_map[w]
+            )  # Depending on use case, this could be an inequality instead
         return Constraint.Skip
 
 
@@ -157,7 +159,7 @@ def plot_year(m):
     ax2.axvspan(0.5, 13.5, color="peachpuff", alpha=0.5, label="_nolegend_")
     ax2.axvspan(48.5, 52.5, color="peachpuff", alpha=0.5, label="_nolegend_")
 
-    # Shade rainy weeks on top subplot only
+    # Shade rainy weeks on both subplots
     light_blue_patch = None
     dark_blue_patch = None
     for w in weeks:
@@ -166,10 +168,16 @@ def plot_year(m):
             p = ax.axvspan(
                 w - 0.5, w + 0.5, color="lightblue", alpha=0.6, label="_nolegend_"
             )
+            ax2.axvspan(
+                w - 0.5, w + 0.5, color="lightblue", alpha=0.6, label="_nolegend_"
+            )
             if light_blue_patch is None:
                 light_blue_patch = p
         elif rd == 7:
             p = ax.axvspan(
+                w - 0.5, w + 0.5, color="steelblue", alpha=0.8, label="_nolegend_"
+            )
+            ax2.axvspan(
                 w - 0.5, w + 0.5, color="steelblue", alpha=0.8, label="_nolegend_"
             )
             if dark_blue_patch is None:
@@ -354,7 +362,7 @@ if __name__ == "__main__":
             == blk.cumulative_cost_var[w - 1] + blk.weekly_cost[w]
         )
 
-    # mid_year_targets(m, [13],[3000])  # Set mid-year targets in AF
+    mid_year_targets(m, [4, 48], [0, 10000])  # Set mid-year targets in AF
 
     # Expressions for total cost and production
     @m.Expression()
