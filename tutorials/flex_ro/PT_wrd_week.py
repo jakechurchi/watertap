@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/summer_week_TOU_8.csv",
+        "summer": "price_signals/summer_week_TOU8.csv",
         "winter": "price_signals/winter_week.csv",
     }
     season_key = season.lower()
@@ -399,7 +399,7 @@ def main(season, flex_type, num_flexible_trains=4):
     output_suffix = f"{season_key}_{flex_type_key}_no_brine_start_up_cost"
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
-    if selected_price_signal_stem.upper().endswith("TOU_8"):
+    if selected_price_signal_stem.upper().endswith("TOU8"):
         output_suffix = f"{output_suffix}_TOU_8"
     if selected_price_signal_stem.upper().endswith("CPP"):
         output_suffix = f"{output_suffix}_CPP"

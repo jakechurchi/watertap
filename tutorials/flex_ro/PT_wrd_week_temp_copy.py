@@ -401,7 +401,7 @@ def main(season, flex_type, num_flexible_trains=4):
     )
     if selected_price_signal_stem.upper().endswith("RTP"):
         output_suffix = f"{output_suffix}_RTP"
-    if selected_price_signal_stem.upper().endswith("TOU_8"):
+    if selected_price_signal_stem.upper().endswith("TOU8"):
         output_suffix = f"{output_suffix}_TOU_8"
     if selected_price_signal_stem.upper().endswith("CPP"):
         output_suffix = f"{output_suffix}_CPP"
@@ -754,8 +754,8 @@ def main(season, flex_type, num_flexible_trains=4):
 
 if __name__ == "__main__":
     seasons = ["summer"]
-    flex_types = ["both"]
-    num_flex_skids = [4]
+    flex_types = ["no_flex"]
+    num_flex_skids = [0]
 
     results_rows = []
 
