@@ -1,0 +1,1 @@
+Note that an extra column is added to these files compared to the direct output of the pricetaker model. This is used to identify the peak hours in the plotting function
