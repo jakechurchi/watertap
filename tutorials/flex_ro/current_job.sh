@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --job-name=PT
 #SBATCH --account=nawianalysis
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --nodes=2
 #SBATCH --partition=standard
 #SBATCH -L gurobi@slurmdb:1
 #SBATCH --mail-user=jake.churchill@nlr.gov
 #SBATCH --mail-type=ALL
-#SBATCH --output=PT_sweep_winter.%j.out  # %j will be replaced with the job ID
+#SBATCH --output=PT_TOU_8.%j.out  # %j will be replaced with the job ID
 
 module load gurobi
 module load anaconda3
 conda activate watertap-pricetaker
-python sweep_water_target_week.py
+python PT_wrd_week.py

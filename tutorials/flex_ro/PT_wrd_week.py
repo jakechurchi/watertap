@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/summer_week.csv",
+        "summer": "price_signals/summer_week_TOU_8.csv",
         "winter": "price_signals/winter_week.csv",
     }
     season_key = season.lower()
@@ -571,7 +571,12 @@ def main(season, flex_type, num_flexible_trains=4):
         expr=sum(m.period[:, :].customer_cost) * m.params.num_months
     )
 
-    fs.add_flow_costs(m)  # Flow costs = Feed, Brine, and Chemicals
+    brine_cost_start_up_mod = 0  # If this is 1, the brine cost is doubled during startup. If it is 2, it is tripled. If it is -1, there is no brine cost during startup.
+
+    fs.add_flow_costs(
+        m, brine_cost_start_up_mod=brine_cost_start_up_mod
+    )  # Flow costs = Feed, Brine, and Chemicals
+
     fs.add_useful_expressions(m)
     # This adds the total_demand_response_revenue, which only represents one of the available SCE DR options.
 
@@ -618,7 +623,7 @@ def main(season, flex_type, num_flexible_trains=4):
 
     # fs.add_working_hours_constraint(m)
 
-    fs.add_rain_shutdowns(m)
+    # fs.add_rain_shutdowns(m)
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
