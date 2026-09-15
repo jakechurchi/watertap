@@ -62,7 +62,7 @@ def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
         initialize=0, mutable=True, doc="Demand-response prices"
     )
     blk.baseline_power = Param(
-        initialize=725, mutable=True, doc="Baseline power requirement"
+        initialize=1102, mutable=True, doc="Baseline power requirement"
     )
     # blk.demand_response_power_delta = Var(
     #     within=Reals,

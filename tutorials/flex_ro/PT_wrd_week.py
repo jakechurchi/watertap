@@ -456,9 +456,7 @@ def main(season, flex_type, num_flexible_trains=4):
         include_demand_response=True,
         max_daily_shutdowns=1,  # I'd like to change to one a day
     )
-    m.baseline_power = (
-        725  # kW #NOTE: THIS IS CHANGED TO MIN LEVEL FROM THE FULL FLEX RESULTS
-    )
+    m.baseline_power = 1102
     m.params.intake.update(
         {
             "energy_intensity": 0,
