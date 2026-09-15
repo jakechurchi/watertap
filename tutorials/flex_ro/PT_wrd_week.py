@@ -378,7 +378,7 @@ def _begin_and_end_constraint(m):
 
 def main(season, flex_type, num_flexible_trains=4):
     season_map = {
-        "summer": "price_signals/summer_week_TOU8.csv",
+        "summer": "price_signals/summer_week_ELRP.csv",
         "winter": "price_signals/winter_week.csv",
     }
     season_key = season.lower()
@@ -456,7 +456,9 @@ def main(season, flex_type, num_flexible_trains=4):
         include_demand_response=True,
         max_daily_shutdowns=1,  # I'd like to change to one a day
     )
-    m.baseline_power = 1102  # kW
+    m.baseline_power = (
+        725  # kW #NOTE: THIS IS CHANGED TO MIN LEVEL FROM THE FULL FLEX RESULTS
+    )
     m.params.intake.update(
         {
             "energy_intensity": 0,
