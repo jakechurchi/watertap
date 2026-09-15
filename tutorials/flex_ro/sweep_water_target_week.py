@@ -530,7 +530,7 @@ def one_week(
     # Flowrates not fixed, but shouldn't randomly fluctuate either.
     fs.add_flow_changes_penalty_binary(m)
 
-    # fs.add_working_hours_constraint(m)
+    fs.add_working_hours_constraint(m)
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
@@ -665,13 +665,9 @@ def one_week(
 if __name__ == "__main__":
     # Inputs
     water_prod_targs = [
-        16000,
-        10000,
-        11000,
-        13000,
-        15000,
+        9000
     ]  # mostly to compare to the results I already have tabulated to see if they've changed at all
-    season = "winter"
+    season = "summer"
     flex_type = "both"
     number_of_shutdowns = [10]  # 10 is essentially unlimited shutdowns allowed
 
