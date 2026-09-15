@@ -1,5 +1,7 @@
 FILE DESCRIPTIONS:
 - plot_from_data => script that recreates the plot from the pricetaker formulation. This allows tweaking formatting of the figures without re-running the optimization. Also has option to take properly formatted plant data. 
+Also can plot specifically formated plant data. 
+
 - replacement_costs.py => script that calculates the replacement costs based on the degree of flexibility of an operation scheme.
 
 - paper_fig => will ultimately include all the plots that area directly used in the paper. plot_from data saves plots to this folder

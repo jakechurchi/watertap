@@ -403,6 +403,9 @@ def op_plot_from_data(filename, data_type="optimization_results"):
     print(
         f"total water produced: {sum(sum([train_1_flows,train_2_flows,train_3_flows,train_4_flows]))/1233} AF"
     )
+    print(
+        f"total energy consumed: {sum(total_energy)} kWh, {sum(total_energy)/1000} MWh"
+    )
 
     fig.tight_layout()
     output_dir = script_dir / "paper_figs"
@@ -415,6 +418,6 @@ def op_plot_from_data(filename, data_type="optimization_results"):
 # filename = "wrd_result_summer_both_4_flexible_trains.csv"
 
 # Plant Data
-filename = "wrd_result_summer_full_flex_RTP.csv"
+filename = "real_Aug_week.csv"
 
-op_plot_from_data(filename, data_type="optimization_results")
+op_plot_from_data(filename, data_type="plant_data")

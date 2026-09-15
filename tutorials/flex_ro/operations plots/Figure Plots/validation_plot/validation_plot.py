@@ -56,14 +56,19 @@ def calculate_sim_energy_profile(train_schedule):
         - 27.4 * uf_on.to_numpy()
         + 0.101 * total_water_production.to_numpy()  # Post treatment
     )
+    print("Train 1 Power (kW)")
     print(
         (
             0.6343 * train_flows[f"train_1_flow_pct"].to_numpy()
             - 139.4 * on_data[f"train_1_on"].to_numpy()
-        )[:3]
+        )[315:316]
     )
-    print((0.199 * total_water_production.to_numpy() - 27.4 * uf_on.to_numpy())[:3])
-    print((0.101 * total_water_production.to_numpy())[:3])  # Post treatment
+    print("UF System Power (kW)")
+    print(
+        (0.199 * total_water_production.to_numpy() - 27.4 * uf_on.to_numpy())[315:316]
+    )
+    print("Post Treatment Power (kW)")
+    print((0.101 * total_water_production.to_numpy())[315:316])  # Post treatment
 
     return sim_energy_profile.tolist()
 
@@ -93,29 +98,44 @@ def validation_plot(
     sim_energy_line = ax.plot(
         time + 0.5,
         sim_energy_profile,
-        label="Modeled Energy Consumption (kWh)",
+        label="Modeled Energy Consumption",
         color="orange",
         marker="o",
+        zorder=0,
     )
 
     act_energy_line = ax.plot(
         time + 0.5,
         act_energy_profile,
-        label="Energy Consumption Data (kWh)",
+        label="Measured Energy Consumption",
         color="blue",
         marker="s",
+        zorder=1,
+    )
+
+    act_energy_array = np.asarray(act_energy_profile, dtype=float)
+    lower_bound = 0.85 * act_energy_array
+    upper_bound = 1.15 * act_energy_array
+    act_energy_band = ax.fill_between(
+        time + 0.5,
+        lower_bound,
+        upper_bound,
+        color="blue",
+        alpha=0.2,
+        label="Measured Energy Consumption, +/-15%",
+        zorder=2,
     )
 
     ax.set_ylim(0, 2500)
     ax.set_ylabel("Energy Consumption (kWh)", fontsize=16)
     ax.set_xlabel("Hours", fontsize=16)
-    ax.set_title("Energy Consumption - October 2021", fontsize=18, fontweight="bold")
+    ax.set_title("Energy Consumption - August 2021", fontsize=18, fontweight="bold")
     ax.grid(False)
     ax.xaxis.set_major_locator(plt.MaxNLocator(24))
 
     ax.legend(
-        handles=[sim_energy_line[0], act_energy_line[0]],
-        loc="lower left",
+        handles=[sim_energy_line[0], act_energy_line[0], act_energy_band],
+        loc="upper left",
         framealpha=1.0,
         fontsize=11,
     )
@@ -132,7 +152,6 @@ def validation_plot(
 
 if __name__ == "__main__":
     validation_plot(
-        actual_energy_csv="Oct_21_kW_hourly_week.csv",
-        train_schedule="Oct_21_real_operation.csv",
+        actual_energy_csv="Aug_21_kW_month.csv",
+        train_schedule="Aug_21_real_operation_month.csv",
     )
-    filename = "Oct_21_kW_hourly_week.csv"
