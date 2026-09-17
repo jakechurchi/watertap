@@ -586,7 +586,7 @@ def one_week(
     # solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.01
+    mip_gap = 0.019
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
