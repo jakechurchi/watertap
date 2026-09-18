@@ -530,7 +530,7 @@ def one_week(
     # Flowrates not fixed, but shouldn't randomly fluctuate either.
     fs.add_flow_changes_penalty_binary(m)
 
-    fs.add_working_hours_constraint(m)
+    # fs.add_working_hours_constraint(m)
 
     # This does not include the replacement costs atm because they don't drive the optimization. Also I removed the flexibility penalty
     m.obj = pyo.Objective(
@@ -579,6 +579,13 @@ def one_week(
 
     print(degrees_of_freedom(m))
 
+    ##### ADDING FOR TESTING ####
+    @m.Constraint(m.set_time)
+    def no_plant_shutdown(m_blk, t):
+        return m_blk.period[1, t].reverse_osmosis.ro_skid[1].op_mode == 1
+
+    #### END TESTING CONSTRAINTS ####
+
     # dt = DiagnosticsToolbox(m)
     # dt.report_structural_issues()
 
@@ -586,7 +593,7 @@ def one_week(
     # solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.019
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
