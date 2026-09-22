@@ -580,9 +580,9 @@ def one_week(
     print(degrees_of_freedom(m))
 
     ##### ADDING FOR TESTING ####
-    @m.Constraint(m.set_time)
-    def no_plant_shutdown(m_blk, t):
-        return m_blk.period[1, t].reverse_osmosis.ro_skid[1].op_mode == 1
+    # @m.Constraint(m.set_time)
+    # def no_plant_shutdown(m_blk, t):
+    #     return m_blk.period[1, t].reverse_osmosis.ro_skid[1].op_mode == 1
 
     #### END TESTING CONSTRAINTS ####
 
@@ -593,7 +593,7 @@ def one_week(
     # solver = get_solver()
     # solver.options["max_iter"] = 500
 
-    mip_gap = 0.0139
+    mip_gap = 0.01
     solver = pyo.SolverFactory("gurobi_direct_minlp")
     solver.options["MIPGap"] = mip_gap  # 1.0 %
     # solver.options["MIPGapAbs"] = (
