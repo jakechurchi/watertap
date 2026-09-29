@@ -9,6 +9,7 @@ from pyomo.environ import (
     Objective,
     Constraint,
     RangeSet,
+    maximize,
     minimize,
     value,
 )
@@ -19,26 +20,65 @@ from watertap.core.solvers import get_solver
 
 ## 0 Rainy Days ##
 WINTER_0_RAINY_WATER_PRODUCTION_M3 = np.array(
-    [188120, 236075, 282180, 329242, 376240], dtype=float
+    [
+        188120,
+        211635,
+        235150,
+        258665,
+        282180,
+        305695,
+        329210,
+        352725,
+        376240,
+        394716,
+    ],
+    dtype=float,
 )
-WINTER_0_RAINY_COST_USD = np.array([74098, 94214, 111743, 130494, 150717], dtype=float)
+WINTER_0_RAINY_COST_USD = np.array(
+    [
+        75507,
+        85156,
+        93848,
+        102961,
+        112554.9985,
+        121345,
+        130424,
+        140645,
+        149839,
+        158104,
+    ],
+    dtype=float,
+)
 
 SUMMER_0_RAINY_WATER_PRODUCTION_M3 = np.array(
-    [188120, 211635, 235150, 258665, 282180, 305695, 329282, 352725, 376242],
+    [
+        188120,
+        211635,
+        235150,
+        258665,
+        282180,
+        305695,
+        329210,
+        352809,
+        376240,
+        394716,
+    ],
     dtype=float,
 )
 SUMMER_0_RAINY_COST_USD = np.array(
-    [80066, 89190, 98655, 107665, 117732, 126083, 136088, 146233, 159336],
+    [
+        80542,
+        90281,
+        99136,
+        108042,
+        117857,
+        126981,
+        135947,
+        146231,
+        159413,
+        171054,
+    ],
     dtype=float,
-)
-
-## 3 Rainy Days ###
-WINTER_3_RAINY_WATER_PRODUCTION_M3 = np.array(
-    [94060, 117575, 141090, 164605, 188120, 211635], dtype=float
-)
-
-WINTER_3_RAINY_COST_USD = np.array(
-    [41752, 51496, 60725, 70388, 80116, 90892], dtype=float
 )
 
 
@@ -66,12 +106,8 @@ WINTER_0_RAINY_SEGMENT_LINES = _build_segment_lines(
 SUMMER_0_RAINY_SEGMENT_LINES = _build_segment_lines(
     SUMMER_0_RAINY_WATER_PRODUCTION_M3, SUMMER_0_RAINY_COST_USD
 )
-WINTER_3_RAINY_SEGMENT_LINES = _build_segment_lines(
-    WINTER_3_RAINY_WATER_PRODUCTION_M3, WINTER_3_RAINY_COST_USD
-)
 
-# create surrogate model for both
-# For now, I will assign a linear fit for simplicity, but should be rbf (not polynomial!!)
+# For now, I will assign a linear fit for to keep the model linear. However, a rbf surrogate could be trained and used instead.
 
 
 def apply_water_production_ub(num_rainy_days):
@@ -79,17 +115,67 @@ def apply_water_production_ub(num_rainy_days):
     # Placeholder linear relationship between rainy days and max water production
     # 394716 is absolute maxium level of water production possible in one week
     # 56080 is the reduction in water production for each additional rainy day
-    # HOWEVER, THE RAINY DAYS WILL IMPACT THE COST
+
     return 394716 - 56388 * num_rainy_days
 
 
 def init_rainy_days(m, w):
     # This would be replaced with designed rain scenarios or a random distribution
-    if w in [18, 19, 20, 21]:
-        return 7
-    elif w in [27, 28, 29, 30]:
-        return 7
-    elif w in [31, 32, 33, 34]:
+    if value(m.rainy_days_scenario) == "dry":
+        rain_weeks = [0]  # Zero months
+    elif value(m.rainy_days_scenario) == "normal":
+        rain_weeks = [18, 19, 20, 21, 31, 32, 33, 34]  # Two months
+    elif value(m.rainy_days_scenario) == "wet":
+        rain_weeks = [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+        ]  # Four months
+    elif value(m.rainy_days_scenario) == "very wet":
+        rain_weeks = [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+        ]  # Six months
+    else:
+        raise ValueError(
+            "Invalid rainy_days_scenario. Choose from 'dry', 'wet', 'very wet', or 'normal'."
+        )
+
+    if w in rain_weeks:
         return 7
     else:
         return 0
@@ -133,8 +219,9 @@ def plot_year(m):
     M3_TO_AF = 1 / 1233.5
     M3_WK_TO_MGD = 264.2 / 10**6 / 7
     weeks = list(m.weeks)
-    cumulative_af = [m.cumulative_water[w]() * M3_TO_AF for w in weeks]
-    cumulative_cost = [m.cumulative_cost_var[w]() for w in weeks]
+    weeks_with_origin = [0] + weeks
+    cumulative_af = [0.0] + [m.cumulative_water[w]() * M3_TO_AF for w in weeks]
+    cumulative_cost = [0.0] + [m.cumulative_cost_var[w]() for w in weeks]
 
     total_af = m.total_annual_production() * M3_TO_AF
     total_cost = m.total_cost()
@@ -146,12 +233,10 @@ def plot_year(m):
         a.set_facecolor("#f5f5f5")
 
     # Shade summer weeks on both subplots
-    summer_patch = ax.axvspan(
-        0.5, 13.5, color="peachpuff", alpha=0.5, label="_nolegend_"
-    )
-    ax.axvspan(48.5, 52.5, color="peachpuff", alpha=0.5, label="_nolegend_")
-    ax2.axvspan(0.5, 13.5, color="peachpuff", alpha=0.5, label="_nolegend_")
-    ax2.axvspan(48.5, 52.5, color="peachpuff", alpha=0.5, label="_nolegend_")
+    summer_patch = ax.axvspan(0, 13, color="peachpuff", alpha=0.5, label="_nolegend_")
+    ax.axvspan(48, 52, color="peachpuff", alpha=0.5, label="_nolegend_")
+    ax2.axvspan(0, 13, color="peachpuff", alpha=0.5, label="_nolegend_")
+    ax2.axvspan(48, 52, color="peachpuff", alpha=0.5, label="_nolegend_")
 
     # Shade rainy weeks on both subplots
     light_blue_patch = None
@@ -159,39 +244,33 @@ def plot_year(m):
     for w in weeks:
         rd = m.num_rainy_days[w]
         if rd == 3:
-            p = ax.axvspan(
-                w - 0.5, w + 0.5, color="lightblue", alpha=0.6, label="_nolegend_"
-            )
-            ax2.axvspan(
-                w - 0.5, w + 0.5, color="lightblue", alpha=0.6, label="_nolegend_"
-            )
+            p = ax.axvspan(w - 1, w, color="lightblue", alpha=0.6, label="_nolegend_")
+            ax2.axvspan(w - 1, w, color="lightblue", alpha=0.6, label="_nolegend_")
             if light_blue_patch is None:
                 light_blue_patch = p
         elif rd == 7:
-            p = ax.axvspan(
-                w - 0.5, w + 0.5, color="steelblue", alpha=0.8, label="_nolegend_"
-            )
-            ax2.axvspan(
-                w - 0.5, w + 0.5, color="steelblue", alpha=0.8, label="_nolegend_"
-            )
+            p = ax.axvspan(w - 1, w, color="steelblue", alpha=0.8, label="_nolegend_")
+            ax2.axvspan(w - 1, w, color="steelblue", alpha=0.8, label="_nolegend_")
             if dark_blue_patch is None:
                 dark_blue_patch = p
 
     # --- Top subplot: water production and cumulative production ---
     water_production_week = [m.water_production_week[w]() * M3_WK_TO_MGD for w in weeks]
     ax_right = ax.twinx()
-    (line_weekly,) = ax.plot(
+    (line_weekly,) = ax.step(
         weeks,
         water_production_week,
+        where="pre",
         color="orange",
-        linewidth=2,
+        linewidth=2.5,
         linestyle=":",
         label="Weekly production (MGD)",
     )
     ax.set_ylabel("Weekly Water Production (MGD)", fontsize=14)
+    ax.set_ylim(bottom=0, top=14.9)
 
     (line_cum,) = ax_right.plot(
-        weeks,
+        weeks_with_origin,
         cumulative_af,
         color="black",
         linewidth=2,
@@ -208,7 +287,7 @@ def plot_year(m):
 
     # Annotate end-of-quarter cumulative production
     for q_week, q_label in [(13, "End Q1"), (26, "End Q2"), (39, "End Q3")]:
-        idx = weeks.index(q_week)
+        idx = weeks_with_origin.index(q_week)
         q_af = cumulative_af[idx]
         ax_right.annotate(
             f"{q_label}: {q_af:,.0f} AF",
@@ -225,10 +304,14 @@ def plot_year(m):
             ),
         )
 
-    ax.set_title("Yearly Water Production", fontsize=14)
+    ax.set_title(
+        f"Rain Scenario: {value(m.rainy_days_scenario)} \n Water Production = {value(m.total_annual_production)/1233.5:.0f} AF",
+        fontsize=14,
+    )
     ax.tick_params(axis="both", labelsize=14)
     ax_right.tick_params(axis="y", labelsize=14)
-    # ax.set_ylim(0, 10000 * 1.1)
+    ax.set_ylim(bottom=0)
+    ax_right.set_ylim(bottom=0)
     legend_handles = [line_weekly, summer_patch]
     legend_labels = [line_weekly.get_label(), "Summer Weeks"]
     right_handles, right_labels = ax_right.get_legend_handles_labels()
@@ -239,7 +322,7 @@ def plot_year(m):
         legend_labels.append("Rainy (3 day)")
     if dark_blue_patch is not None:
         legend_handles.append(dark_blue_patch)
-        legend_labels.append("Rainy (7 days)")
+        legend_labels.append("Rain Shutdown")
     legend = ax.legend(
         legend_handles,
         legend_labels,
@@ -252,7 +335,7 @@ def plot_year(m):
     # --- Bottom subplot: cumulative cost + normalized cost ---
     ax2b = ax2.twinx()
     (line_cost,) = ax2b.plot(
-        weeks,
+        weeks_with_origin,
         [c / 1e6 for c in cumulative_cost],
         color="green",
         linewidth=2,
@@ -262,10 +345,26 @@ def plot_year(m):
 
     ax2.set_xlabel("Week", fontsize=14)
     ax2.set_title("Annual Cost", fontsize=14)
-    ax2.set_xlim(0.5, 52.5)
+    ax2.set_xlim(0.5, 52)
     ax2.set_xticks(range(0, 53, 4))
+    ax2.set_ylim(bottom=0)
     ax2.tick_params(axis="both", labelsize=14)
+    ax2b.set_ylim(bottom=0)
     ax2b.tick_params(axis="y", labelsize=14)
+
+    # Annotate total cost on the cumulative-cost twin axis so the arrow points
+    # to the actual total-cost value rather than the left y-axis baseline.
+    ax2.annotate(
+        f"Total Cost: ${total_cost:,.0f}",
+        xy=(52, total_cost / 1e6),
+        xycoords=ax2b.transData,
+        xytext=(0.97, 0.35),
+        textcoords="axes fraction",
+        fontsize=12,
+        ha="right",
+        arrowprops=dict(arrowstyle="->", color="black"),
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="black"),
+    )
 
     # Second y-axis: normalized water cost ($/AF)
     norm_cost = [
@@ -276,9 +375,10 @@ def plot_year(m):
         )
         for w in weeks
     ]
-    (line_norm,) = ax2.plot(
+    (line_norm,) = ax2.step(
         weeks,
         norm_cost,
+        where="pre",
         color="purple",
         linewidth=2,
         linestyle=":",
@@ -289,19 +389,6 @@ def plot_year(m):
     valid = [v for v in norm_cost if v == v]  # filter nan
     if valid:
         ax2.set_ylim(0, max(valid) * 1.1)
-
-    # Annotate total cost
-    ax2.annotate(
-        f"Total Cost: ${total_cost:,.0f}",
-        xy=(52, total_cost / 1e6),
-        xycoords="data",
-        xytext=(0.97, 0.35),
-        textcoords="axes fraction",
-        fontsize=12,
-        ha="right",
-        arrowprops=dict(arrowstyle="->", color="black"),
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="black"),
-    )
 
     handles2, labels2 = ax2.get_legend_handles_labels()
     handles2b, labels2b = ax2b.get_legend_handles_labels()
@@ -316,7 +403,7 @@ def plot_year(m):
     plt.tight_layout()
     save_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "yearly_water_production_cost_plot.png",
+        f"{value(m.rainy_days_scenario)}_year_water_production.png",
     )
     fig.savefig(save_path, dpi=300)
     plt.show()
@@ -334,6 +421,7 @@ if __name__ == "__main__":
             else "winter"
         ),
     )
+    m.rainy_days_scenario = Param(initialize="dry")
     m.num_rainy_days = Param(
         m.weeks, initialize=lambda m, w: init_rainy_days(m, w)
     )  # Placeholder
@@ -402,7 +490,9 @@ if __name__ == "__main__":
             == blk.cumulative_cost_var[w - 1] + blk.weekly_cost[w]
         )
 
-    mid_year_targets(m, [48], [10000])  # Enforces one month of shutdown by
+    mid_year_targets(
+        m, [48], [8000]
+    )  # Enforces one month of shutdown by reaching target one month early
 
     # Expressions for total cost and production
     @m.Expression()
@@ -416,7 +506,7 @@ if __name__ == "__main__":
     # Add constraint for total annual production
     @m.Constraint()
     def annual_production_target(blk):
-        return blk.total_annual_production == 10000 * 1233.5  # Convert AF to m3
+        return blk.total_annual_production == 8000 * 1233.5  # Convert AF to m3
 
     # Define the objective (minimize total cost)
     m.obj = Objective(
@@ -426,8 +516,23 @@ if __name__ == "__main__":
 
     # Solve model w/ ipopt (should work?)
     solver = get_solver()
-    results = solver.solve(m, tee=True)
-    print(results.solver.termination_condition)
+    try:
+        results = solver.solve(m, tee=True)
+        print(results.solver.termination_condition)
+    except Exception as e:
+        print(f"Solver failed: {e}")
+        print("Falling back to maximum-water-production solve.")
+        # Remove the annual production target and maximize water output instead.
+        if hasattr(m, "annual_production_target"):
+            m.annual_production_target.deactivate()
+        if hasattr(m, "obj"):
+            m.obj.deactivate()
+        m.max_water_production = Objective(
+            expr=m.total_annual_production,
+            sense=maximize,
+        )
+        results = solver.solve(m, tee=True)
+        print(results.solver.termination_condition)
 
     for month, weeks_in_month in MONTH_TO_WEEKS.items():
         for w in weeks_in_month:
@@ -441,6 +546,9 @@ if __name__ == "__main__":
     # Report the results
     # Totals
     print(f"Total annual water production (m3/year): {m.total_annual_production():.2f}")
+    print(
+        f"Total annual water production (AF/year): {m.total_annual_production() / 1233.5:.2f}"
+    )
     print(f"Total annual cost ($/year): {m.total_cost():.2f}")
 
     # Weekly
