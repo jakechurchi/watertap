@@ -1,4 +1,5 @@
 # imports
+import csv
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -274,7 +275,7 @@ def plot_year(m):
         cumulative_af,
         color="black",
         linewidth=2,
-        label="Cumulative production",
+        label="Flex cumulative production",
     )
     ax_right.set_ylabel("Cumulative Water (AF)", fontsize=14)
     # line_target = ax.axhline(
@@ -339,7 +340,7 @@ def plot_year(m):
         [c / 1e6 for c in cumulative_cost],
         color="green",
         linewidth=2,
-        label="Cumulative cost",
+        label="Flex cumulative cost",
     )
     ax2b.set_ylabel("Cumulative Cost (M$)", fontsize=14)
 
@@ -409,6 +410,274 @@ def plot_year(m):
     plt.show()
 
 
+def _load_max_production_profile(m):
+    """Load the saved max-production profile for the current rain scenario."""
+    scenario_param = getattr(m, "rainy_days_scenario", None)
+    if scenario_param is None:
+        scenario_param = getattr(m, "rain_day_scenario", None)
+    if scenario_param is None:
+        raise AttributeError(
+            "Model must define rainy_days_scenario or rain_day_scenario."
+        )
+
+    scenario_name = str(value(scenario_param)).strip().lower()
+    if scenario_name == "very wet":
+        scenario_name = "wet"
+    if scenario_name not in {"dry", "normal", "wet"}:
+        raise ValueError(
+            f"Unsupported rain scenario '{value(scenario_param)}'. "
+            "Expected one of: dry, normal, wet, very wet."
+        )
+
+    csv_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "max_production_profile.csv"
+    )
+    with open(csv_path, newline="") as f:
+        reader = csv.reader(f)
+        header = next(reader, [])
+        normalized = [cell.strip().lower().replace(" ", "") for cell in header]
+
+        water_col = normalized.index(f"{scenario_name}-water")
+        cost_col = normalized.index(f"{scenario_name}-cost")
+
+        water = []
+        cost = []
+        for row in reader:
+            if len(row) <= max(water_col, cost_col):
+                continue
+            try:
+                water_value = row[water_col].strip().replace("$", "").replace(",", "")
+                cost_value = row[cost_col].strip().replace("$", "").replace(",", "")
+                water.append(float(water_value))
+                cost.append(float(cost_value))
+            except ValueError:
+                continue
+
+    if not water or not cost:
+        raise ValueError(f"No data found for scenario '{scenario_name}' in {csv_path}.")
+
+    return np.asarray(water, dtype=float), np.asarray(cost, dtype=float)
+
+
+def plot_year_against_max_strat(m):
+    M3_TO_AF = 1 / 1233.5
+    M3_WK_TO_MGD = 264.2 / 10**6 / 7
+    weeks = list(m.weeks)
+    weekly_profile_water, weekly_profile_cost = _load_max_production_profile(m)
+
+    weeks_with_origin = [0] + weeks
+    cumulative_af = [0.0] + [m.cumulative_water[w]() * M3_TO_AF for w in weeks]
+    cumulative_cost = [0.0] + [m.cumulative_cost_var[w]() for w in weeks]
+    max_profile_cum_af = [0.0] + list(np.cumsum(weekly_profile_water) * M3_TO_AF)
+    max_profile_cum_cost = [0.0] + list(np.cumsum(weekly_profile_cost))
+
+    total_af = m.total_annual_production() * M3_TO_AF
+    total_cost = m.total_cost()
+
+    fig, (ax, ax2) = plt.subplots(2, 1, figsize=(15, 10), sharex=True)
+    for a in (ax, ax2):
+        a.set_facecolor("#f5f5f5")
+
+    summer_patch = ax.axvspan(0, 13, color="peachpuff", alpha=0.5, label="_nolegend_")
+    ax.axvspan(48, 52, color="peachpuff", alpha=0.5, label="_nolegend_")
+    ax2.axvspan(0, 13, color="peachpuff", alpha=0.5, label="_nolegend_")
+    ax2.axvspan(48, 52, color="peachpuff", alpha=0.5, label="_nolegend_")
+
+    light_blue_patch = None
+    dark_blue_patch = None
+    for w in weeks:
+        rd = m.num_rainy_days[w]
+        if rd == 3:
+            p = ax.axvspan(w - 1, w, color="lightblue", alpha=0.6, label="_nolegend_")
+            ax2.axvspan(w - 1, w, color="lightblue", alpha=0.6, label="_nolegend_")
+            if light_blue_patch is None:
+                light_blue_patch = p
+        elif rd == 7:
+            p = ax.axvspan(w - 1, w, color="steelblue", alpha=0.8, label="_nolegend_")
+            ax2.axvspan(w - 1, w, color="steelblue", alpha=0.8, label="_nolegend_")
+            if dark_blue_patch is None:
+                dark_blue_patch = p
+
+    water_production_week = [m.water_production_week[w]() * M3_WK_TO_MGD for w in weeks]
+    ax_right = ax.twinx()
+    (line_weekly,) = ax.step(
+        weeks,
+        water_production_week,
+        where="pre",
+        color="black",
+        linewidth=2.5,
+        linestyle=":",
+        label="Flex weekly production (MGD)",
+    )
+    ax.set_ylabel("Weekly Water Production (MGD)", fontsize=14)
+    ax.set_ylim(bottom=0, top=14.9)
+
+    (line_cum,) = ax_right.plot(
+        weeks_with_origin,
+        cumulative_af,
+        color="black",
+        linewidth=2,
+        label="Flex cumulative production",
+    )
+    (line_max_cum,) = ax_right.plot(
+        weeks_with_origin,
+        max_profile_cum_af,
+        color="tab:red",
+        linewidth=2,
+        linestyle="-",
+        label="Max-strategy cumulative production",
+    )
+    ax_right.set_ylabel("Cumulative Water (AF)", fontsize=14)
+
+    q_week = 26
+    idx = weeks_with_origin.index(q_week)
+    q_af = cumulative_af[idx]
+    ax_right.annotate(
+        f"End Q2: {q_af:,.0f} AF",
+        xy=(q_week, q_af),
+        xytext=(q_week - 9, q_af * 1),
+        fontsize=12,
+        zorder=20,
+        arrowprops=dict(arrowstyle="->", color="black"),
+        bbox=dict(
+            boxstyle="round,pad=0.3",
+            facecolor="white",
+            edgecolor="black",
+            zorder=20,
+        ),
+    )
+
+    max_q_af = max_profile_cum_af[idx]
+    ax_right.annotate(
+        f"Max strategy End Q2: {max_q_af:,.0f} AF",
+        xy=(q_week, max_q_af),
+        xytext=(q_week, max_q_af * 0.7),
+        fontsize=12,
+        zorder=20,
+        arrowprops=dict(arrowstyle="->", color="tab:red"),
+        bbox=dict(
+            boxstyle="round,pad=0.3",
+            facecolor="white",
+            edgecolor="tab:red",
+            zorder=20,
+        ),
+    )
+
+    ax.set_title(
+        f"Rain Scenario: {value(m.rainy_days_scenario)} \n Water Production = {value(m.total_annual_production)/1233.5:.0f} AF",
+        fontsize=14,
+    )
+    ax.tick_params(axis="both", labelsize=14)
+    ax_right.tick_params(axis="y", labelsize=14)
+    ax.set_ylim(bottom=0)
+    ax_right.set_ylim(bottom=0)
+    legend_handles = [line_weekly, summer_patch]
+    legend_labels = [line_weekly.get_label(), "Summer Weeks"]
+    right_handles, right_labels = ax_right.get_legend_handles_labels()
+    legend_handles.extend(right_handles)
+    legend_labels.extend(right_labels)
+    if light_blue_patch is not None:
+        legend_handles.append(light_blue_patch)
+        legend_labels.append("Rainy (3 day)")
+    if dark_blue_patch is not None:
+        legend_handles.append(dark_blue_patch)
+        legend_labels.append("Rain Shutdown")
+    legend = ax.legend(
+        legend_handles,
+        legend_labels,
+        fontsize=14,
+        ncol=2,
+        loc="lower right",
+    )
+    legend.set_zorder(10)
+
+    ax2b = ax2.twinx()
+    (line_cost,) = ax2b.plot(
+        weeks_with_origin,
+        [c / 1e6 for c in cumulative_cost],
+        color="green",
+        linewidth=2,
+        label="Flexible cumulative cost",
+    )
+    (line_max_cost,) = ax2b.plot(
+        weeks_with_origin,
+        [c / 1e6 for c in max_profile_cum_cost],
+        color="tab:blue",
+        linewidth=2,
+        linestyle="-",
+        label="Max-strategy cumulative cost",
+    )
+    ax2b.set_ylabel("Cumulative Cost (M$)", fontsize=14)
+
+    ax2.set_xlabel("Week", fontsize=14)
+    ax2.set_title("Annual Cost", fontsize=14)
+    ax2.set_xlim(0.5, 52)
+    ax2.set_xticks(range(0, 53, 4))
+    ax2.set_ylim(bottom=0)
+    ax2.tick_params(axis="both", labelsize=14)
+    ax2b.set_ylim(bottom=0)
+    ax2b.tick_params(axis="y", labelsize=14)
+
+    max_strategy_total_cost = max_profile_cum_cost[-1]
+    total_cost_str = (
+        f"Max Strat. Total Cost: ${max_strategy_total_cost:,.0f}\n"
+        f"Total Cost: ${total_cost:,.0f}"
+    )
+    ax2.annotate(
+        total_cost_str,
+        xy=(52, total_cost / 1e6),
+        xycoords=ax2b.transData,
+        xytext=(0.98, 0.55),
+        textcoords="axes fraction",
+        fontsize=12,
+        ha="right",
+        va="center",
+        arrowprops=dict(arrowstyle="->", color="black"),
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="black"),
+    )
+
+    norm_cost = [
+        (
+            m.weekly_cost[w]() / (m.water_production_week[w]() * M3_TO_AF)
+            if m.water_production_week[w]() > 0.1
+            else float("nan")
+        )
+        for w in weeks
+    ]
+    (line_norm,) = ax2.step(
+        weeks,
+        norm_cost,
+        where="pre",
+        color="purple",
+        linewidth=2,
+        linestyle=":",
+        label="Flex norm. cost ($/AF)",
+    )
+    ax2.set_ylabel("Normalized Water Cost ($/AF)", fontsize=14)
+    ax2.tick_params(axis="y", labelsize=14)
+    valid = [v for v in norm_cost if v == v]
+    if valid:
+        ax2.set_ylim(0, max(valid) * 1.1)
+
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    handles2b, labels2b = ax2b.get_legend_handles_labels()
+    legend2 = ax2.legend(
+        handles2 + handles2b,
+        labels2 + labels2b,
+        fontsize=14,
+        loc="lower right",
+    )
+    legend2.set_zorder(10)
+
+    plt.tight_layout()
+    save_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        f"{value(m.rainy_days_scenario)}_year_against_max_strat.png",
+    )
+    fig.savefig(save_path, dpi=300)
+    plt.show()
+
+
 if __name__ == "__main__":
     # Create model and relavant sets/parameters
     m = ConcreteModel()
@@ -421,10 +690,11 @@ if __name__ == "__main__":
             else "winter"
         ),
     )
-    m.rainy_days_scenario = Param(initialize="dry")
+    m.rainy_days_scenario = Param(initialize="wet")
     m.num_rainy_days = Param(
         m.weeks, initialize=lambda m, w: init_rainy_days(m, w)
     )  # Placeholder
+    max_production_scenario = False
 
     # Define the variables (water production in each week)
     m.months = RangeSet(1, 12)
@@ -490,9 +760,14 @@ if __name__ == "__main__":
             == blk.cumulative_cost_var[w - 1] + blk.weekly_cost[w]
         )
 
-    mid_year_targets(
-        m, [48], [8000]
-    )  # Enforces one month of shutdown by reaching target one month early
+    if max_production_scenario:
+        mid_year_targets(
+            m, [13], [4159]
+        )  # Enforces one full production in summer months and
+    else:
+        mid_year_targets(
+            m, [48], [10000]
+        )  # Enforces one month of shutdown by reaching target one month early
 
     # Expressions for total cost and production
     @m.Expression()
@@ -506,13 +781,27 @@ if __name__ == "__main__":
     # Add constraint for total annual production
     @m.Constraint()
     def annual_production_target(blk):
-        return blk.total_annual_production == 8000 * 1233.5  # Convert AF to m3
+        return blk.total_annual_production == 10000 * 1233.5  # Convert AF to m3
 
     # Define the objective (minimize total cost)
-    m.obj = Objective(
-        expr=m.total_cost,
-        sense=minimize,
-    )
+    if max_production_scenario:
+        m.production_penalty = Var(bounds=(0, None), initialize=0)
+
+        @m.Constraint()
+        def eq_production_penalty(blk):
+            return blk.production_penalty == sum(
+                w * m.water_production_week[w] for w in m.weeks
+            )
+
+        m.obj = Objective(
+            expr=m.total_cost + m.production_penalty,
+            sense=minimize,
+        )
+    else:
+        m.obj = Objective(
+            expr=m.total_cost,
+            sense=minimize,
+        )
 
     # Solve model w/ ipopt (should work?)
     solver = get_solver()
@@ -552,10 +841,10 @@ if __name__ == "__main__":
     print(f"Total annual cost ($/year): {m.total_cost():.2f}")
 
     # Weekly
-    # print("Optimal weekly water production (m3/week):")
-    # for w in m.weeks:
-    #     print(
-    #         f"Week {w}: {m.water_production_week[w]():.2f} m3/week, Cost: ${m.weekly_cost[w]():.2f}, Type: {m.week_type[w]}"
-    #     )
+    print("Optimal weekly water production (m3/week):")
+    for w in m.weeks:
+        print(
+            f"Week {w}: ,{m.water_production_week[w]():.2f}, m3/week Cost: ,${m.weekly_cost[w]():.2f}, Type: {m.week_type[w]}"
+        )
 
-    plot_year(m)
+    plot_year_against_max_strat(m)
