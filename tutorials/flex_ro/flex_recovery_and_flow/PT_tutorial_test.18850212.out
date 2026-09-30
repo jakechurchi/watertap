@@ -1,0 +1,111 @@
+[NbConvertApp] Converting notebook flex_recovery_and_flow.ipynb to notebook
+Traceback (most recent call last):
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/bin/jupyter-nbconvert", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/jupyter_core/application.py", line 284, in launch_instance
+    super().launch_instance(argv=argv, **kwargs)
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/traitlets/config/application.py", line 1075, in launch_instance
+    app.start()
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 420, in start
+    self.convert_notebooks()
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 597, in convert_notebooks
+    self.convert_single_notebook(notebook_filename)
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 563, in convert_single_notebook
+    output, resources = self.export_single_notebook(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 487, in export_single_notebook
+    output, resources = self.exporter.from_filename(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 201, in from_filename
+    return self.from_file(f, resources=resources, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 220, in from_file
+    return self.from_notebook_node(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/exporters/notebook.py", line 36, in from_notebook_node
+    nb_copy, resources = super().from_notebook_node(nb, resources, **kw)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 154, in from_notebook_node
+    nb_copy, resources = self._preprocess(nb_copy, resources)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 353, in _preprocess
+    nbc, resc = preprocessor(nbc, resc)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/preprocessors/base.py", line 48, in __call__
+    return self.preprocess(nb, resources)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/preprocessors/execute.py", line 103, in preprocess
+    self.preprocess_cell(cell, resources, index)
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbconvert/preprocessors/execute.py", line 124, in preprocess_cell
+    cell = self.execute_cell(cell, index, store_history=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/rchurchi/.conda-envs/watertap-pricetaker/lib/python3.11/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import pyomo.environ as pyo
+import pandas as pd
+
+from idaes.apps.grid_integration import PriceTakerModel
+
+from watertap.flowsheets.flex_desal import flex_recovery_and_flow_flowsheet as fs
+from watertap.flowsheets.flex_desal import flex_recovery_and_flow_utils as utils
+from watertap.flowsheets.flex_desal.flex_recovery_and_flow_params import FlexDesalParams
+from watertap.core.solvers import get_solver
+solver = get_solver()
+
+
+def load_price_data(csv_path):
+    df = pd.read_csv(csv_path)
+    df["Energy Rate"] = (
+        df["electric_energy_on_peak"]
+        + df["electric_energy_mid_peak"]
+        + df["electric_energy_off_peak"]
+        + df["electric_energy_super_off_peak"]
+    )
+    df["Fixed Demand Rate"] = df["electric_demand_fixed"]
+    df["Var Demand Rate"] = df["electric_demand_peak"]
+    df["Customer Cost"] = df["electric_customer_fixed_charge"]
+    df["Demand_Response_Price"] = df["electric_demand_response_price"]
+    df["Emissions Intensity"] = 0 # Must be included, even if not tracked
+
+    peak_hours = df["Var Demand Rate"].to_numpy() != 0
+    pv_kw = df["solar_output_kW"]
+    pv_cap = max(pv_kw)
+    pv_cf = pv_kw / pv_cap
+    return df, peak_hours, pv_cap, pv_cf
+
+
+def set_price_data(csv_path):
+    # Load pricing and PV data from CSV and update globals used by model-building steps.
+    global price_data, peak_hours, pv_capacity, pv_capacity_factors
+    (
+        price_data,
+        peak_hours,
+        pv_capacity,
+        pv_capacity_factors,
+    ) = load_price_data(csv_path)
+
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mImportError[39m                               Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[2][39m[32m, line 6[39m
+[32m      2[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01mpandas[39;00m[38;5;250m [39m[38;5;28;01mas[39;00m[38;5;250m [39m[34;01mpd[39;00m
+[32m      4[39m [38;5;28;01mfrom[39;00m[38;5;250m [39m[34;01midaes[39;00m[34;01m.[39;00m[34;01mapps[39;00m[34;01m.[39;00m[34;01mgrid_integration[39;00m[38;5;250m [39m[38;5;28;01mimport[39;00m PriceTakerModel
+[32m----> [39m[32m6[39m [38;5;28;01mfrom[39;00m[38;5;250m [39m[34;01mwatertap[39;00m[34;01m.[39;00m[34;01mflowsheets[39;00m[34;01m.[39;00m[34;01mflex_desal[39;00m[38;5;250m [39m[38;5;28;01mimport[39;00m flex_recovery_and_flow_flowsheet [38;5;28;01mas[39;00m fs
+[32m      7[39m [38;5;28;01mfrom[39;00m[38;5;250m [39m[34;01mwatertap[39;00m[34;01m.[39;00m[34;01mflowsheets[39;00m[34;01m.[39;00m[34;01mflex_desal[39;00m[38;5;250m [39m[38;5;28;01mimport[39;00m flex_recovery_and_flow_utils [38;5;28;01mas[39;00m utils
+[32m      8[39m [38;5;28;01mfrom[39;00m[38;5;250m [39m[34;01mwatertap[39;00m[34;01m.[39;00m[34;01mflowsheets[39;00m[34;01m.[39;00m[34;01mflex_desal[39;00m[34;01m.[39;00m[34;01mflex_recovery_and_flow_params[39;00m[38;5;250m [39m[38;5;28;01mimport[39;00m FlexDesalParams
+
+[31mImportError[39m: cannot import name 'flex_recovery_and_flow_flowsheet' from 'watertap.flowsheets.flex_desal' (/home/rchurchi/watertap_test/watertap/watertap/flowsheets/flex_desal/__init__.py)
+

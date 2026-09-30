@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=PT_tutorial_test
 #SBATCH --account=nawianalysis
-#SBATCH --time=00:15:00
+#SBATCH --time=01:00:00
 #SBATCH --nodes=2
 #SBATCH --partition=debug
 #SBATCH -L gurobi@slurmdb:1
