@@ -176,6 +176,7 @@ _validate_piecewise_epigraph(
     ignore_first_segment=True,
 )
 
+
 _validate_piecewise_epigraph(
     WINTER_0_RAINY_WATER_PRODUCTION_M3,
     WINTER_0_RAINY_COST_USD,
