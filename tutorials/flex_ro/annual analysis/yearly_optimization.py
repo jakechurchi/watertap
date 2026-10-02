@@ -101,12 +101,89 @@ def _build_segment_lines(production_points, cost_points):
     ]
 
 
+def _validate_piecewise_epigraph(
+    production_points,
+    cost_points,
+    segment_lines,
+    dataset_name,
+    atol=1e-6,
+    ignore_first_segment=False,
+):
+    """Verify that cost >= max(segment lines) reproduces the supplied knot data.
+
+    This formulation is valid only when the piecewise-linear data are convex, so
+    the pointwise maximum of all segment lines matches the knot values.
+    """
+
+    start_segment = 1 if ignore_first_segment else 0
+    validation_lines = segment_lines[start_segment:]
+
+    slopes = [slope for slope, _ in validation_lines]
+    slope_breaks_convexity = [
+        (i + start_segment, slopes[i], slopes[i + 1])
+        for i in range(len(slopes) - 1)
+        if slopes[i] > slopes[i + 1] + atol
+    ]
+
+    knot_errors = []
+    for index, (x_coord, y_coord) in enumerate(zip(production_points, cost_points)):
+        if ignore_first_segment and index == 0:
+            continue
+        epigraph_value = max(
+            slope * x_coord + intercept for slope, intercept in validation_lines
+        )
+        error = epigraph_value - y_coord
+        if abs(error) > atol:
+            knot_errors.append((index, x_coord, y_coord, epigraph_value, error))
+
+    if slope_breaks_convexity or knot_errors:
+        details = []
+        if slope_breaks_convexity:
+            first_break = slope_breaks_convexity[0]
+            details.append(
+                "slopes are not nondecreasing "
+                f"(segment {first_break[0]}: {first_break[1]:.6f} > "
+                f"segment {first_break[0] + 1}: {first_break[2]:.6f})"
+            )
+        if knot_errors:
+            worst_error = max(knot_errors, key=lambda entry: abs(entry[4]))
+            details.append(
+                "max(segment lines) does not reproduce the knot data "
+                f"(knot {worst_error[0]} at x={worst_error[1]:.3f}: "
+                f"expected {worst_error[2]:.6f}, got {worst_error[3]:.6f}, "
+                f"error {worst_error[4]:.6f})"
+            )
+        raise ValueError(
+            f"{dataset_name} data are not valid for the current inequality-only "
+            "piecewise linearization; "
+            + "; ".join(details)
+            + ". Use a convex dataset or an exact SOS2/binary piecewise formulation."
+        )
+
+
 WINTER_0_RAINY_SEGMENT_LINES = _build_segment_lines(
     WINTER_0_RAINY_WATER_PRODUCTION_M3, WINTER_0_RAINY_COST_USD
 )
 SUMMER_0_RAINY_SEGMENT_LINES = _build_segment_lines(
     SUMMER_0_RAINY_WATER_PRODUCTION_M3, SUMMER_0_RAINY_COST_USD
 )
+
+_validate_piecewise_epigraph(
+    SUMMER_0_RAINY_WATER_PRODUCTION_M3,
+    SUMMER_0_RAINY_COST_USD,
+    SUMMER_0_RAINY_SEGMENT_LINES,
+    "SUMMER_0_RAINY",
+    ignore_first_segment=True,
+)
+
+_validate_piecewise_epigraph(
+    WINTER_0_RAINY_WATER_PRODUCTION_M3,
+    WINTER_0_RAINY_COST_USD,
+    WINTER_0_RAINY_SEGMENT_LINES,
+    "WINTER_0_RAINY",
+    ignore_first_segment=True,
+)
+
 
 # For now, I will assign a linear fit for to keep the model linear. However, a rbf surrogate could be trained and used instead.
 
@@ -170,7 +247,7 @@ def init_rainy_days(m, w):
             37,
             38,
             39,
-        ]  # Six months
+        ]  # Five months
     else:
         raise ValueError(
             "Invalid rainy_days_scenario. Choose from 'dry', 'wet', 'very wet', or 'normal'."
@@ -421,12 +498,10 @@ def _load_max_production_profile(m):
         )
 
     scenario_name = str(value(scenario_param)).strip().lower()
-    if scenario_name == "very wet":
-        scenario_name = "wet"
     if scenario_name not in {"dry", "normal", "wet"}:
         raise ValueError(
             f"Unsupported rain scenario '{value(scenario_param)}'. "
-            "Expected one of: dry, normal, wet, very wet."
+            "Expected one of: dry, normal, wet."
         )
 
     csv_path = os.path.join(
@@ -690,7 +765,7 @@ if __name__ == "__main__":
             else "winter"
         ),
     )
-    m.rainy_days_scenario = Param(initialize="wet")
+    m.rainy_days_scenario = Param(initialize="very wet")
     m.num_rainy_days = Param(
         m.weeks, initialize=lambda m, w: init_rainy_days(m, w)
     )  # Placeholder
@@ -723,10 +798,7 @@ if __name__ == "__main__":
     @m.Constraint(m.weeks, m.cost_segments)
     def eq_cost_segments(blk, w, s):
         if m.week_type[w] == "winter":
-            if m.num_rainy_days[w] == 3:
-                lines = WINTER_3_RAINY_SEGMENT_LINES
-            else:
-                lines = WINTER_0_RAINY_SEGMENT_LINES
+            lines = WINTER_0_RAINY_SEGMENT_LINES
         else:
             lines = SUMMER_0_RAINY_SEGMENT_LINES
 
@@ -738,35 +810,22 @@ if __name__ == "__main__":
 
     # Add any operational constraints
 
-    # Cumulative water production and cost
-    m.cumulative_water = Var(m.weeks, bounds=(0, None))  # m3
-    m.cumulative_cost_var = Var(m.weeks, bounds=(0, None))  # $
+    # Cumulative water production and cost, derived directly from weekly values.
+    @m.Expression(m.weeks)
+    def cumulative_water(blk, w):
+        return sum(blk.water_production_week[ww] for ww in range(1, w + 1))
 
-    @m.Constraint(m.weeks)
-    def eq_cumulative_water(blk, w):
-        if w == 1:
-            return blk.cumulative_water[w] == blk.water_production_week[w]
-        return (
-            blk.cumulative_water[w]
-            == blk.cumulative_water[w - 1] + blk.water_production_week[w]
-        )
-
-    @m.Constraint(m.weeks)
-    def eq_cumulative_cost(blk, w):
-        if w == 1:
-            return blk.cumulative_cost_var[w] == blk.weekly_cost[w]
-        return (
-            blk.cumulative_cost_var[w]
-            == blk.cumulative_cost_var[w - 1] + blk.weekly_cost[w]
-        )
+    @m.Expression(m.weeks)
+    def cumulative_cost_var(blk, w):
+        return sum(blk.weekly_cost[ww] for ww in range(1, w + 1))
 
     if max_production_scenario:
         mid_year_targets(
-            m, [13], [4159]
+            m, [0], [0]
         )  # Enforces one full production in summer months and
     else:
         mid_year_targets(
-            m, [48], [10000]
+            m, [48], [8000]
         )  # Enforces one month of shutdown by reaching target one month early
 
     # Expressions for total cost and production
@@ -781,7 +840,7 @@ if __name__ == "__main__":
     # Add constraint for total annual production
     @m.Constraint()
     def annual_production_target(blk):
-        return blk.total_annual_production == 10000 * 1233.5  # Convert AF to m3
+        return blk.total_annual_production == 8000 * 1233.5  # Convert AF to m3
 
     # Define the objective (minimize total cost)
     if max_production_scenario:
@@ -814,11 +873,13 @@ if __name__ == "__main__":
         # Remove the annual production target and maximize water output instead.
         if hasattr(m, "annual_production_target"):
             m.annual_production_target.deactivate()
+        if hasattr(m, "eq_mid_year_targets"):
+            m.eq_mid_year_targets.deactivate()
         if hasattr(m, "obj"):
             m.obj.deactivate()
         m.max_water_production = Objective(
-            expr=m.total_annual_production,
-            sense=maximize,
+            expr=10000 - m.total_annual_production,
+            sense=minimize,
         )
         results = solver.solve(m, tee=True)
         print(results.solver.termination_condition)
@@ -831,6 +892,19 @@ if __name__ == "__main__":
                 raise RuntimeError(
                     f"Equal-production constraint violated for month {month}, week {w}: {diff}"
                 )
+
+    # Check that cumulative water and cost are consistent with weekly values
+    cumulative_water_check = 0.0
+    for w in m.weeks:
+        cumulative_water_check += value(m.water_production_week[w])
+        reported_cumulative_water = value(m.cumulative_water[w])
+        diff = reported_cumulative_water - cumulative_water_check
+        if abs(diff) > 1e-6:
+            raise RuntimeError(
+                "Cumulative water profile is inconsistent with weekly production "
+                f"at week {w}: reported={reported_cumulative_water:.6f}, "
+                f"expected={cumulative_water_check:.6f}, diff={diff:.6f}"
+            )
 
     # Report the results
     # Totals
@@ -847,4 +921,5 @@ if __name__ == "__main__":
             f"Week {w}: ,{m.water_production_week[w]():.2f}, m3/week Cost: ,${m.weekly_cost[w]():.2f}, Type: {m.week_type[w]}"
         )
 
-    plot_year_against_max_strat(m)
+    # Plot the results
+    plot_year(m)
